@@ -1,0 +1,118 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Development\\CoreMedixBeta\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|c:\\development\\coremedixbeta\\coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|C:\\Development\\CoreMedixBeta\\coremedixbeta\\repositories\\chatbotrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\repositories\\chatbotrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|C:\\Development\\CoreMedixBeta\\coremedixbeta\\service\\aiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\service\\aiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|C:\\Development\\CoreMedixBeta\\coremedixbeta\\cssmodels\\chatbot\\chatbot.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\cssmodels\\chatbot\\chatbot.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|C:\\Development\\CoreMedixBeta\\coremedixbeta\\controllers\\chatbotcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\controllers\\chatbotcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|C:\\Development\\CoreMedixBeta\\coremedixbeta\\jsmodels\\chatbot\\chatbot.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\jsmodels\\chatbot\\chatbot.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "chatbot.css",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\CSSModels\\ChatBot\\chatbot.css",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\CSSModels\\ChatBot\\chatbot.css",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\CSSModels\\ChatBot\\chatbot.css",
+              "RelativeToolTip": "CoreMedixBeta\\CSSModels\\ChatBot\\chatbot.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-09-30T06:33:37.516Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AIService.cs",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Service\\AIService.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Service\\AIService.cs",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Service\\AIService.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Service\\AIService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-30T04:53:42.362Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ChatbotRepository.cs",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Repositories\\ChatbotRepository.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Repositories\\ChatbotRepository.cs",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Repositories\\ChatbotRepository.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Repositories\\ChatbotRepository.cs",
+              "ViewState": "AgIAAKsDAAAAAAAAAAA3wLoDAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-30T04:52:43.669Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ChatbotController.cs",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Controllers\\ChatbotController.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Controllers\\ChatbotController.cs",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Controllers\\ChatbotController.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Controllers\\ChatbotController.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAowB4AAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-30T04:51:32.102Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAPMAAAAAAAAAAAAwwAIBAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-29T12:32:57.683Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "chatbot.js",
+              "DocumentMoniker": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\JSModels\\ChatBot\\chatbot.js",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\JSModels\\ChatBot\\chatbot.js",
+              "ToolTip": "C:\\Development\\CoreMedixBeta\\CoreMedixBeta\\JSModels\\ChatBot\\chatbot.js",
+              "RelativeToolTip": "CoreMedixBeta\\JSModels\\ChatBot\\chatbot.js",
+              "ViewState": "AgIAAGsAAAAAAAAAAAAAwJgAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-29T12:30:42.541Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

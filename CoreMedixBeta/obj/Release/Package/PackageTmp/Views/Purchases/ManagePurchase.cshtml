@@ -1,0 +1,542 @@
+﻿@{
+    ViewBag.Title = "ManagePurchase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using CoreMedixBeta.Models.PurchaseOrders.DTOs
+@using CoreMedixBeta.Models.Purchases.DTOs
+@model CoreMedixBeta.Models.PurchaseOrders.ManagePurchaseVM
+@{
+
+    GetDetailedPurchaseOrderOutputDto DetailedOrder = Model.DetailedOrder;
+    PurchseDetailsDto Purchase = Model != null && Model.Purchase != null ? Model.Purchase.Purchase : null;
+    List<PurchasePaymentsDto> Payments = Purchase != null && Model.Purchase.PurcahsePayments != null ? Model.Purchase.PurcahsePayments : null;
+    List<PurchaseItemsDto> PurchaseItems = Purchase != null && Model.Purchase.PurchaseItems != null ? Model.Purchase.PurchaseItems : null;
+
+    bool isUpdate = Purchase != null && Purchase.ID > 0;
+}
+@section Styles
+{
+    <link href="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/CSSModels/ManagePurchase.css" rel="stylesheet" />
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Purchase Information</h3>
+    </div>
+    <div class="card-body">
+        <form id="purchaseOrderForm">
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    <div class="form-group">
+                        <label class="mb-1">Supplier</label>
+                        <input class="form-control" readonly placeholder="PO-XXXXXX" value="@DetailedOrder.Order.SupplierName" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Reference No</label>
+                        <input class="form-control" readonly placeholder="PO-XXXXXX" value="@DetailedOrder.Order.ReferenceNo" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Purchase Status</label>
+                        <input class="form-control" readonly placeholder="Status" value="@DetailedOrder.Order.Status" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Purchase Receiving Date<span class="required">*</span></label>
+                        <input type="text" class="form-control js-date-picker" name="PurchaseReceivedAt"
+                               value="@(isUpdate ? Purchase.PurchaseReceivedAt.ToString("MM/dd/yyyy") : "")"
+                               placeholder="Select a date" required />
+                    </div>
+                </div>
+                <input type="hidden" name="ID" value="@(Model.PurchaseID > 0 ? Purchase.ID : 0)" />
+                <input type="hidden" name="PurchaseOrderID" value="@Model.PurchaseOrderID" required />
+                @*<input type="hidden" name="CreatedBy" value="@user.Username" required />
+                    <input type="hidden" name="LastModifiedBy" value="@user.Username" required />
+                    <input type="hidden" name="LocationID" value="@user.LocationID" required />
+                    <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+                <input type="hidden" name="PurchaseDateInCaseOfUpdate" value="@Purchase.PurchaseReceivedAt" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Items List</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive w-100">
+            <table class="table table-hover table-bordered table-striped w-100" id="purchaseItemsTable">
+                <thead style="background-color:darkgray">
+                    <tr>
+                        <th class="cutom-th">Name</th>
+                        <th class="cutom-th" style="width:10% !important">Qty</th>
+                        <th class="cutom-th" style="width:10% !important">Bonus Qty</th>
+                        <th class="cutom-th" style="width:10% !important">Total Qty</th>
+                        <th class="cutom-th" style="width:10% !important">Unit Cost</th>
+                        <th class="cutom-th" style="width:10% !important">Unit Cost(Inc.Tax)</th>
+                        <th class="cutom-th" style="width:15% !important">Line Total</th>
+                        <th class="cutom-th" style="width:5% !important"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isUpdate)
+                    {
+                        foreach (var item in PurchaseItems)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>
+                                    <input type="hidden" name="ItemID" value="@item.ItemID">
+                                    <input type="hidden" name="VariationID" value="@item.VariationID">
+                                    <input type="number" class="form-control" min="0" name="Qty" placeholder="Enter Quantity" value="@item.Qty">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" min="0" style="width:100%" name="BonusQty" placeholder="Enter Bonus Qty" value="@item.BonusQty">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" min="0" style="width:100%" name="BonusQty" placeholder="Enter Bonus Qty" value="@item.BonusQty">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" name="UnitCost" value="@item.UnitCost" readonly>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="ItemTax" value="@item.ItemTax">
+                                    <input type="hidden" name="UnitCostBefore" value="@item.UnitCost">
+                                    <input type="text" class="form-control" name="UnitCostWithTax" value="@item.UnitCostWithTax" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" style="width:100%" name="LineTotal" value="@item.LineTotal" readonly>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        foreach (var item in DetailedOrder.OrderItems)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>
+                                    <input type="hidden" name="ItemID" value="@item.ItemID">
+                                    <input type="hidden" name="VariationID" value="@item.VariationID">
+                                    <input type="number" class="form-control" min="0" name="Qty" placeholder="Enter Quantity" value="@item.Qty">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" min="0" name="BonusQty" placeholder="Enter Bonus Qty" value="0">
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" min="0" name="TotalQty" value="@item.Qty" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" name="UnitCost" value="@item.UnitCost" readonly>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="ItemTax" value="@((item.UnitCostWithTax - item.UnitCost).ToString("N2"))">
+                                    <input type="hidden" name="UnitCostBefore" value="@item.UnitCost">
+                                    <input type="text" class="form-control" style="width:100%" name="UnitCostWithTax" value="@item.UnitCostWithTax" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" style="width:100%" name="LineTotal" value="@item.LineTotal" readonly>
+                                </td>
+                                <td>
+                                    <button class="btn btn-default btn-sm js-edit" title="Edit" data-id="@item.VariationID" data-toggle="tooltip">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            Payment Details
+        </h3>
+    </div>
+    <div class="card-body">
+        @* Sub Total, Discount Type, Discount *@
+        <form id="purchaseCalculationsForm">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Subtotal</label>
+                        <input type="text" name="SubTotal" value="@(Purchase.SubTotal> 0 ? Purchase.SubTotal : 0)" class="form-control" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="DiscountType" style="white-space:nowrap">Discount Type</label>
+                        <select class="form-control js-discount-type" name="DiscountType">
+                            <option value="value" @(isUpdate && Purchase.DiscountType == "value" ? "selected" : "")>Value</option>
+                            <option value="percentage" @(isUpdate && Purchase.DiscountType == "percentage" ? "selected" : "")>Percentage</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="">Discount</label>
+                        <input type="number" class="form-control" name="DiscountAmount" value="@(isUpdate && Purchase.DiscountAmount > 0 ? Purchase.DiscountAmount : 0)" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Subtotal Incl Discount</label>
+                        <input type="number" class="form-control" name="SubtotalAfterDiscount" min="0" value="@(isUpdate && Purchase.SubTotalAfterDiscount > 0 ? Purchase.SubTotalAfterDiscount : 0)" readonly />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Tax</label>
+                        <select class="form-control js-select2" name="TaxID">
+                            <option value="0">Select Sales Tax</option>
+                            @if (Model.Taxes != null && Model.Taxes.Count > 0)
+                            {
+                                foreach (var item in Model.Taxes)
+                                {
+                                    <option value="@item.ID" @(isUpdate && Purchase.TaxID == item.ID ? "selected" : "") data-percentage="@item.Percentage">
+                                        @item.Title
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Subtotal Incl Tax</label>
+                        <input type="number" class="form-control" name="SubtotalAfterTax" value="@(isUpdate && Purchase.SubtotalAfterTax > 0 ? Purchase.SubtotalAfterTax : 0)" readonly />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Paid</label>
+                        <input type="number" class="form-control" name="PaidAmount" value="@(isUpdate && Purchase.PaidAmount > 0 ? Purchase.PaidAmount : 0)" readonly />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="mb-1">Due Amount</label>
+                        <input type="number" class="form-control" name="RemainingAmount" value="@(isUpdate && Purchase.RemainingAmount > 0 ? Purchase.RemainingAmount : 0)" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="mb-1">Shipping Details</label>
+                        <textarea rows="1" class="form-control" name="ShippingDetails" placeholder="Shipping Details...">@(isUpdate ? Purchase.ShippingDetails : "")@Purchase.ShippingDetails</textarea>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="mb-1">Additional Notes</label>
+                        <textarea rows="1" class="form-control" name="AdditionalNotes" placeholder="Type here...">@(isUpdate ? Purchase.AdditionalNotes : "")@Purchase.AdditionalNotes</textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="card-header pl-0 pr-2 pt-0">
+            @*<h3 class="card-title font-weight-bold">Payment Details</h3>*@
+            <div class="card-tools">
+                <button class="btn btn-primary-custom" id="addPaymentBtn">Add Payment</button>
+            </div>
+        </div>
+
+        @* Add payment details *@
+        <div class="card-body px-0">
+            <table class="table table-striped table-hover" id="paymentItemsTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width:20% !important">Date</th>
+                        <th style="width:20% !important">Amount</th>
+                        <th style="width:25% !important">Mode</th>
+                        <th style="width:25% !important">Attachement</th>
+                        <th style="width:10% !important">Action</th>
+                    </tr>
+                    <tr>
+                </thead>
+                <tbody>
+                    @if (Purchase != null && isUpdate)
+                    {
+                        if (Payments != null && Payments.Count > 0)
+                        {
+                            foreach (var item in Payments)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="text" class="form-control js-datepicker" value="@item.Date" name="Date" placeholder="Enter date" />
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control" name="PaidAmount" value="@item.PaidAmount" placeholder="Enter amount" />
+                                    </td>
+                                    <td>
+                                        <select class="form-control" name="PaymentMode">
+                                            <option value="@item.PaymentMode" @(item.PaymentMode == "Cash" ? "selected" : "")>Cash</option>
+                                            <option value="JazzCash" @(item.PaymentMode == "JazzCash" ? "selected" : "")>JazzCash</option>
+                                            <option value="EasyPaisa" @(item.PaymentMode == "EasyPaisa" ? "selected" : "")>EasyPaisa</option>
+                                            <option value="Card" @(item.PaymentMode == "Card" ? "selected" : "")>Card</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="file" class="form-control js-attachment" name="Attachment" />
+                                        <input type="hidden" class="js-attachment-url" name="AttachmentURL" value="@item.AttachmentURL" />
+                                    </td>
+                                    <td class="actions-td">
+                                        @if (!string.IsNullOrEmpty(item.AttachmentURL))
+                                        {
+                                            <button class="btn btn-secondary text-white btn-sm tip js-view-img-btn"
+                                                    title="View Image" type="button">
+                                                <i class="fa fa-eye text-white"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-danger btn-sm tip js-delete mt-1" title="Delete Payment" type="button">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row d-flex justify-content-end">
+            <div class="col-5 d-flex justify-content-between">
+                <button type="button" id="savePurchaseBtn" class="btn btn-block btn-success float-right mr-1 mt-0" @(isUpdate ? "" : "disabled")>
+                    <i class="far fa-credit-card"></i> Save Purchase
+                </button>
+                <button type="button" id="saveAndPrintPurchaseBtn" class="btn btn-block btn-primary-custom ml-2 mt-0" disabled>
+                    Save & Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addVariationModal" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title js-modal-title">Update Variation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <input type="hidden" value="0" name="ID" />
+                    <input type="hidden" name="ItemID" value="" />
+                    @*<input type="hidden" name="CreatedBy" value="@user.Username" required />
+                        <input type="hidden" name="LastModifiedBy" value="@user.Username" required />*@
+                    <div class="row">
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label for="itemUPC">UPC (Scan Barcode)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Enter UPC">
+                                    <div class="input-group-append">
+                                        <button type="button" id="generateBarcodeBtn" class="btn btn-outline-primary">
+                                            <i class="fas fa-barcode"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Variation Name</label>
+                                <input type="text" class="form-control" name="VariationName" placeholder="Variation Name">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label for="itemSKU">SKU</label>
+                                <input type="number" class="form-control" id="itemSKU" name="SKU" placeholder="Enter SKU">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label for="itemUnit">Formation</label>
+                                <div class="input-group">
+                                    <select class="form-control" name="FormationID"></select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-success js-add-property-btn" type="button" data-type="Formation">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label for="Weight">Weight</label>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="number" id="Weight" name="Weight" class="form-control" style="width: 60%;" placeholder="Enter weight" />
+                                    <select name="WeightUnitID" class="form-control" style="width: 40%;"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Opening Stock (Qty)</label>
+                                <input type="number" class="form-control" name="OpeningStock" placeholder="Enter opening stock">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Opening Stock Rate</label>
+                                <input type="number" class="form-control" name="OpeningStockRate" placeholder="Enter opening stock rate">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>No. of Items/Pills in Pack</label>
+                                <input type="number" class="form-control" name="NoOfPillsInPack" placeholder="Enter No. of Pills in Pack">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Selling Price</label>
+                                <input type="number" class="form-control" name="SellingPrice" placeholder="Enter selling price">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-group">
+                                <label>Cost Price</label>
+                                <input type="number" class="form-control" name="CostPrice" placeholder="Enter cost price">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Reorder Point</label>
+                                <input type="number" class="form-control" name="ReorderPoint" placeholder="Enter reorder point">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4">
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="text" class="form-control js-date-picker" name="ExpiryDate" placeholder="Enter Expiry Date">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <div class="input-group">
+                                    <select class="form-control" name="CategoryID"></select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-success js-add-property-btn" type="button" data-type="Category">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Sub Category</label>
+                                <div class="input-group">
+                                    <select class="form-control" name="SubCategoryID"></select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-success js-add-property-btn" type="button" data-type="Subcategory">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <div class="input-group">
+                                    <select class="form-control" name="UnitID"></select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-success js-add-property-btn" type="button" data-type="Unit">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Batch No#</label>
+                                <input type="text" class="form-control" name="Batch" placeholder="Enter reorder point">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Margin %</label>
+                                <input type="number" class="form-control" name="Margin" placeholder="Enter MRP">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Tax %</label>
+                                <input type="number" class="form-control" name="Tax" placeholder="Enter Item Tax">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-4 d-none">
+                            <div class="form-group">
+                                <label>Search Alternates Items</label>
+                                <input type="text" class="form-control" name="SearchAlternate" placeholder="Search Alternate Items">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-8 d-none">
+                            <div class="form-group">
+                                <label>Alternates Items</label>
+                                <select class="form-control" name="AlternateItems" multiple="multiple"></select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-save-btn">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+     var printPurchaseUrl = '@Url.Action("PrintPurchase", "Print")';
+        var GetVariationByIDUrl = '@Url.Action("GetVariationByID", "InventoryItems")';
+        var SaveItemVariationUrl = '@Url.Action("SaveItemVariation", "InventoryItems")';
+        var SavePurchaseUrl = '@Url.Action("SavePurchase", "Purchases")';
+        var PurchaseOrdersUrl = '@Url.Action("PurchaseOrders", "Purchases")';
+
+    </script>
+    <script src="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/panel-assets/plugins/photoviewer/photoviewer.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jquery-validation/additional-methods.js"></script>
+    <script src="~/JSModels/PurchaseOrders/managePurchase.js"></script>
+}

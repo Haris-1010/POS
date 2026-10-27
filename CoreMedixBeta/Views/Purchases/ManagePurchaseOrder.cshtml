@@ -1,0 +1,382 @@
+@{
+    ViewBag.Title = "ManagePurchaseOrder";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using CoreMedixBeta.Models.PurchaseOrders
+@using CoreMedixBeta.Models.PurchaseOrders.DTOs
+@model CoreMedixBeta.Models.PurchaseOrders.ManagePurchaseOrderVM
+@{
+    PurchaseOrderDto Order = Model != null && Model.DetailedOrder != null ? Model.DetailedOrder.Order : null;
+    List<PurchaseOrderItem> OrderItems = Order != null && Model.DetailedOrder.OrderItems != null ? Model.DetailedOrder.OrderItems : null;
+
+    bool isUpdate = Order != null && Order.ID > 0;
+}
+@section Styles
+{
+    <link href="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/CSSModels/ManagePurchase.css" rel="stylesheet" />
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Purchase Information</h3>
+    </div>
+    <div class="card-body">
+        <form id="purchaseOrderForm">
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">Supplier<span class="required">*</span></label>
+                        <select class="form-control js-select2" name="SupplierID" required>
+                            <option value="">Choose Supplier</option>
+                            @if (Model != null && Model.Suppliers != null && Model.Suppliers.Count > 0)
+                            {
+                                foreach (var Supplier in Model.Suppliers)
+                                {
+                                    <option value="@Supplier.ID" @(isUpdate && Order.SupplierID == Supplier.ID ? "selected" : "")>
+                                        @Supplier.Name
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No suppliers available</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Reference Number -->
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Reference No<span class="required">*</span></label>
+                        <input class="form-control" name="ReferenceNo"
+                               required placeholder="PO-XXXXXX"
+                               value="@(isUpdate ? Order.ReferenceNo : Model.ReferenceNo)" readonly />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Purchase Date<span class="required">*</span></label>
+                        <input type="text" class="form-control js-date-picker" name="OrderDate"
+                               value="@(isUpdate ? Order.OrderDate.ToString("MM/dd/yyyy") : "")"
+                               placeholder="@(isUpdate ? "" : "Select a date")" required />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Purchase Status<span class="required">*</span></label>
+                        <select class="form-control js-select2" name="Status" required>
+                            <option value="Pending" @(isUpdate && Order.Status == "Pending" ? "selected" : "")>Pending</option>
+                            <option value="Received" @(isUpdate && Order.Status == "Received" ? "selected" : "")>Received</option>
+                            <option value="Ordered" @(isUpdate && Order.Status == "Ordered" ? "selected" : "")>Ordered</option>
+                        </select>
+                    </div>
+                </div>
+                @*<div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Business Location<span class="required">*</span></label>
+                            <select class="form-control js-select2" name="BusinessLocation" required>
+                                <option value="">Choose Location</option>
+                                @foreach (var location in user.PracticeLocations)
+                                {
+                                    <option value="@location.ID" @(isUpdate && location.ID == Order.BusinessLocation ? "selected" : "")>
+                                        @location.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>*@
+
+                <input type="hidden" name="ID" value="@(Model.PurchaseOrderID > 0 ? Order.ID : 0)" />
+                @*<input type="hidden" name="CreatedBy" value="@user.Username" required />
+                    <input type="hidden" name="LastModifiedBy" value="@user.Username" required />
+                    <input type="hidden" name="LocationID" value="@user.LocationID" required />
+                    <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+                <input type="hidden" name="PurchaseDateInCaseOfUpdate" value="@Order.OrderDate" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+            <p class="m-0">Find and add items or variations to the purchase seamlessly.</p>
+            <div>
+                <button type="button" class="btn btn-outline-primary btn-sm js-bulk-items-btn">
+                    <i class="fas fa-list"></i> Add Multiple Items
+                </button>
+                <button type="button" class="btn btn-outline-success btn-sm ml-1 js-import-po-items-btn">
+                    <i class="fas fa-file-import"></i> Import from Excel
+                </button>
+            </div>
+        </div>
+        <form id="itemSearchForm">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="form-group m-0">
+                        <label>Search By</label>
+                        <select class="form-control" name="SearchType">
+                            <option value="" selected>All</option>
+                            <option value="Item">Item</option>
+                            <option value="Variation">Variation</option>
+                            <option value="Salt">Generic</option>
+                            <option value="Alternate">Alternate</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label for="">Manufacturer</label>
+                    <select class="form-control js-select2" name="ManufacturerID" required>
+                        <option value="0">Choose Manufacturer</option>
+                        @if (Model != null && Model.Manufacturers != null && Model.Manufacturers.Count > 0)
+                        {
+                            foreach (var Manufacturers in Model.Manufacturers)
+                            {
+                                <option value="@Manufacturers.ID">@Manufacturers.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group m-0">
+                        <label>Search Item</label>
+                        <input type="text" value="" name="SearchItem" autocomplete="off" class="form-control js-search-item" required placeholder="Eg: Panadol" />
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-2 col-sm-6">
+                    <label>Near To Finish</label>
+                    <br>
+                    <div class="checkbox-wrapper-7">
+                        <input class="tgl tgl-ios js-switch" id="NearToFinish" name="NearToFinish" type="checkbox" />
+                        <label class="tgl-btn" for="NearToFinish"></label>
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label>Near To Expire</label>
+                    <br>
+                    <div class="checkbox-wrapper-7">
+                        <input class="tgl tgl-ios js-switch" id="NearToExpire" name="NearToExpire" type="checkbox" />
+                        <label class="tgl-btn" for="NearToExpire"></label>
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label>Finished</label>
+                    <br>
+                    <div class="checkbox-wrapper-7">
+                        <input class="tgl tgl-ios js-switch" id="Finished" name="Finished" type="checkbox" />
+                        <label class="tgl-btn" for="Finished"></label>
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label>Expired</label>
+                    <br>
+                    <div class="checkbox-wrapper-7">
+                        <input class="tgl tgl-ios js-switch" id="Expired" name="Expired" type="checkbox" />
+                        <label class="tgl-btn" for="Expired"></label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive w-100">
+            <table class="table table-hover table-bordered table-striped w-100" id="purchaseItemsTable">
+                <thead style="background-color:var(--cm-surface-alt)">
+                    <tr>
+                        <th class="cutom-th">Name</th>
+                        <th class="cutom-th" style="width:15% !important">Qty</th>
+                        <th class="cutom-th" style="width:15% !important">Unit Cost</th>
+                        <th class="cutom-th" style="width:15% !important">Unit Cost(Inc.Tax)</th>
+                        <th class="cutom-th" style="width:15% !important">Line Total</th>
+                        <th class="cutom-th" style="width:5% !important"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isUpdate && OrderItems != null && OrderItems.Count > 0)
+                    {
+                        foreach (var item in OrderItems)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>
+                                    <input type="hidden" name="ItemID" value="@item.ItemID">
+                                    <input type="hidden" name="VariationID" value="@item.VariationID">
+                                    <input type="number" class="form-control" name="Qty" min="0" placeholder="Enter Quantity" value="@item.Qty">
+                                </td>
+                                <td>@item.UnitCost</td>
+                                <td>
+                                    <input type="text" class="form-control" style="width:100%" name="UnitCostWithTax" value="@item.UnitCostWithTax" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" style="width:100%" name="LineTotal" value="@item.LineTotal" readonly>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm tip js-remove-item-btn" title="Delete Item" type="button">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="row justify-content-end">
+            <div class="col-2">
+                <label>SubTotal</label>
+                <input type="number" class="form-control" id="subTotal" min="0" readonly placeholder="SubTotal" value="@Model.DetailedOrder.Order.SubTotal">
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row d-flex justify-content-end">
+            <div class="col-6 d-flex justify-content-between">
+                <button type="button" id="savePurchaseBtn" class="btn btn-block btn-success float-right mr-1 mt-0" @(isUpdate ? "" : "disabled")>
+                    <i class="far fa-credit-card"></i> Save Purchase Order
+                </button>
+                <button type="button" id="saveAndPrintPurchaseBtn" class="btn btn-block btn-primary-custom ml-2 mt-0" disabled>
+                    Save & Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Multiple Items Modal -->
+<div class="modal fade" id="bulkItemsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title font-weight-bold">Add Multiple Items</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <label class="mb-1">Search</label>
+                        <input type="text" class="form-control js-bulk-items-search" autocomplete="off" placeholder="Item / Variation / SKU / Unique ID" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="mb-1">Manufacturer</label>
+                        <select class="form-control js-bulk-items-manufacturer">
+                            <option value="0">All Manufacturers</option>
+                            @if (Model != null && Model.Manufacturers != null && Model.Manufacturers.Count > 0)
+                            {
+                                foreach (var bulkManufacturer in Model.Manufacturers)
+                                {
+                                    <option value="@bulkManufacturer.ID">@bulkManufacturer.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary-custom btn-block js-load-bulk-items-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height:340px; overflow:auto;">
+                    <table class="table table-sm table-hover table-bordered mb-0" id="bulkItemsTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th style="width:30px;"><input type="checkbox" class="js-select-all-bulk-items" title="Select all"></th>
+                                <th>Item</th>
+                                <th>Variation</th>
+                                <th>Stock</th>
+                                <th>Cost Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="text-center text-muted">Press Search to load items</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-white">
+                <span class="mr-auto text-muted js-bulk-selected-count">0 selected</span>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-add-selected-items-btn" disabled>
+                    <i class="fas fa-plus"></i> Add Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Items From Excel Modal -->
+<div class="modal fade" id="importPoItemsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title font-weight-bold">Import Items into Purchase Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 1. Download Template</label>
+                        <p class="text-muted" style="font-size:.85rem;">
+                            Fill the template in Excel. Use <strong>Unique ID</strong> or <strong>Item Name + Variation Name</strong> to identify a row.
+                        </p>
+                        <button type="button" class="btn btn-outline-primary js-download-po-template-btn">
+                            <i class="fas fa-download"></i> Download Template
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 2. Choose File</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input js-po-import-file-input" accept=".xlsx,.xls,.csv" id="poImportFile">
+                            <label class="custom-file-label" for="poImportFile">Choose file...</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="js-po-import-preview mt-3" style="display:none;">
+                    <label class="font-weight-bold">Step 3. Confirm (<span class="js-po-preview-count">0</span> rows found)</label>
+                    <div class="table-responsive" style="max-height:220px; overflow:auto;">
+                        <table class="table table-sm table-bordered mb-0" id="poImportPreviewTable">
+                            <thead class="bg-light"></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="js-po-import-result alert alert-info mt-3 mb-0" style="display:none;"></div>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-run-po-import-btn" disabled>
+                    <i class="fas fa-file-import"></i> Add to Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+
+        var InventoryItemsUrl = '@Url.Action("SearchItems", "InventoryItems")';
+        var getBulkItemsUrl = '@Url.Action("GetBulkItems", "InventoryItems")';
+        var resolveBulkItemsUrl = '@Url.Action("ResolveBulkItems", "InventoryItems")';
+        var SavePurchaseOrderUrl = '@Url.Action("SavePurchaseOrder", "Purchases")';
+        var PurchaseOrdersUrl = '@Url.Action("PurchaseOrders", "Purchases")';
+        var printPurchaseOrderUrl = '@Url.Action("PrintPurchaseOrder", "Print")';
+
+
+    </script>
+    <script src="~/ReplacementPaths/SheetJS/xlsx.full.min.js"></script>
+    <script src="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jquery-validation/additional-methods.js"></script>
+    <script src="~/JSModels/PurchaseOrders/managePurchaseOrder.js"></script>
+}

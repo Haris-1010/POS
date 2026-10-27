@@ -1,0 +1,245 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Haris Dev\\Pharmacy\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|d:\\haris dev\\pharmacy\\coremedixbeta\\controllers\\brandingscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\controllers\\brandingscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\dashboard\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\dashboard\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\controllers\\patientcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\controllers\\patientcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\patient\\patients.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\patient\\patients.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\sales\\saleinvoices.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\sales\\saleinvoices.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\views\\reports\\reportsgroup.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\reports\\reportsgroup.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\database\\auth_tables.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\database\\auth_tables.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\controllers\\dashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\controllers\\dashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\global.asax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\global.asax.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|D:\\Haris Dev\\Pharmacy\\coremedixbeta\\jsmodels\\patients\\patient.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\jsmodels\\patients\\patient.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Dashboard.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\DashBoard\\Dashboard.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\DashBoard\\Dashboard.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\DashBoard\\Dashboard.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\DashBoard\\Dashboard.cshtml",
+              "ViewState": "AgIAAGUCAAAAAAAAAAAwwGkCAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-09-29T17:56:03.674Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BrandingsController.cs",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\BrandingsController.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Controllers\\BrandingsController.cs",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\BrandingsController.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Controllers\\BrandingsController.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAQwCkAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-06T05:43:42.1Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PatientController.cs",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\PatientController.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Controllers\\PatientController.cs",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\PatientController.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Controllers\\PatientController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAcwAQAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T07:15:38.138Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SaleInvoices.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Sales\\SaleInvoices.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Sales\\SaleInvoices.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Sales\\SaleInvoices.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Sales\\SaleInvoices.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-06T04:27:47.803Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ReportsGroup.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Reports\\ReportsGroup.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Reports\\ReportsGroup.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Reports\\ReportsGroup.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Reports\\ReportsGroup.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-06T04:25:21.047Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAADsAAAAAAAAAAAAiwEoAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-16T06:37:43.57Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Account\\Login.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAgAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-05T16:35:00.058Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Patients.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Patient\\Patients.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Patient\\Patients.cshtml",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Views\\Patient\\Patients.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Patient\\Patients.cshtml",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAACAAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-16T05:58:16.48Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Controllers\\AccountController.cs",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAAN8AAAAAAAAAAADwv8sAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-05T15:58:05.776Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Auth_Tables.sql ",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Database\\Auth_Tables.sql",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Database\\Auth_Tables.sql",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Database\\Auth_Tables.sql",
+              "RelativeToolTip": "CoreMedixBeta\\Database\\Auth_Tables.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-08-05T15:55:44.637Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Web.config",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Web.config",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Web.config",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Web.config",
+              "RelativeToolTip": "CoreMedixBeta\\Web.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2026-08-05T16:05:50.836Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "DashBoardController.cs",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\DashBoardController.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Controllers\\DashBoardController.cs",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Controllers\\DashBoardController.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Controllers\\DashBoardController.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAAAB8AAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-05T16:08:21.846Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Global.asax.cs",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Global.asax.cs",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Global.asax.cs",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\Global.asax.cs",
+              "RelativeToolTip": "CoreMedixBeta\\Global.asax.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAxwBoAAABRAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-05T16:22:36.604Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Patient.js",
+              "DocumentMoniker": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\JSModels\\Patients\\Patient.js",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\JSModels\\Patients\\Patient.js",
+              "ToolTip": "D:\\Haris Dev\\Pharmacy\\CoreMedixBeta\\JSModels\\Patients\\Patient.js",
+              "RelativeToolTip": "CoreMedixBeta\\JSModels\\Patients\\Patient.js",
+              "ViewState": "AgIAAHABAAAAAAAAAAAAAB8BAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-05-16T05:58:38.239Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Haris Dev\\CoreMedixBetaFFJ\\CoreMedixBetaFFJ\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|d:\\haris dev\\coremedixbetaffj\\coremedixbetaffj\\coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}|CoreMedixBeta\\CoreMedixBeta.csproj|solutionrelative:coremedixbeta\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\Haris Dev\\CoreMedixBetaFFJ\\CoreMedixBetaFFJ\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\Haris Dev\\CoreMedixBetaFFJ\\CoreMedixBetaFFJ\\CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "CoreMedixBeta\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAA8BAAAAAAAAAAAAABoBAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-10-04T14:00:16.716Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

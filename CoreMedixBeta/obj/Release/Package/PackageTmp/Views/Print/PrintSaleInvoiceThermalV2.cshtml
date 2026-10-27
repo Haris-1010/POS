@@ -1,0 +1,323 @@
+﻿@{
+    ViewBag.Title = "PrintSaleInvoiceThermalV2";
+    Layout = null;
+}
+
+@using CoreMedixBeta.Models.Brandings
+@using CoreMedixBeta.Models.Sales.DTOs;
+@model CoreMedixBeta.Models.Sales.PrintSaleInvoiceVM
+@{
+    SaleInvoiceDto Invoice = Model.InvoiceDetail.Invoice;
+    List<SaleInvoiceItemsDto>
+    InvoiceItems = Model.InvoiceDetail.InvoiceItems;
+    SaleInvoiceFinancialsDto Financials = Model.InvoiceDetail.InvoiceFinancials;
+    PrintBranding branding = Model.Branding;
+    bool isBranding = Model.Branding != null && Model.Branding.ID > 0;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>@ViewBag.Title</title>
+    <link media="print" href="~/print-css/bootstrapPrint.min.css" rel="stylesheet" />
+    <link href="~/print-css/bootstrap.css" media="screen" rel="stylesheet" />
+    <link rel="icon" href="~/assets/AdminLTE/dist/img/heart-logo.png">
+    @*
+        <link rel="stylesheet" href="~/assets/AdminLTE/dist/css/adminlte.min.css">*@
+    <style>
+        body {
+            color: black;
+            font-family: monaco, Consolas, Lucida Console, monospace !important;
+        }
+
+        * {
+            margin: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        .footer, .push {
+            height: 155px;
+        }
+
+        .footer {
+            position: fixed;
+            height: 120px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            margin-bottom: 0px;
+        }
+
+        .noborder {
+            border: none !important;
+        }
+    </style>
+    <style>
+
+        p, label, td, th {
+            font-family: monaco, Consolas, Lucida Console, monospace !important;
+            font-size: 12px;
+            font-style: normal;
+            font-variant: normal;
+            font-weight: 400;
+            line-height: 15px;
+        }
+    </style>
+    <style>
+        .displayInline {
+            display: flex;
+        }
+    </style>
+    <style media="print">
+        @@page {
+            size: 80mm auto;
+            margin: 5mm 0.5mm 5mm 0.5mm; /* Top/Bottom, Left/Right */
+        }
+
+        body {
+            color: black;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            /*border-collapse: collapse;*/
+        }
+
+        th, td {
+            /*padding: 4px 6px;*/
+            font-size: 12px;
+            /*border-bottom: 1px solid #ccc;*/
+        }
+
+        h4, p, label {
+            font-size: 12px;
+            margin: 0 0 0px 0;
+        }
+
+        .displayInline {
+            display: flex;
+            justify-content: space-between;
+            /*margin: 2px 0;*/
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        /* Hide buttons or interactive elements when printing */
+        .no-print {
+            display: none !important;
+        }
+
+        .table > thead > tr > th {
+            vertical-align: bottom;
+            border-block: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h4 class="text-bold col-xs-12 text-center">Sale Invoice</h4>
+
+        <div class="col-xs-12 text-center">
+            <center>
+                <img class="img-responsive"
+                     src="@(isBranding && !string.IsNullOrWhiteSpace(branding.Logo) ? branding.Logo : " ")"
+                     width="100" />
+            </center>
+            <h4 class="font-weight-bloder"><strong>@(isBranding && !string.IsNullOrWhiteSpace(branding.BusinessName) ? branding.BusinessName : "")</strong></h4>
+            <p class=" font-weight-blod">PH:@Model.Branding.BusinessPhone</p>
+            @foreach (var field in Model.PrintBrandingCustomFieldsList)
+            {
+                <p class=""><b>@field.FieldName:</b> @field.FieldValue</p>
+            }
+            @*<p class=" font-weight-blod">LIC:05-345-0094-03949P</p>*@
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <p>
+                    @branding.HeaderText
+                </p>
+            </div>
+        </div>
+        <div class="row"></div>
+        <div style="display: flex; justify-content:space-between;">
+            <p style="margin:0px"><b>No:</b> @Invoice.InvoiceNo</p>
+            <p style="margin-right:5px">@Invoice.InvoiceDateFormated</p>
+        </div>
+        <div>
+            <p style="margin:0px" class=" font-weight-blod"><b>M/s:</b>@Model.InvoiceDetail.Customer.Name</p>
+        </div>
+
+        <p>
+            <b>Remarks:</b> @(string.IsNullOrEmpty(Invoice.Remarks) ? "" : Invoice.Remarks)
+            @if (!string.IsNullOrEmpty(Invoice.ReferredByName))
+            {
+            <p>
+                <b>Ref:</b> @Invoice.ReferredByName
+            </p>
+        }
+
+            <div class="row">
+                <div class="col-xs-12" style="padding-left: 6px;">
+                    <table class="table">
+                        <thead style="border-block: 1px solid black !important;">
+                            <tr>
+                                <th style="width: 70% !important; padding: 0px 8px 0px 8px;"><b>Item Name</b></th>
+                                <th style="width: 10% !important; padding: 0px 8px 0px 8px; "><b>Qty</b></th>
+                                <th style="text-align: right; width: 10% !important; padding: 0px 8px 0px 8px;"><b>Price</b></th>
+                                @*<th style="text-align: right;"><b>Disc</b></th>*@
+                                <th style="text-align: right; width: 10% !important; padding: 0px 8px 0px 8px;"><b>Total</b></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in InvoiceItems)
+                            {
+                                <tr>
+                                    <td style="padding: 0px 8px 0px 8px; font-size:11px;">@item.Name</td>
+                                    <td style="padding: 0px 8px 0px 8px; ">  @(int.Parse(item.Qty).ToString("N0"))</td>
+                                    <td style="text-align: right; padding: 0px 8px 0px 8px;">
+                                        @{
+                                            int qtyValue;
+                                            bool isValidQty = int.TryParse(item.Qty, out qtyValue);
+                                        }
+                                        @(isValidQty && qtyValue > 0 ? (item.LineTotal / Convert.ToDecimal(qtyValue)).ToString("N1") : "0.0")<br>
+                                        @*@Model.CurrencySymbol@((item.LineTotal / Convert.ToDecimal(item.Qty)).ToString("N1"))*@
+                                    </td>
+                                    @*<td style="text-align: right;">@item.Discount.ToString("N1")</td>*@
+                                    <td style="text-align: right; padding: 0px 8px 0px 8px;">@item.LineTotal.ToString("N1")</td>
+                                </tr>
+                            }
+                            <tr style="border-top:solid 1px black !important">
+                                <td class="noborder" colspan="1" style="white-space: nowrap">
+                                    <b>Total items:</b>@InvoiceItems.Count()
+                                </td>
+                                <td class="noborder" colspan="4" style="white-space: nowrap">
+                                    <div style="float: right;">
+                                        @{
+                                            var totalInvoiceItemsDiscount = InvoiceItems.Sum(i => i.DiscountType == "value"
+                                                                                ? i.Discount
+                                                                                : i.DiscountType == "percentage"
+                                                                                    ? (i.UnitCost * Convert.ToInt32(i.Qty) * i.Discount / 100)
+                                                                                    : 0
+                                                                            );
+                                            var totalFinancialsDiscount = Financials.DiscountAmount;
+                                            var totalDiscount = totalInvoiceItemsDiscount + totalFinancialsDiscount;
+                                        }
+                                        @*@if (Financials.DiscountAmount > 0)
+                                            {
+
+                                                <div class="displayInline">
+                                                    <p style="font-weight: bold;">Discount&nbsp;</p>
+                                                    <p class="">@Financials.DiscountAmount.ToString("N0")@(Financials.DiscountType == "value" ? "" : "%")</p>
+                                                </div>
+
+                                            }*@
+
+                                        @*@if (Financials.Tax > 0)
+                                            {
+                                                <div class="displayInline">
+                                                    <p style="font-weight: bold;">Tax&nbsp;</p>
+                                                    <p class="">@Financials.TaxTitle - @Math.Floor(Convert.ToDouble(Financials.Tax))%</p>
+                                                </div>
+
+                                            }*@
+                                        <div class="displayInline">
+                                            <p style="font-weight: bold;">Gross Total:&nbsp;</p>
+                                            <p class="">@Model.CurrencySymbol @Financials.SubTotal.ToString("N1")</p>
+                                        </div>
+                                        @if (totalDiscount > 0)
+                                        {
+                                            <div class="displayInline">
+                                                <p style="font-weight: bold;">Disc:&nbsp;</p>
+                                                <p class="">
+                                                    @if (Financials.DiscountType == "percentage")
+                                                    {
+                                                        @(Financials.DiscountAmount.ToString("N1") + "%")
+                                                    }
+                                                    else
+                                                    {
+                                                        @(Model.CurrencySymbol + " " + totalDiscount.ToString("N1"))
+                                                    }
+                                                </p>
+                                            </div>
+                                        }
+
+                                        @*<div class="displayInline">
+                                                <p style="font-weight: bold;">Disc:&nbsp;</p>
+                                                <p class="">@Model.CurrencySymbol@InvoiceItems.Sum(i => i.Discount).ToString("N1")</p>
+                                            </div>*@
+
+                                        <div class="displayInline">
+                                            <p style="font-weight: bold;">Net Total:&nbsp;</p>
+                                            <p class="">@Model.CurrencySymbol @Financials.SubtotalAfterTax.ToString("N1")</p>
+                                        </div>
+
+                                        @*<div class="displayInline">
+                                                <p style="font-weight: bold;">Paid Amount:&nbsp;</p>
+                                                <p class="">@Model.CurrencySymbol@Financials.PaidAmount.ToString("N1")</p>
+                                            </div>*@
+
+                                        @*@if (Financials.RemainingAmount > 0)
+                                            {
+                                                <div class="displayInline">
+                                                    <p style="font-weight: bold;">Remaining Amount:&nbsp;</p>
+                                                    <p class="">@Model.CurrencySymbol@Financials.RemainingAmount.ToString("N1")</p>
+                                                </div>
+                                            }
+
+                                            @if (Financials.ReturnAmount > 0)
+                                            {
+                                                <div class="displayInline">
+                                                    <p style="font-weight: bold;">Return Amount:&nbsp;</p>
+                                                    <p class="">@Model.CurrencySymbol@Financials.ReturnAmount.ToString("N1")</p>
+                                                </div>
+                                            }*@
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <p>
+                        @branding.FooterText
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 text-center" style="margin-top:10px">
+                    <p style="font-size:9px !important">
+                        Computer Software Developed by InstaCare (+92309 4447192)
+                    </p>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                window.print();
+            });
+        </script>
+    </body>
+</html>

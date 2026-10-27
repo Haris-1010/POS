@@ -1,0 +1,364 @@
+﻿.parallax {
+    /* The image used */
+
+    /* Set a specific height */
+    height: 100%;
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.large-p
+{
+    font-size:16px;
+}
+
+.gold-link{
+    color:gold;
+    text-decoration:underline;
+}
+    .azure-link:hover {
+        color:lightblue;
+        text-decoration: underline;
+    }
+/*Checkboxes style*/
+.checkbox label:after,
+.radio label:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.checkbox .cr,
+.radio .cr {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #a9a9a9;
+    border-radius: .25em;
+    width: 1.3em;
+    height: 1.3em;
+    float: left;
+    margin-right: .5em;
+}
+
+.radio .cr {
+    border-radius: 50%;
+}
+
+    .checkbox .cr .cr-icon,
+    .radio .cr .cr-icon {
+        position: absolute;
+        font-size: .8em;
+        line-height: 0;
+        top: 50%;
+        left: 20%;
+    }
+
+    .radio .cr .cr-icon {
+        margin-left: 0.04em;
+    }
+
+.checkbox label input[type="checkbox"],
+.radio label input[type="radio"] {
+    display: none;
+}
+
+    .checkbox label input[type="checkbox"] + .cr > .cr-icon,
+    .radio label input[type="radio"] + .cr > .cr-icon {
+        transform: scale(3) rotateZ(-20deg);
+        opacity: 0;
+        transition: all .3s ease-in;
+    }
+
+    .checkbox label input[type="checkbox"]:checked + .cr > .cr-icon,
+    .radio label input[type="radio"]:checked + .cr > .cr-icon {
+        transform: scale(1) rotateZ(0deg);
+        opacity: 1;
+    }
+
+    .checkbox label input[type="checkbox"]:disabled + .cr,
+    .radio label input[type="radio"]:disabled + .cr {
+        opacity: .5;
+    }
+
+.MedicineOrder {
+    background-color: #f2fdff;
+    width:300px;
+
+}
+.info-center {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: cadetblue;
+    color: white;
+    text-align: center;
+    box-shadow:10px;
+}
+
+    .info-center h2 {
+        color: white;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+.addspace {
+    margin: 5px;
+}
+
+.shadow {
+    box-shadow: 0 1px 2px 1px hsla(0,0%,43%,.14);
+}
+
+.white {
+    color: white
+}
+
+.uploadbtn {
+    border-radius: 20px;
+    height: 200px;
+    padding: 5px;
+    border: 1px dashed gray;
+  font-size:12px;
+    width:200px;
+    background-color:white;
+    box-shadow:rgba(0,0,0,0.2) 2px 0 20px 2px;
+}
+
+    .uploadbtn:hover {
+        opacity:0.8;
+       
+    }
+    form
+    {
+        margin:0px;
+    }
+
+.dashed-row 
+{
+    border-top: 1px dashed lightgray;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding:10px;
+}
+.compare {
+    border-radius: 12px;
+    background-color: white;
+}
+    .compare h2 {
+        font-size: 20px;
+        margin: 0px;
+        padding: 10px;
+        color:white;
+        text-transform: uppercase;
+        background-color: #17145a;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .compare h1 {
+        font-size: 16px;
+        font-weight:bold;
+        margin: 0px;
+        text-transform: capitalize;
+    }
+    .compare p {
+        font-size: 12px;
+        margin: 0px;
+        text-transform: capitalize;
+    }
+
+    .instacare-spinner{
+
+    }
+.instacare-spinner {
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    z-index: 250;
+    background-color: rgba(255, 255, 255, 0.46);
+}
+
+.instacare-spinner-icon {
+  
+}
+
+.comparison-picture{
+    width:100px;
+    height:100px;
+    text-align:center;
+}
+.comparison-header {
+    background-color:lightgray;
+}
+.comparison-title{
+    font-size:18px;
+    text-transform:uppercase;
+    margin:0px;
+}
+.comparison-subtitle {
+    font-size: 16px;
+    font-weight:bold;
+    text-transform: uppercase;
+    margin: 0px;
+}
+
+.claim-link{
+    color:black;
+    font-size:15px;
+    text-decoration:underline;
+}
+.claim-link:hover
+{
+    color:orange;
+}
+
+.empty-btn
+{
+    background:none;
+    border:none;
+}
+.empty-btn:focus
+{
+    outline:none;
+}
+.empty-btn:hover{
+    color:midnightblue;
+}
+
+.btn-login-register {
+    margin: 15px;
+    display: inline-block;
+    border-radius: 3px;
+    border: 1px solid #090650;
+    background-color: transparent;
+    padding: 5px 20px;
+    cursor: pointer;
+    color: #090650 !important;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    -o-transition: .2s;
+    -ms-transition: .2s;
+    -moz-transition: .2s;
+    -webkit-transition: .2s;
+    /* ...and now for the proper property */
+    transition: .2s;
+}
+    .btn-login-register:hover 
+    {
+        color: white !important;
+        background-color: #090650;
+    }
+
+.secondary-menu {
+    text-align: center;
+    font-size: 14px;
+    color: white;
+    background-color: #17145a;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+    .secondary-menu .box {
+        padding-left: 5px;
+        padding-right: 5px;
+        border-right: 1px dashed rgba(255,255,255,0.3);
+    }
+
+    .secondary-menu icon {
+        font-size: 26px;
+        width: 20px;
+        -webkit-transition: transform .2s ease-out;
+        -moz-transition: transform .2s ease-out;
+        -ms-transition: transform .2s ease-out;
+        -o-transition: transform .2s ease-out;
+        transition: transform .2s ease-out;
+    }
+
+        .secondary-menu icon:hover {
+            -webkit-transform: scale(1.3);
+            -moz-transform: scale(1.3);
+            -ms-transform: scale(1.3);
+            -o-transform: scale(1.3);
+            transform: scale(1.3);
+        }
+
+    .secondary-menu a {
+        color: white;
+        opacity: 0.8;
+    }
+
+        .secondary-menu a:hover {
+            opacity: 1;
+        }
+.short-text-search-crousel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-height: 16px;
+    max-height: 250px;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.short-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-height: 16px; /* fallback */
+    max-height: 90px; /* fallback */
+    -webkit-line-clamp: 3; /* number of lines to show */
+    -webkit-box-orient: vertical;
+}
+
+.short-text-search {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-height: 20px;
+    max-height: 200px;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.alert-instacare {
+    background-color: #090650;
+    border-radius: 10px;
+    padding: 10px;
+    color:white;
+}
+
+.alert-outline {
+    background-color: transparent;
+    border:0.5px solid gray;
+    border-radius: 5px;
+    padding: 10px;
+    color: gray;
+}
+.alert-emphasize {
+    background-color: darkorange;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+}
+
+.label-lg
+{
+    font-size:16px;
+    margin-bottom:10px;
+}
+.color-instacare {
+    color: #090650;
+}
+.review
+{
+
+}
+.review h1{
+    font-size:18px;
+    margin:0px;
+}
+.review p
+{
+    font-size:14px;
+}

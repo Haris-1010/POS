@@ -1,0 +1,106 @@
+﻿
+.one-fourth-td {
+    width: 25%;
+}
+
+.half-td {
+    width: 50%;
+}
+
+
+.custom-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 1px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    transition: all 0.5s ease 0s;
+}
+
+.custom-btn-primary {
+    background-color: #28328c;
+}
+
+    .custom-btn-primary:hover, .custom-btn-primary:focus {
+        background-color: #28328c;
+    }
+
+.row {
+    margin-bottom: 10px !important;
+}
+
+.tab-next, .tab-prev {
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    background-color: #28328c;
+}
+
+    .tab-next i, .tab-prev i {
+        font-size: 18px;
+        color: white;
+    }
+
+.custom-btn-primary {
+    background-color: #28328c;
+}
+
+.add-more {
+    border-radius: 5%;
+}
+
+.btn-group .btn {
+    border-radius: 12%;
+}
+
+.row h4 {
+    margin-left: 15px;
+}
+
+.abdominal-ul-1 {
+    position: absolute;
+    top: 0px;
+}
+
+.abdominal-ul-2 {
+    position: absolute;
+    top: 50px;
+}
+
+.abdominal-ul-3 {
+    position: absolute;
+    top: 110px;
+}
+
+.abdominal-li-1 {
+    position: absolute;
+    left: 75px;
+    top: 75px;
+}
+
+.abdominal-li-2 {
+    position: absolute;
+    left: 125px;
+    top: 75px;
+}
+
+.abdominal-li-3 {
+    position: absolute;
+    left: 170px;
+    top: 75px
+}

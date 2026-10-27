@@ -1,0 +1,427 @@
+﻿@model CoreMedixBeta.Models.InventoryItems.ItemsViewModel
+@{
+    ViewBag.Title = "Items";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}  
+ 
+<style>
+    select[name="itemsTable_length"] {
+        margin-top: -4px !important;
+    }
+    #itemsInfoContainer .filter-card {
+        cursor: pointer;
+    }
+
+    #activityLogsTable th,
+    #activityLogsTable td {
+        vertical-align: middle;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    #activityLogsTable th {
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .modal-header {
+        padding: 12px 16px;
+    }
+
+    .modal-body {
+        background-color: var(--cm-surface);
+    }
+</style> 
+
+<div class="row" id="itemsInfoContainer">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success filter-card" data-filter="All">
+            <div class="inner">
+                <h3 class="js-total-items"></h3>
+                <p>Total Items</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-primary filter-card" data-filter="NewArrival">
+            <div class="inner">
+                <h3 class="js-new-arrival"></h3>
+                <p>New Arrivals</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-truck"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning filter-card" data-filter="LowStock">
+            <div class="inner">
+                <h3 class="js-low-stock"></h3>
+                <p>Low Stock Items</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger filter-card" data-filter="ExpiringSoon">
+            <div class="inner">
+                <h3 class="js-expiring-soon"></h3>
+                <p>Expiring Soon</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Search and Filter Inventory</h3>
+    </div>
+    <div class="card-body">
+        <form id="filterForm">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label for="">Manufacturers</label>
+                        <select class="form-control js-select2" name="ManufacturerID" required>
+                            <option value="">Choose Manufacturer</option>
+                            @if (Model != null && Model.Manufacturers != null && Model.Manufacturers.Any())
+                            {
+                                foreach (var item in Model.Manufacturers)
+                                {
+                                    <option value="@item.ID">@item.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No Manufacturers available</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label for="">Suppliers</label>
+                        <select class="form-control js-select2" name="SupplierID" required>
+                            <option value="">Choose Supplier</option>
+                            @if (Model != null && Model.Suppliers != null && Model.Suppliers.Any())
+                            {
+                                foreach (var item in Model.Suppliers)
+                                {
+                                    <option value="@item.ID">@item.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No Suppliers available</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label for="productType">Type<span class="required">*</span></label>
+                        <select class="form-control js-select2" id="productType" name="ProductType" required>
+                            <option value="">Select Product</option>
+                            <option value="Medicine">
+                                Medicine
+                            </option>
+                            <option value="Other">
+                                Other
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label for="itemUPC" data-toggle="tooltip" title="Twelve digit unique number associated with bar code. (Universal Product Code)">
+                            UPC (Scan Barcode)
+                            <i class="fas fa-question-circle bg-white" data-bs-toggle="tooltip"></i>
+                        </label>
+                        <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Enter UPC">
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label for="itemSKU" data-toggle="tooltip" title="The unique code used to track and manage inventory efficiently.">
+                            SKU
+                            <i class="fas fa-question-circle bg-white" data-bs-toggle="tooltip"></i>
+                        </label>
+                        <input type="number" class="form-control" id="itemSKU" name="SKU" required placeholder="Enter SKU">
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label>Unique Id</label>
+                        <input type="text" class="form-control" name="UniqueID" required placeholder="Enter Unique Id">
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Sort By</label>
+                                <select class="form-control js-select2" name="SortBy">
+                                    <option value="ID" selected>Latest</option>
+                                    <option value="ManufacturerName">ManufacturerName</option>
+                                    <option value="VariationStockQty">Stock</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 pl-0">
+                            <div class="form-group">
+                                <label>Order</label>
+                                <select class="form-control js-select2" name="SortByOrder">
+                                    <option value="ASC" selected>Ascending</option>
+                                    <option value="DESC">Descending</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*<div class="col-md-3">
+                        <div class="form-group">
+                            <label for="filterExpiryDate">Expiry Date Range</label>
+                            <input type="text" class="form-control js-select2" name="Date" placeholder="Select date range">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="filterLowStock">Low Stock Threshold</label>
+                            <input type="number" class="form-control" id="filterLowStock" placeholder="Enter quantity">
+                        </div>
+                    </div>*@
+            </div>
+            <div class="row">
+                <div class="col-3 ml-auto">
+                    <div class="form-group mb-0 d-flex justify-content-between">
+                        <label></label>
+                        <button type="button" class="btn btn-primary-custom form-control text-nowrap js-apply-filter-btn">Apply Filter</button>
+                        <button type="button" class="btn btn-default form-control js-clear-filter-btn ml-2">Clear Filter</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-baseline">
+        <h3 class="card-title primary-text font-weight-bold">Inventory Items</h3>
+        <div class="card-tools ml-auto">
+
+            <a href='@Url.Action("ManageItem", "InventoryItems")' type="button" class="btn btn-primary-custom">
+                <i class="fas fa-plus"></i> Add New Item
+            </a>
+
+            <button type="button" class="btn btn-outline-primary ml-1 js-import-items-btn">
+                <i class="fas fa-file-import"></i> Import Items
+            </button>
+
+            <button type="button" class="btn btn-outline-danger ml-1 js-bulk-delete-btn">
+                <i class="fas fa-file-excel"></i> Delete via File
+            </button>
+
+            <button type="button" class="btn btn-danger ml-1 js-delete-selected-btn" style="display:none;">
+                <i class="fas fa-trash"></i> Delete Selected (<span class="js-selected-count">0</span>)
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <table id="itemsTable" class="table table-hover w-100 table-responsive-sm">
+            <thead>
+                <tr>
+                    <th style="width:28px;"><input type="checkbox" class="js-select-all-items" title="Select all items on this page"></th>
+                    <th>Unique Id</th>
+                    <th>Product Name</th>
+                    <th>Type</th>
+                    <th>Manufacturer</th>
+                    <th>Supplier</th>
+                    <th>Total Variations</th>
+                    <th>Near To Expire</th>
+                    <th>Near To Finish</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- View Logs Modal -->
+<div class="modal fade" id="activityLogsModal" tabindex="-1" role="dialog" aria-labelledby="logsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content border">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title font-weight-bold" id="logsModalLabel">Item Variation Logs</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover table-sm mb-0" id="activityLogsTable">
+                        <thead class="bg-light">
+                            <tr class="text-nowrap">
+                                <th class="align-middle">Date</th>
+                                <th class="align-middle">Name</th>
+                                <th class="text-right align-middle">Qty</th>
+                                <th class="text-right align-middle">Price</th>
+                                <th class="text-right align-middle">Discount</th>
+                                <th class="align-middle">Performed By</th>
+                                <th class="align-middle">Log Type</th>
+                                <th class="align-middle">Event</th>
+                                <th class="align-middle">Description</th>
+                                <th class="align-middle">IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div class="modal fade" id="importItemsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title font-weight-bold">Import Inventory Items</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 1. Download Template</label>
+                        <p class="text-muted" style="font-size:.85rem;">
+                            Fill the template in Excel and upload it back. One row creates one variation;
+                            rows sharing the same <strong>Item Name</strong> are grouped into one item.
+                        </p>
+                        <button type="button" class="btn btn-outline-primary js-download-import-template-btn">
+                            <i class="fas fa-download"></i> Download Template
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 2. Choose File</label>
+                        <p class="text-muted" style="font-size:.85rem;">Supported formats: .xlsx, .xls, .csv (max 1000 rows)</p>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input js-import-file-input" accept=".xlsx,.xls,.csv" id="importItemsFile">
+                            <label class="custom-file-label" for="importItemsFile">Choose file...</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="js-import-preview mt-3" style="display:none;">
+                    <label class="font-weight-bold">Step 3. Preview (<span class="js-preview-row-count">0</span> rows found)</label>
+                    <div class="table-responsive" style="max-height:280px; overflow:auto;">
+                        <table class="table table-sm table-bordered mb-0" id="importPreviewTable">
+                            <thead class="bg-light"></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="js-import-result alert alert-info mt-3 mb-0" style="display:none;"></div>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-run-import-btn" disabled>
+                    <i class="fas fa-file-import"></i> Import Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Modal -->
+<div class="modal fade" id="bulkDeleteItemsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title font-weight-bold">Delete Items via File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="alert alert-warning" style="font-size:.85rem;">
+                    Items matched by <strong>Item Name</strong> or <strong>Unique ID</strong> will be deleted along with all their variations.
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 1. Download Template</label>
+                        <button type="button" class="btn btn-outline-primary btn-block js-download-delete-template-btn">
+                            <i class="fas fa-download"></i> Download Template
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="font-weight-bold">Step 2. Choose File</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input js-delete-file-input" accept=".xlsx,.xls,.csv" id="bulkDeleteFile">
+                            <label class="custom-file-label" for="bulkDeleteFile">Choose file...</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="js-delete-preview mt-3" style="display:none;">
+                    <label class="font-weight-bold">Step 3. Confirm (<span class="js-delete-row-count">0</span> rows found)</label>
+                    <ul class="js-delete-identifier-list list-unstyled mb-0" style="max-height:200px; overflow:auto; font-size:.85rem;"></ul>
+                </div>
+
+                <div class="js-delete-result alert alert-info mt-3 mb-0" style="display:none;"></div>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger js-run-bulk-delete-btn" disabled>
+                    <i class="fas fa-trash"></i> Delete From File
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="filterData" data-filtered="@Model.FilterType"></div>
+@section Scripts{
+    <script>
+        var getInventoryItemsUrl = '@Url.Action("GetInventoryItemsInfo", "InventoryItems")';
+        var getpagedInventoryItemsUrl = '@Url.Action("GetPagedInventoryItems", "InventoryItems")';
+        var getItemActivityLogsUrl = '@Url.Action("GetItemActivityLogs", "InventoryItems")';
+        var deleteInventoryItemUrl = '@Url.Action("DeleteInventoryItem", "InventoryItems")';
+        var importInventoryItemsUrl = '@Url.Action("ImportItems", "InventoryItems")';
+        var bulkDeleteInventoryItemsUrl = '@Url.Action("BulkDeleteItems", "InventoryItems")';
+          var urlManufacturer = '@Url.Action("ManageItem", "InventoryItems")';
+    </script>
+    <script src="~/ReplacementPaths/SheetJS/xlsx.full.min.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/moment.min.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/daterangepicker.js"></script>
+    <script src="~/JSModels/InventoryItems/items.js"></script>
+}

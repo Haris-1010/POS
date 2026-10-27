@@ -1,0 +1,166 @@
+@{
+    ViewBag.Title = "OrderList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles
+{
+    <style>
+        .radio-inline {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer !important;
+        }
+
+        .radio-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--cm-accent-ink);
+            border-radius: 50%;
+            background-color: white;
+            outline: none;
+            position: relative;
+            transition: .3s all;
+            cursor: pointer !important;
+        }
+
+            .radio-input:checked {
+                background-color: var(--cm-accent);
+            }
+
+                .radio-input:checked::before {
+                    content: "";
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background-color: white;
+                }
+
+            .radio-input:hover {
+                opacity: 0.8;
+            }
+    </style>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title primary-text font-weight-bold"><i class="fas fa-filter"></i> Filters</h3>
+        <div class="card-tools">
+            <button class="btn btn-tool" type="button" data-toggle="collapse" data-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="collapse" id="filterCard">
+        <div class="card-body">
+            <form id="filterForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Order Date</label>
+                            <input type="text" class="form-control" name="Date" autocomplete="off" placeholder="Select a date range">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-group">
+                            <label for="">Referred By</label>
+                            <input type="text" value="" name="SearchReferredBy" autocomplete="off" class="form-control js-search-referred-by" placeholder="Eg: Safi Ullah" />
+                            <input type="hidden" name="ReferredByID" value="">
+                            <input type="hidden" name="ReferredByType" value="">
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Sort By</label>
+                                    <select class="form-control js-select2" name="SortBy">
+                                        <option value="ID" selected>Latest</option>
+                                        <option value="OrderOn">Date</option>
+                                        <option value="ReferredByName">Referred By</option>
+                                        <option value="Source">Source</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 pl-0">
+                                <div class="form-group">
+                                    <label>Order</label>
+                                    <select class="form-control js-select2" name="SortByOrder">
+                                        <option value="ASC" selected>Ascending</option>
+                                        <option value="DESC">Descending</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 ml-auto">
+                        <div class="form-group mb-0 d-flex justify-content-between">
+                            <label></label>
+                            <button type="button" class="btn btn-primary-custom form-control text-nowrap js-apply-filter-btn">Apply Filter</button>
+                            <button type="button" class="btn btn-default form-control js-clear-filter-btn ml-2">Clear Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-baseline">
+        <h3 class="card-title primary-text font-weight-bold">Referral Orders</h3>
+    </div>
+    <div class="card-body">
+        <table id="reportTable" class="table table-hover w-100 table-responsive-sm">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Patient Name</th>
+                    <th>Patient Phone</th>
+                    <th>Patient Mr</th>
+                    <th>Referred By</th>
+                    <th>Source</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            @*<tfoot>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </tfoot>*@
+        </table>
+    </div>
+</div>
+
+@*<form id="permissionsForm">
+        <input type="hidden" name="isEMRIntegrationAllowed" value="@(user.IntegrateEMRInCoreMedixPharmacy ? "1" : "0")" />
+    </form>*@
+
+@section Scripts{
+    <script>
+    var manageInvoiceUrl = '@Url.Action("ManageInvoice", "Sales")';
+        var GetPagedOrdersUrl = '@Url.Action("GetPagedOrders", "ReferralOrders")';
+    </script>
+    <script src="~/panel-assets/plugins/DateRange/moment.min.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/daterangepicker.js"></script>
+    <script src="~/JSModels/ReferralOrders/orderList.js"></script>
+}

@@ -1,0 +1,390 @@
+﻿@{
+    ViewBag.Title = "PrintBranding";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles{
+    <style>
+        @@supports (-webkit-appearance: none) or (-moz-appearance: none) {
+            .checkbox-wrapper input[type=checkbox] {
+                --active: #090650;
+                --active-inner: #fff;
+                --focus: 2px rgba(39, 94, 254, .3);
+                --border: #BBC1E1;
+                --border-hover: #BBC1E1;
+                --background: #fff;
+                --disabled: #F6F8FF;
+                --disabled-inner: #E1E6F9;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                height: 21px;
+                outline: none;
+                display: inline-block;
+                vertical-align: top;
+                position: relative;
+                margin: 0;
+                cursor: pointer;
+                border: 1px solid var(--bc, var(--border));
+                background: var(--b, var(--background));
+                transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+            }
+
+                .checkbox-wrapper input[type=checkbox]:after {
+                    content: "";
+                    display: block;
+                    left: 0;
+                    top: 0;
+                    position: absolute;
+                    transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:checked {
+                    --b: var(--active);
+                    --bc: var(--active);
+                    --d-o: .3s;
+                    --d-t: .6s;
+                    --d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:disabled {
+                    --b: var(--disabled);
+                    cursor: not-allowed;
+                    opacity: 0.9;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:disabled:checked {
+                        --b: var(--disabled-inner);
+                        --bc: var(--border);
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:disabled + label {
+                        cursor: not-allowed;
+                    }
+
+                .checkbox-wrapper input[type=checkbox]:hover:not(:checked):not(:disabled) {
+                    --bc: var(--border-hover);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:focus {
+                    box-shadow: 0 0 0 var(--focus);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:not(.switch) {
+                    width: 21px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):after {
+                        opacity: var(--o, 0);
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):checked {
+                        --o: 1;
+                    }
+
+                .checkbox-wrapper input[type=checkbox] + label {
+                    display: inline-block;
+                    vertical-align: middle;
+                    cursor: pointer;
+                    margin-left: 4px;
+                }
+
+                .checkbox-wrapper input[type=checkbox]:not(.switch) {
+                    border-radius: 7px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):after {
+                        width: 5px;
+                        height: 9px;
+                        border: 2px solid var(--active-inner);
+                        border-top: 0;
+                        border-left: 0;
+                        left: 7px;
+                        top: 4px;
+                        transform: rotate(var(--r, 20deg));
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):checked {
+                        --r: 43deg;
+                    }
+
+                .checkbox-wrapper input[type=checkbox].switch {
+                    width: 38px;
+                    border-radius: 11px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox].switch:after {
+                        left: 2px;
+                        top: 2px;
+                        border-radius: 50%;
+                        width: 17px;
+                        height: 17px;
+                        background: var(--ab, var(--border));
+                        transform: translateX(var(--x, 0));
+                    }
+
+                    .checkbox-wrapper input[type=checkbox].switch:checked {
+                        --ab: var(--active-inner);
+                        --x: 17px;
+                    }
+
+                    .checkbox-wrapper input[type=checkbox].switch:disabled:not(:checked):after {
+                        opacity: 0.6;
+                    }
+        }
+
+        .checkbox-wrapper * {
+            box-sizing: inherit;
+        }
+
+            .checkbox-wrapper *:before,
+            .checkbox-wrapper *:after {
+                box-sizing: inherit;
+            }
+    </style>
+}
+
+<div class="card">
+    <form id="printBrandingForm">
+        <div class="card-header text-center">
+            <h4 class="m-0">Print Branding</h4>
+            <p class="m-0">This branding will appear on print pages</p>
+        </div>
+        <div class="card-body box-profile">
+            <div class="row justify-content-center">
+                <div class="col-3">
+                    <label class="text-center m-0 ml-5 pl-3">Business Logo</label>
+                    <div class="profile-pic text-center">
+                        <label class="-label" for="logoFile">
+                            <i class="fas fa-camera" style="color:white !important"></i>
+                            <span style="color:white !important">
+                                Change Logo &nbsp;
+                                <button type="button"
+                                        class="btn p-0 text-danger js-remove-image-btn"
+                                        data-preview-id="logoImagePreview">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </span>
+                        </label>
+
+                        <!-- File Upload -->
+                        <input id="logoFile"
+                               type="file"
+                               accept="image/*"
+                               class="js-logo-img"
+                               onchange="previewImage(this, '#logoImagePreview')" />
+
+                        <!-- Image Preview -->
+                        <img id="logoImagePreview"
+                             src="~/assets/img/facility-not-found.jpg"
+                             alt="No Image"
+                             style="object-fit: cover;
+                width: 130px;
+                height: 130px;
+                border: 2px solid #ADB5BD;
+                padding: 3px;
+                border-radius: 100px;" />
+
+                        <!-- Hidden Input (for DB value) -->
+                        <input type="hidden" name="Logo" value="" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label>Business Name<span class="required">*</span></label>
+                        <input type="text" class="form-control" name="BusinessName" required maxlength="100" minlength="5" placeholder="eg: InstaCare Pvt Ltd" />
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label>Business Phone<span class="required">*</span></label>
+                        <input type="number" class="form-control" name="BusinessPhone" required maxlength="13" minlength="11" placeholder="e.g 03xxxxxxxxx" />
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" name="BusinessEmail" placeholder="example@gmail.com" />
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label>Header Text</label><br />
+                        <input type="text" class="form-control" name="HeaderText" placeholder="eg: InstaCare is the No.1 Healthcare Company" />
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label>Footer Text</label><br />
+                        <input type="text" class="form-control" name="FooterText" placeholder="eg: Visit our website instacare.pk" />
+                    </div>
+                </div>
+                @*<div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label><strong>Header Image</strong></label>
+                            <div class="boxed-pic">
+                                <label class="-label" for="headerFile">
+                                    <i class="fas fa-camera"></i>
+                                    <span>Change Header</span>
+                                    <button type="button" class="btn p-0 text-danger js-remove-image-btn" data-preview-id="headerImagePreview">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </label>
+                                <input id="headerFile" type="file" accept="image/*" class="js-header-img" onchange="previewImage(this, '#headerImagePreview')" />
+                                <img id="headerImagePreview"  src="~/assets/img/facility-not-found.jpg"   alt="No Image" style="" />
+                                <input type="hidden" name="HeaderImg" value="" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-12">
+                        <div class="form-group">
+                            <label><strong>Footer Image</strong></label>
+                            <div class="boxed-pic">
+                                <label class="-label" for="footerFile">
+                                    <i class="fas fa-camera"></i>
+                                    <span>Change Footer</span>
+                                    <button type="button" class="btn p-0 text-danger js-remove-image-btn" data-preview-id="footerImagePreview">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </label>
+                                <input id="footerFile" type="file" accept="image/*" class="js-footer-img" onchange="previewImage(this, '#footerImagePreview')" />
+                                <img id="footerImagePreview"   src="~/assets/img/facility-not-found.jpg"   alt="No Image" style="" />
+                                <input type="hidden" name="FooterImg" value="" />
+                            </div>
+                        </div>
+                    </div>*@
+                <input type="hidden" name="ID" value="0" />
+                @*<input type="hidden" name="LastModifiedBy" value="@user.Username" />
+                    <input type="hidden" name="LocationID" value="@user.LocationID" required />
+                    <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+            </div>
+        </div>
+
+        <div class="card-footer text-center d-flex justify-content-center">
+            <button type="button" class="btn btn-primary-custom js-save-btn">
+                Save Branding
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class=""></i> Dynamic Print Fields</h3>
+        <div class="card-tools">
+            <button class="btn btn-tool" type="button" data-toggle="collapse" data-target="#fieldCard" aria-expanded="false" aria-controls="fieldCard">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div id="fieldCard" class="card-header collapse">
+
+        <div class="card-tools">
+            <button class="btn btn-primary-custom text-left" id="newFieldBtn" data-target="#saveFieldModal" data-backdrop="static" data-keyboard="false">
+                <i class="fa fa-plus"></i> New Filed
+            </button>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-hover w-100 table-responsive-sm" id="fieldsTable">
+                <thead>
+                    <tr>
+                        <th>Field Name</th>
+                        <th>Field Value</th>
+                        <th>For Module</th>
+                        <th>Field Order</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="saveFieldModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold ">Save Field</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Title<span class="required">*</span></label>
+                                <input type="text" class="form-control" name="FieldName" required maxlength="55" minlength="3" placeholder="Enter field name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Value<span class="required">*</span></label>
+                                <input type="text" class="form-control" name="FieldValue" required maxlength="100" minlength="3" placeholder="Enter field name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Field order<span class="required">*</span></label>
+                                <input type="number" class="form-control" name="Order" required max="10" min="0" placeholder="Field order" />
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <div class="form-group">
+                                <label class="invisible">Is Visible</label>
+                                <div class="checkbox-wrapper">
+                                    <input id="InVisible" name="InVisible" type="checkbox" class="switch" checked>
+                                    <label for="InVisible">Is Visible</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Select module<span class="required">*</span></label><br />
+                                <select class="form-control js-form-city" required name="ForModule">
+                                    <option value="">For Module</option>
+                                    @*@foreach (var city in Model.Cities)
+                                        {*@
+                                    <option value="Sale">Sale</option>
+                                    <option value="Purchase">Purchase</option>
+                                    @*}*@
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="ID" value="0" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+@* Temprory Allow All *@
+@*<form id="permissionsForm">
+        <input type="hidden" name="canCreate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.PBCustomFieldCreate && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canUpdate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.PBCustomFieldUpdate && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canDelete" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.PBCustomFieldDelete && x.IsGranted) ? "1" : "0")" />
+    </form>*@
+
+@section Scripts{
+    <script>
+     var facilityNotFoundUrl = '@Url.Content("~/assets/img/facility-not-found.jpg")';
+
+        var getPrintBrandingUrl = '@Url.Action("GetPrintBranding", "Brandings")';
+        var DeleteCustomFieldUrl = '@Url.Action("DeleteCustomField", "Brandings")';
+        var SavePrintBrandingUrl = '@Url.Action("SavePrintBranding", "Brandings")';
+        var SavePrintBrandingCustomFieldUrl = '@Url.Action("SavePrintBrandingCustomField", "Brandings")';
+        var getPrintBrandingCustomFieldUrl = '@Url.Action("GetPrintBrandingCustomField", "Brandings")';
+    </script>
+    <script src="~/JSModels/Brandings/printBranding.js"></script>
+}

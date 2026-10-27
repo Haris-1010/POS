@@ -1,0 +1,180 @@
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .setting-card-nav-link {
+        padding: 0% !important;
+    }
+
+    .setting-card-title {
+        color: var(--cm-accent-ink) !important;
+    }
+
+    .setting-card-icon {
+        padding: 1rem 1.2rem !important;
+        border: 1px solid;
+        border-radius: 10px;
+        background: var(--cm-soft) !important;
+        color: var(--cm-accent-ink) !important;
+    }
+
+    .setting-card {
+        border: 1px solid var(--cm-accent-ink) !important;
+        cursor: pointer;
+        transition: .5s all ease;
+    }
+
+        .setting-card:hover {
+            color: white !important;
+            background-color: var(--cm-accent) !important;
+            border-color: var(--cm-accent) !important;
+        }
+
+            .setting-card:hover .card-body,
+            .setting-card:hover .card-body *,
+            .setting-card:hover .setting-card-title {
+                color: white !important;
+            }
+
+            .setting-card:hover .setting-card-icon {
+                background: rgba(255, 255, 255, .22) !important;
+                color: #fff !important;
+                border-color: rgba(255, 255, 255, .45) !important;
+            }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h4>Settings</h4>
+    </div>
+    <div class="card-body" style="min-height:70vh !important;">
+        <div class="row">
+
+            <div class="col-md-4 col-sm-12">
+                <a href="@Url.Action("ItemAttributes","InventorySettings")" class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="fas fa-list-alt setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h5 class="setting-card-title">Item Attributes</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 col-sm-12">
+                <a href="@Url.Action("InvoicePrefix","InventorySettings")" class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="fas fa-dollar-sign setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h5 class="setting-card-title">Invoice Prefix & Currency Setting</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 col-sm-12">
+                <a href="@Url.Action("Taxes","Taxes")" class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="fas fa-percent setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h4 class="setting-card-title">Tax Settings</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-4 col-sm-12">
+                <a href='@Url.Action("Discounts", "Discounts")' class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="fas fa-tags setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h4 class="setting-card-title">Discount Management</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 col-sm-12">
+                <a href='@Url.Action("PrintBranding", "Brandings")' class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="far fa-address-card setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h4 class="setting-card-title">Print Branding</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            @*<div class="col-md-4 col-sm-12">
+                <a href="@Url.Action("PrinterPrefrence","InventorySettings")" class="nav-link setting-card-nav-link">
+                    <div class="card mb-3 setting-card">
+                        <div class="card-body text-primary">
+                            <div class="row">
+                                <div class="col-4 text-center d-flex align-items-center">
+                                    <h4>
+                                        <i class="fas fa-print setting-card-icon"></i>
+                                    </h4>
+                                </div>
+                                <div class="col-8 px-0 d-flex align-items-center">
+                                    <h5 class="setting-card-title">Printer Prefrence</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>*@
+
+
+        </div>
+
+      
+    </div>
+</div>
+
+@section Scripts{ 
+}

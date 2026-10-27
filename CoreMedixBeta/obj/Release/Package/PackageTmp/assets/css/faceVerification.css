@@ -1,0 +1,39 @@
+﻿.capture-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+#preview {
+    width: 45%;
+    max-width: 400px;
+    margin-bottom: 10px;
+}
+
+#captured-image {
+    width: 45%;
+    max-width: 400px;
+    margin-bottom: 10px;
+}
+
+/* Adjusting for small screens */
+@media (max-width: 767px) {
+    .capture-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #preview,
+    #captured-image {
+        width: 80%;
+        max-width: 100%;
+    }
+}
+
+/* Hidden by default, message will be shown when no image is captured */
+#no-image-message {
+    display: block; /* Make sure it's shown initially */
+    color: red;
+    font-weight: bold;
+    text-align: center;
+}

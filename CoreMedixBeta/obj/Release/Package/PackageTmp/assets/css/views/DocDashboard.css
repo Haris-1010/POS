@@ -1,0 +1,185 @@
+﻿.panel-shortcut-link {
+    font-size: 85%;
+}
+
+.btn-outline-primary {
+    color: #007bff;
+    background-color: transparent;
+    background-image: none;
+    border-color: #007bff;
+}
+
+.default-panel-height {
+    height: 200px !important;
+}
+
+.panel-body {
+    padding: 5px !important;
+}
+
+.donut-legend > span {
+    display: inline-block;
+    margin-right: 25px;
+    margin-bottom: 10px;
+    font-size: 10px;
+}
+
+    .donut-legend > span:last-child {
+        margin-right: 0;
+    }
+
+    .donut-legend > span > i {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        margin-right: 7px;
+        margin-top: -3px;
+        vertical-align: middle;
+        border-radius: 1px;
+    }
+
+#browsers_chart {
+    max-height: 280px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.bottom-footer {
+    background-color: white;
+    position: fixed;
+    height: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999999999999999999;
+}
+
+div#revenue_legend::-webkit-scrollbar {
+    background: lightyellow;
+    width: 06px;
+    -webkit-appearance: none;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(57, 128, 181,0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(57, 128, 181,0.5);
+    background: #0B62A4;
+}
+
+div#revenue_legend {
+    height: 160px;
+    overflow: auto;
+}
+
+    div#revenue_legend > div {
+        height: 1000px;
+    }
+
+div#expense_legend::-webkit-scrollbar {
+    background: lightyellow;
+    width: 06px;
+    -webkit-appearance: none;
+}
+
+div#expense_legend {
+    height: 100px;
+    overflow: auto;
+}
+
+.d-none {
+    display: none;
+}
+
+#queueWaitingList tr {
+    cursor: pointer;
+}
+
+
+
+@media (max-width:1200px) {
+    #pend_app_modal .modal-body {
+        max-height: 600px;
+        height: calc(100vh - 25vh);
+    }
+}
+
+@media (max-width:650px) {
+    #pend_app_table, #pend_app_table thead, #pend_app_table tbody, #pend_app_table th, #pend_app_table tr td, #pend_app_table tr {
+        display: block;
+    }
+
+        #pend_app_table thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        #pend_app_table tr {
+            border: 1px solid #ccc;
+            margin: 10px auto;
+        }
+
+            #pend_app_table tr td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                text-align: center;
+            }
+
+                #pend_app_table tr td:before {
+                    position: absolute;
+                    top: 6px;
+                    left: 6px;
+                    width: 45%;
+                    padding-right: 10px;
+                    white-space: nowrap;
+                    text-align: left;
+                    font-weight: 400;
+                }
+
+    td:nth-of-type(1):before {
+        content: "ID :";
+    }
+
+    td:nth-of-type(2):before {
+        content: "Patient :";
+    }
+
+    td:nth-of-type(3):before {
+        content: "Purpose :";
+    }
+
+    td:nth-of-type(4):before {
+        content: "Date :";
+    }
+
+    td:nth-of-type(5):before {
+        content: "Time :";
+    }
+
+    td:nth-of-type(6):before {
+        content: "Location :";
+    }
+
+    #pend_app_modal .modal-body {
+        padding: 5px !important;
+    }
+
+    #pend_app_modal .modal-body {
+        max-height: 450px;
+        height: calc(100vh - 100px);
+    }
+}
+
+@media (min-width:1201px) {
+
+    #pend_app_modal .modal-body {
+        max-height: 700px;
+        height: calc(100vh - 29vh);
+    }
+}

@@ -1,0 +1,136 @@
+@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+}
+
+<div class="login-container">
+    <div class="login-card">
+        <!-- Header with icon -->
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-mortar-pestle"></i>
+            </div>
+            <h1>Pharmacy</h1>
+            <p>Pharmacy Management System</p>
+        </div>
+
+        <!-- Body -->
+        <div class="login-body">
+            <p class="login-subtitle">Sign in to continue</p>
+
+            <form id="loginForm" autocomplete="off">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label for="Username"><i class="fas fa-user login-label-ico"></i> Username</label>
+                    <div class="input-group">
+                        <input type="text" id="Username" name="Username" class="form-control"
+                               placeholder="Enter your username" autocomplete="username" required autofocus>
+                        <div class="input-group-append">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Password"><i class="fas fa-lock login-label-ico"></i> Password</label>
+                    <div class="input-group">
+                        <input type="password" id="Password" name="Password" class="form-control"
+                               placeholder="Enter your password" autocomplete="current-password" required>
+                        <div class="input-group-append">
+                            <button type="button" class="btn-toggle-pass js-toggle-pass" title="Show / hide password"
+                                    aria-label="Show password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnLogin" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> &nbsp;Sign In
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p><i class="fas fa-lock mr-1"></i> Secured login &nbsp;•&nbsp; &copy; @DateTime.Now.Year Pharmacy. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Focus animation
+            $('.form-control').on('focus', function () {
+                $(this).closest('.input-group').addClass('focused');
+            }).on('blur', function () {
+                $(this).closest('.input-group').removeClass('focused');
+            });
+
+            // Show / hide password
+            $('.js-toggle-pass').on('click', function () {
+                var $input = $('#Password');
+                var $ico = $(this).find('i');
+                var isHidden = $input.attr('type') === 'password';
+                $input.attr('type', isHidden ? 'text' : 'password');
+                $ico.toggleClass('fa-eye fa-eye-slash');
+                $(this).attr('aria-label', isHidden ? 'Hide password' : 'Show password');
+            });
+
+            $('#loginForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var username = $('#Username').val().trim();
+                var password = $('#Password').val().trim();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                if (!username || !password) {
+                    toastr.warning('Please enter username and password.');
+                    return;
+                }
+
+                if (!token) {
+                    toastr.error('Security token missing. Please refresh the page.');
+                    return;
+                }
+
+                var btn = $('#btnLogin');
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> &nbsp;Signing In...');
+
+                $.ajax({
+                    url: '@Url.Action("Login", "Account")',
+                    type: 'POST',
+                    data: {
+                        Username: username,
+                        Password: password,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.Status) {
+                            toastr.success(response.Message);
+                            setTimeout(function () {
+                                window.location.href = response.Data.redirectUrl;
+                            }, 500);
+                        } else {
+                            toastr.error(response.Message);
+                            btn.prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> &nbsp;Sign In');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        toastr.error('Technical error. Please try again.');
+                        btn.prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> &nbsp;Sign In');
+                    }
+                });
+            });
+
+            // Enter key support
+            $('#Password').on('keypress', function (e) {
+                if (e.which === 13) {
+                    $('#loginForm').submit();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,818 @@
+@model CoreMedixBeta.Models.DashBoard.DashBoardVM
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool isUpdate = Model.DashboardSettings != null && Model.DashboardSettings.Count > 0;
+    var cards = Model.DashBoardCards ?? new List<CoreMedixBeta.Models.DashBoard.DashBoardCard>();
+    var values = Model.DashBoardCardsValues;
+    var fullName = Session["FullName"] != null ? Session["FullName"].ToString() : "User";
+    var today = DateTime.Now;
+
+    var DashBoardCards = new[]
+    {
+        new { Title = "Today\u2019s Sales", CardID = 1 },
+        new { Title = "Total Invoices", CardID = 2 },
+        new { Title = "Today\u2019s Profit", CardID = 3 },
+        new { Title = "Total Patients Today", CardID = 4 },
+        new { Title = "Stock Value", CardID = 5 },
+        new { Title = "Expiring Soon", CardID = 6 },
+        new { Title = "Today\u2019s Stock Sold Value", CardID = 7 }
+    };
+
+    var themes = new Dictionary<int, string[]>
+    {
+        { 1, new[] { "#090650", "rgba(9,6,80,0.10)" } },
+        { 2, new[] { "#2563eb", "rgba(37,99,235,0.12)" } },
+        { 3, new[] { "#16a34a", "rgba(22,163,74,0.12)" } },
+        { 4, new[] { "#7c3aed", "rgba(124,58,237,0.12)" } },
+        { 5, new[] { "#0d9488", "rgba(13,148,136,0.12)" } },
+        { 6, new[] { "#dc2626", "rgba(220,38,38,0.12)" } },
+        { 7, new[] { "#4f46e5", "rgba(79,70,229,0.12)" } }
+    };
+    var moneyIds = new HashSet<int> { 1, 3, 5, 7 };
+
+    decimal avgBill = 0;
+    decimal marginPct = 0;
+    if (values != null)
+    {
+        if (values.TotalInvoicesToday > 0)
+        {
+            avgBill = Math.Round(values.TotalSaleToday / values.TotalInvoicesToday, 0, MidpointRounding.AwayFromZero);
+        }
+        if (values.TotalSaleToday > 0)
+        {
+            marginPct = Math.Round((values.TotalProfitToday / values.TotalSaleToday) * 100, 1, MidpointRounding.AwayFromZero);
+        }
+    }
+}
+
+@section styles{
+    <style>
+        @@supports (-webkit-appearance: none) or (-moz-appearance: none) {
+            .checkbox-wrapper input[type=checkbox] {
+                --active: var(--cm-accent-ink);
+                --active-inner: #fff;
+                --focus: 2px rgba(39, 94, 254, .3);
+                --border: #BBC1E1;
+                --border-hover: #BBC1E1;
+                --background: var(--cm-surface);
+                --disabled: #F6F8FF;
+                --disabled-inner: #E1E6F9;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                height: 21px;
+                outline: none;
+                display: inline-block;
+                vertical-align: top;
+                position: relative;
+                margin: 0;
+                cursor: pointer;
+                border: 1px solid var(--bc, var(--border));
+                background: var(--b, var(--background));
+                transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+            }
+
+                .checkbox-wrapper input[type=checkbox]:after {
+                    content: "";
+                    display: block;
+                    left: 0;
+                    top: 0;
+                    position: absolute;
+                    transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:checked {
+                    --b: var(--active);
+                    --bc: var(--active);
+                    --d-o: .3s;
+                    --d-t: .6s;
+                    --d-t-e: cubic-bezier(.2, .85, .32, 1.2);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:disabled {
+                    --b: var(--disabled);
+                    cursor: not-allowed;
+                    opacity: 0.9;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:disabled:checked {
+                        --b: var(--disabled-inner);
+                        --bc: var(--border);
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:disabled + label {
+                        cursor: not-allowed;
+                    }
+
+                .checkbox-wrapper input[type=checkbox]:hover:not(:checked):not(:disabled) {
+                    --bc: var(--border-hover);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:focus {
+                    box-shadow: 0 0 0 var(--focus);
+                }
+
+                .checkbox-wrapper input[type=checkbox]:not(.switch) {
+                    width: 21px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):after {
+                        opacity: var(--o, 0);
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):checked {
+                        --o: 1;
+                    }
+
+                .checkbox-wrapper input[type=checkbox] + label {
+                    display: inline-block;
+                    vertical-align: middle;
+                    cursor: pointer;
+                    margin-left: 4px;
+                }
+
+                .checkbox-wrapper input[type=checkbox]:not(.switch) {
+                    border-radius: 7px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):after {
+                        width: 5px;
+                        height: 9px;
+                        border: 2px solid var(--active-inner);
+                        border-top: 0;
+                        border-left: 0;
+                        left: 7px;
+                        top: 4px;
+                        transform: rotate(var(--r, 20deg));
+                    }
+
+                    .checkbox-wrapper input[type=checkbox]:not(.switch):checked {
+                        --r: 43deg;
+                    }
+
+                .checkbox-wrapper input[type=checkbox].switch {
+                    width: 28px;
+                    height: 16px;
+                    border-radius: 8px;
+                }
+
+                    .checkbox-wrapper input[type=checkbox].switch:after {
+                        left: 2px;
+                        top: 2px;
+                        border-radius: 50%;
+                        width: 12px;
+                        height: 12px;
+                        background: var(--ab, var(--border));
+                        transform: translateX(var(--x, 0));
+                    }
+
+                    .checkbox-wrapper input[type=checkbox].switch:checked {
+                        --ab: var(--active-inner);
+                        --x: 12px;
+                    }
+
+                    .checkbox-wrapper input[type=checkbox].switch:disabled:not(:checked):after {
+                        opacity: 0.6;
+                    }
+        }
+
+        .checkbox-wrapper * {
+            box-sizing: inherit;
+        }
+
+            .checkbox-wrapper *:before,
+            .checkbox-wrapper *:after {
+                box-sizing: inherit;
+            }
+
+        table#dashboardSettingsTable td, th {
+            border-top: 0px;
+            font-size: small;
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .p-3.control-sidebar-content {
+            padding: 0rem !important;
+        }
+
+        /* ===== Dashboard redesign ===== */
+        @@keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-up {
+            animation: fadeUp .45s ease both;
+        }
+
+        .dash-banner {
+            background: linear-gradient(120deg, var(--cm-accent) 0%, #171085 55%, #2b1fb0 100%);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .dash-banner h4 {
+                color: #fff;
+                font-weight: 700;
+                letter-spacing: .2px;
+            }
+
+            .dash-banner p {
+                color: rgba(255,255,255,.75);
+                font-size: .92rem;
+                margin-bottom: 0;
+            }
+
+            .dash-banner .dash-badge {
+                background: rgba(255,255,255,.15);
+                border: 1px solid rgba(255,255,255,.25);
+                color: #fff;
+                font-size: .75rem;
+                padding: 5px 12px;
+                border-radius: 999px;
+                white-space: nowrap;
+            }
+
+            .dash-banner .btn-settings {
+                background: rgba(255,255,255,.15);
+                border: 1px solid rgba(255,255,255,.3);
+                color: #fff;
+                border-radius: 10px;
+                padding: 8px 14px;
+                transition: all .3s ease;
+            }
+
+                .dash-banner .btn-settings:hover {
+                    background: var(--cm-surface);
+                    color: var(--cm-accent-ink);
+                    box-shadow: none;
+                }
+
+        .stat-card {
+            --accent: var(--cm-accent-ink);
+            --soft: var(--cm-soft);
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: 14px;
+            padding: 16px 16px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(16,24,40,.04);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 14px 30px rgba(16,24,40,.12);
+                border-color: var(--cm-border);
+                text-decoration: none;
+            }
+
+            .stat-card .stat-ico {
+                flex: 0 0 52px;
+                width: 52px;
+                height: 52px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+                background: var(--soft);
+                color: var(--accent);
+                margin-right: 14px;
+                transition: transform .25s ease;
+            }
+
+            .stat-card:hover .stat-ico {
+                transform: scale(1.06);
+            }
+
+            .stat-card .stat-body {
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .stat-card .stat-val {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: var(--cm-accent-ink);
+                line-height: 1.15;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .stat-card .stat-cur {
+                font-size: .78rem;
+                font-weight: 600;
+                color: var(--cm-text-muted);
+                margin-right: 3px;
+            }
+
+            .stat-card .stat-lbl {
+                font-size: .8rem;
+                color: var(--cm-text-muted);
+                margin-top: 3px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .stat-card .stat-arrow {
+                color: var(--cm-text-muted);
+                margin-left: 10px;
+                transition: transform .25s ease, color .25s ease;
+            }
+
+            .stat-card:hover .stat-arrow {
+                transform: translateX(4px);
+                color: var(--accent);
+            }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--cm-accent-ink);
+            margin-bottom: 14px;
+        }
+
+        .mini-stat {
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            box-shadow: 0 1px 2px rgba(16,24,40,.04);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+            .mini-stat:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 24px rgba(16,24,40,.10);
+            }
+
+            .mini-stat .mini-ico {
+                flex: 0 0 42px;
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                background: var(--soft, var(--cm-soft));
+                color: var(--accent, var(--cm-accent-ink));
+                margin-right: 12px;
+            }
+
+            .mini-stat .mini-val {
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: var(--cm-accent-ink);
+                line-height: 1.2;
+                white-space: nowrap;
+            }
+
+            .mini-stat .mini-lbl {
+                font-size: .74rem;
+                color: var(--cm-text-muted);
+            }
+
+        .mini-stat.is-warning .mini-val {
+            color: #dc2626;
+        }
+
+        .chart-card {
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(16,24,40,.04);
+            overflow: hidden;
+            transition: box-shadow .25s ease, transform .25s ease;
+        }
+
+            .chart-card:hover {
+                box-shadow: 0 12px 26px rgba(16,24,40,.08);
+                transform: translateY(-2px);
+            }
+
+            .chart-card-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 16px 18px 4px;
+            }
+
+            .chart-title {
+                font-size: .95rem;
+                font-weight: 700;
+                color: var(--cm-accent-ink);
+            }
+
+            .chart-sub {
+                font-size: .74rem;
+                color: var(--cm-text-muted);
+                margin-top: 2px;
+            }
+
+            .chart-pill {
+                font-size: .7rem;
+                background: var(--cm-soft);
+                color: var(--cm-accent-ink);
+                padding: 5px 11px;
+                border-radius: 999px;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+        .chart-body {
+            padding: 8px 16px 16px;
+        }
+
+        .chart-canvas {
+            position: relative;
+            height: 255px;
+        }
+
+        .chart-canvas.chart-canvas--donut {
+            height: 265px;
+        }
+
+        @@media (max-width: 575.98px) {
+            .stat-card .stat-val { font-size: 1.2rem; }
+            .dash-banner h4 { font-size: 1.1rem; }
+            .chart-canvas, .chart-canvas.chart-canvas--donut { height: 230px; }
+        }
+    </style>
+}
+
+<div>
+    <!-- Welcome banner -->
+    <div class="card dash-banner mb-3 fade-up">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div class="mb-2 mb-sm-0 pr-3">
+                <h4 class="mb-1">Welcome back, @fullName</h4>
+                <p>Here is your pharmacy snapshot for <strong style="color:#fff;">@today.ToString("dddd, dd MMMM yyyy")</strong></p>
+            </div>
+            <div class="d-flex align-items-center flex-wrap">
+                <span class="dash-badge mr-2 mb-2 mb-sm-0"><i class="fas fa-shield-alt mr-1"></i> @(Session["Role"] != null ? Session["Role"].ToString() : "User")</span>
+                <button type="button" class="btn btn-settings mb-2 mb-sm-0" data-widget="control-sidebar" data-controlsidebar-slide="true" title="Dashboard Settings">
+                    <i class="fas fa-sliders-h mr-1"></i> Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main stat cards -->
+    <div class="row">
+        @for (var i = 0; i < cards.Count; i++)
+        {
+            var card = cards[i];
+            var theme = themes.ContainsKey(card.CardID) ? themes[card.CardID] : themes[1];
+            var isMoney = moneyIds.Contains(card.CardID);
+            <div class="col-xl-3 col-lg-4 col-sm-6 mb-3 d-flex fade-up" style="animation-delay:@((i * 60))ms">
+                <div class="stat-card card-clickable" data-card-id="@card.CardID" data-card-title="@card.Title"
+                     style="--accent:@theme[0]; --soft:@theme[1];">
+                    <div class="stat-ico"><i class="@card.Icon"></i></div>
+                    <div class="stat-body">
+                        <div class="stat-val">
+                            @if (isMoney)
+                            {
+                                <span class="stat-cur">Rs.</span>
+                            }@card.Value
+                        </div>
+                        <div class="stat-lbl">@card.Title</div>
+                    </div>
+                    <i class="fas fa-arrow-right stat-arrow"></i>
+                </div>
+            </div>
+        }
+        @if (cards.Count == 0)
+        {
+            <div class="col-12">
+                <div class="alert alert-light border mb-0">
+                    <i class="fas fa-info-circle mr-2"></i> No stats available right now. Pick the cards you want from <strong>Settings</strong>.
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Analytics charts *@
+    <div class="row mt-1">
+        <div class="col-12">
+            <div class="section-title"><i class="fas fa-chart-pie mr-1"></i> Analytics</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3 fade-up" style="animation-delay:60ms">
+            <div class="chart-card h-100">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Sales &amp; Profit</div>
+                        <div class="chart-sub">Last 7 days performance</div>
+                    </div>
+                    <span class="chart-pill"><i class="fas fa-calendar-week mr-1"></i> 7 Days</span>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-canvas"><canvas id="salesProfitChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3 fade-up" style="animation-delay:120ms">
+            <div class="chart-card h-100">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Monthly Sales</div>
+                        <div class="chart-sub">Last 6 months revenue</div>
+                    </div>
+                    <span class="chart-pill"><i class="fas fa-calendar-alt mr-1"></i> 6 Months</span>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-canvas"><canvas id="monthlySalesChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3 fade-up" style="animation-delay:180ms">
+            <div class="chart-card h-100">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Top Products</div>
+                        <div class="chart-sub">Best sellers - last 30 days</div>
+                    </div>
+                    <span class="chart-pill"><i class="fas fa-medal mr-1"></i> Top 5</span>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-canvas chart-canvas--donut"><canvas id="topProductsChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Sidebar options cards and graphs configuration *@
+    <aside class="control-sidebar control-sidebar-light" style="display: none;">
+
+        <button type="button" class="close float-left mb-2 js-close-sidebar btn-default" aria-label="Close" style="font-size: 24px;border: none;background: darkgrey;border-radius: 20px;padding: 0px 5px 0px 5px;margin-left: -13px;">
+            &times;
+        </button>
+
+        <div class="p-3 control-sidebar-content">
+            <h5 class="text-center pt-3 primary-text font-weight-bold">Dashboard Setting</h5>
+            <hr class="mb-2">
+            <h6 class="ml-2">Cards Options</h6>
+
+            <table class="table" id="dashboardSettingsTable">
+                <tbody>
+                    @if (isUpdate)
+                    {
+                        foreach (var card in Model.DashboardSettings)
+                        {
+                            <tr>
+                                <td>@card.Title</td>
+                                <td>
+                                    <div class="checkbox-wrapper">
+                                        <input class="switch pull-right" type="checkbox" name="IsVisible" checked="@card.IsVisible" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="Title" value="@card.Title" />
+                                    <input type="hidden" name="CardID" value="@card.CardID" />
+                                    <input type="hidden" name="Order" value="@card.Order" />
+                                    <input type="hidden" name="ID" value="@card.ID" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        foreach (var card in DashBoardCards)
+                        {
+                            <tr>
+                                <td>@card.Title</td>
+                                <td>
+                                    <div class="checkbox-wrapper">
+                                        <input class="switch pull-right" type="checkbox" name="IsVisible" checked />
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="Title" value="@card.Title" />
+                                    <input type="hidden" name="CardID" value="@card.CardID" />
+                                    <input type="hidden" name="Order" value="0" />
+                                    <input type="hidden" name="ID" value="0" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div style="margin: 0px 60px; display: flex; justify-content: center;">
+                <button type="submit" class="btn btn-block btn-primary btn-sm js-save-btn">Update Settings</button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+@section Scripts{
+    <script>
+
+        var SaveDashBoardSettingUrl = '@Url.Action("SaveDashBoardSetting", "DashBoard")';
+        var reportSaleUrl = '@Url.Action("SaleReport", "Reports")';
+        var saleInvoicesUrl = '@Url.Action("SaleInvoices", "Sales")';
+        var profitMarginReportUrl = '@Url.Action("ProfitMarginReport", "Reports")';
+        var dailySalesReportUrl = '@Url.Action("DailySalesReport", "Reports")';
+        var stockValuationReportUrl = '@Url.Action("StockValuationReport", "Reports")';
+        var inventoryItemsUrl = '@Url.Action("Items", "InventoryItems")';
+
+    </script>
+    <script src="~/JSModels/DashBoard/dashBoardSetting.js"></script>
+    <script>
+        var dashCharts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Charts ?? new CoreMedixBeta.Models.DashBoard.DashboardChartsDto()));
+
+        (function () {
+            if (typeof Chart === 'undefined' || !dashCharts) { return; }
+
+            var palette = ['#090650', '#2563eb', '#16a34a', '#7c3aed', '#0d9488', '#f59e0b', '#dc2626'];
+            var gridColor = '#eef1f7';
+            var tickColor = '#8a90a2';
+            var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            function moneyLabel(value) {
+                return 'Rs. ' + (Number(value) || 0).toLocaleString();
+            }
+
+            function shortDate(value) {
+                if (!value) { return ''; }
+                var parts = String(value).substring(0, 10).split('-');
+                if (parts.length !== 3) { return value; }
+                return parts[2] + ' ' + monthNames[parseInt(parts[1], 10) - 1];
+            }
+
+            function monthLabel(value) {
+                if (!value) { return ''; }
+                var parts = String(value).split('-');
+                if (parts.length !== 2) { return value; }
+                return monthNames[parseInt(parts[1], 10) - 1] + " '" + parts[0].substring(2);
+            }
+
+            function legendLabels() {
+                return { usePointStyle: true, boxWidth: 8, padding: 14, fontColor: '#5b6478', fontSize: 11 };
+            }
+
+            var daily = dashCharts.DailySales || [];
+            var salesCtx = document.getElementById('salesProfitChart');
+            if (salesCtx) {
+                new Chart(salesCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: daily.map(function (d) { return shortDate(d.Date); }),
+                        datasets: [
+                            {
+                                label: 'Sales',
+                                data: daily.map(function (d) { return d.SaleAmount; }),
+                                backgroundColor: 'rgba(9,6,80,.85)',
+                                borderColor: '#090650',
+                                borderWidth: 0,
+                                borderRadius: 5,
+                                barPercentage: 0.55,
+                                categoryPercentage: 0.72
+                            },
+                            {
+                                label: 'Profit',
+                                data: daily.map(function (d) { return d.ProfitAmount; }),
+                                backgroundColor: 'rgba(22,163,74,.85)',
+                                borderColor: '#16a34a',
+                                borderWidth: 0,
+                                borderRadius: 5,
+                                barPercentage: 0.55,
+                                categoryPercentage: 0.72
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: { position: 'bottom', labels: legendLabels() },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#0f172a',
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    return data.datasets[tooltipItem.datasetIndex].label + ': ' + moneyLabel(tooltipItem.yLabel);
+                                }
+                            }
+                        },
+                        scales: {
+                            xAxes: [{ gridLines: { display: false }, ticks: { fontColor: tickColor, fontSize: 11 } }],
+                            yAxes: [{
+                                beginAtZero: true,
+                                gridLines: { color: gridColor, drawBorder: false },
+                                ticks: { fontColor: tickColor, fontSize: 11, callback: function (value) { return Number(value).toLocaleString(); } }
+                            }]
+                        }
+                    }
+                });
+            }
+
+            function renderDonut(canvasId, labels, values) {
+                var el = document.getElementById(canvasId);
+                if (!el) { return; }
+
+                var hasData = labels.length > 0 && values.some(function (v) { return Number(v) > 0; });
+                var showLabels = hasData ? labels : ['No data yet'];
+                var showValues = hasData ? values : [1];
+                var showColors = hasData
+                    ? labels.map(function (unused, i) { return palette[i % palette.length]; })
+                    : ['#e6e9f2'];
+
+                new Chart(el.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: showLabels,
+                        datasets: [{ data: showValues, backgroundColor: showColors, borderWidth: 2, borderColor: '#fff' }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutoutPercentage: 62,
+                        legend: { position: 'bottom', labels: legendLabels() },
+                        tooltips: {
+                            enabled: hasData,
+                            backgroundColor: '#0f172a',
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    return data.labels[tooltipItem.index] + ': ' + moneyLabel(data.datasets[0].data[tooltipItem.index]);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var topProducts = dashCharts.TopProducts || [];
+            renderDonut('topProductsChart',
+                topProducts.map(function (p) { return p.Label; }),
+                topProducts.map(function (p) { return p.Value; }));
+
+            var monthly = dashCharts.MonthlySales || [];
+            var monthlyCtx = document.getElementById('monthlySalesChart');
+            if (monthlyCtx) {
+                new Chart(monthlyCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: monthly.map(function (m) { return monthLabel(m.Label); }),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: monthly.map(function (m) { return m.Value; }),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37,99,235,.12)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            lineTension: 0.35,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#2563eb',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: { position: 'bottom', labels: legendLabels() },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#0f172a',
+                            callbacks: { label: function (tooltipItem) { return 'Revenue: ' + moneyLabel(tooltipItem.yLabel); } }
+                        },
+                        scales: {
+                            xAxes: [{ gridLines: { display: false }, ticks: { fontColor: tickColor, fontSize: 11 } }],
+                            yAxes: [{
+                                beginAtZero: true,
+                                gridLines: { color: gridColor, drawBorder: false },
+                                ticks: { fontColor: tickColor, fontSize: 11, callback: function (value) { return Number(value).toLocaleString(); } }
+                            }]
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+}
