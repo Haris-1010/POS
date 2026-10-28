@@ -23,6 +23,11 @@
         .datepicker {
             z-index: 1051 !important;
         }
+        .barcode-scanned {
+            border-color: #28a745 !important;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.35) !important;
+            background-color: #f0fff4 !important;
+        }
     </style>
 }
 <div class="card">
@@ -40,7 +45,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label for="">Patient<span class="required">*</span></label>
+                        <label for="">Customer<span class="required">*</span></label>
                         @if (Model.ReferralOrderID > 0)
                         {
                             <input type="text" value="@Model.CustomerName" name="SearchCustomer" autocomplete="off" class="form-control js-search-customer" required placeholder="Eg: 03001234450" readonly />
@@ -99,16 +104,16 @@
 
 <div class="card">
     <div class="card-header">
-        <p class="m-0">Find and add items or variations to the invoice seamlessly.</p>
+        <p class="m-0">Scan a barcode or search for products to add them to the invoice.</p>
         <form id="itemSearchForm">
             <div class="row">
                 <div class="col-md-2">
                     <div class="form-group m-0">
                         <label>Search By</label>
                         <select class="form-control" name="SearchType">
-                            <option value="Item" selected>Item</option>
-                            <option value="Variation">Variation</option>
-                            <option value="Salt">Generic</option>
+                            <option value="Item" selected>Product</option>
+                            <option value="Variation">Variant</option>
+                            <option value="Salt">Description</option>
                             <option value="Alternate">Alternate</option>
                             <option value="">All Above</option>
                         </select>
@@ -145,8 +150,18 @@
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group m-0">
-                        <label>Search Item</label>
-                        <input type="text" value="" name="SearchItem" autocomplete="off" class="form-control js-search-item" required placeholder="Eg: Panadol" />
+                        <label>Search Product <span class="badge badge-success ml-1" style="font-size:10px;" title="USB barcode scanner ready — just scan"><i class="fas fa-barcode"></i> Scanner Ready</span></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" style="background:#fff;border-right:none;"><i class="fas fa-barcode" style="color:var(--cm-accent-ink);"></i></span>
+                            </div>
+                            <input type="text" value="" name="SearchItem" autocomplete="off" class="form-control js-search-item" required placeholder="Scan barcode or type name" style="border-left:none;" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary js-camera-scan" title="Scan with camera" style="border-radius:0 6px 6px 0;">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-2 col-sm-6">
@@ -413,7 +428,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title primary-text font-weight-bold ">Save Patient</h5>
+                <h5 class="modal-title primary-text font-weight-bold ">Save Customer</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -424,7 +439,7 @@
                         <div class="col-md-6 col-sm-12">
                             <div class="form-group">
                                 <label>Name<span class="required">*</span></label>
-                                <input type="text" class="form-control" name="Name" required maxlength="@Patients.MaxNameLength" placeholder="Enter Patient name" />
+                                <input type="text" class="form-control" name="Name" required maxlength="@Patients.MaxNameLength" placeholder="Enter customer name" />
                             </div>
                         </div>
                         <div class="col-md-6 col-sm-12">
@@ -579,6 +594,28 @@
 <!-- Container to load invoices dynamically -->
 <div id="invoiceDetailsContainer"></div>
 
+<!-- Camera Scan Modal -->
+<div class="modal fade" id="cameraScanModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-camera"></i> Camera Barcode Scan</h5>
+                <button type="button" class="close js-close-camera" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="cameraVideo" style="width:100%;max-width:400px;margin:0 auto;border-radius:8px;background:#000;min-height:200px;overflow:hidden;"></div>
+                <p id="cameraStatus" class="mt-2 mb-0" style="font-size:13px;color:#666;">Starting camera...</p>
+                <p id="cameraResult" class="mt-1 mb-0" style="font-size:13px;font-weight:600;color:#28a745;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm js-close-camera" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @*<form id="permissionsForm">
         <input type="hidden" name="isEMRIntegrationAllowed" value="@(user.IntegrateEMRInCoreMedixPharmacy ? "1" : "0")" />
@@ -609,6 +646,10 @@
     var deleteCustomerUrl = '@Url.Action("DeleteCustomer", "Patient")';
     </script>
     <script src="~/ReplacementPaths/Sweet Alert/sweetalert.js"></script>
+    <script src="~/Scripts/barcode/zxing-reader.min.js"></script>
+    <script>var ZXING_WASM_BASE = '@Url.Content("~/Scripts/barcode/")';</script>
+    <script src="~/Scripts/barcode/zxing-camera.js"></script>
+    <script src="~/Scripts/barcode/html5-qrcode.min.js"></script>
     <script src="~/JSModels/Sales/manageInvoiceCustomer.js"></script>
     <script src="~/JSModels/Sales/manageInvoiceReferredBy.js"></script>
     <script src="~/JSModels/Sales/manageInvoice.js"></script>

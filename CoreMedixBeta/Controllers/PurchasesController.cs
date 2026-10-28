@@ -29,6 +29,7 @@ namespace CoreMedixBeta.Controllers
         private readonly ItemAttributesRepository _itemAttributesRepository;
         private readonly PurchasesRepository _purchasesRepository;
         private readonly PurchaseOrdersRepository _purchaseOrdersRepository;
+        private readonly ActivityLogRepository _activityLogRepo = new ActivityLogRepository();
 
         public PurchasesController() : this(new SupplierRepository(), new ManufacturerRepository(), new TaxesRepository(), new ItemAttributesRepository(), new PurchasesRepository(), new PurchaseOrdersRepository())
         {
@@ -103,6 +104,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (id > 0)
                 {
+                    await _activityLogRepo.LogAsync(Session["Username"]?.ToString() ?? "System", formInput.Order.ID > 0 ? "PURCHASE_ORDER_UPDATE" : "PURCHASE_ORDER_SAVE", "PurchaseOrder", id.ToString(), $"Purchase Order {formInput.Order.ReferenceNo} saved", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Purchase Order Saved Successfully", Data = id });
                 }
                 else
@@ -183,6 +185,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (await _purchaseOrdersRepository.DeletePurchaseOrder(input))
                 {
+                    await _activityLogRepo.LogAsync(input.DeletedBy, "PURCHASE_DELETE", "Purchase", input.ID.ToString(), $"Purchase {input.ID} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Purchase Deleted successfully", });
                 }
 
@@ -271,6 +274,7 @@ namespace CoreMedixBeta.Controllers
                 var id = await _purchasesRepository.SavePurchase(input);
                 if (id > 0)
                 {
+                    await _activityLogRepo.LogAsync(Session["Username"]?.ToString() ?? "System", "PURCHASE_RECEIVE", "Purchase", id.ToString(), $"Purchase {id} saved", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Purchase Order Saved Successfully", Data = id });
                 }
                 else

@@ -26,6 +26,7 @@ namespace CoreMedixBeta.Controllers
         private readonly ManufacturerRepository _manufacturerRepository;
         private readonly ManufacturerBrandsRepository _brandsRepository;
         private readonly InventoryItemsRepository _inventoryItemsRepository;
+        private readonly ActivityLogRepository _activityLogRepo = new ActivityLogRepository();
 
         public InventoryItemsController() : this(new SupplierRepository(), new PatientRepository(), new ManufacturerRepository(), new ManufacturerBrandsRepository(), new InventoryItemsRepository())
         {
@@ -131,6 +132,12 @@ namespace CoreMedixBeta.Controllers
                 };
 
                 int ID = await _inventoryItemsRepository.SaveItemAsync(entity);
+
+                if (ID > 0)
+                {
+                    await _activityLogRepo.LogAsync(currentUsername, formInput.ID > 0 ? "PRODUCT_UPDATE" : "PRODUCT_CREATE", "Product", ID.ToString(), $"Item {formInput.Name} saved", Request.UserHostAddress);
+                }
+
                 var data = new { ID = ID, ManufacturerID = formInput.ManufacturerID };
                 return Json(new AjaxRequestDTO { Status = true, Message = "InventoryItem Saved Successfully", Data = data });
             }
@@ -211,6 +218,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (await _inventoryItemsRepository.DeleteItemAsync(input))
                 {
+                    await _activityLogRepo.LogAsync(input.DeletedBy, "PRODUCT_DELETE", "Product", input.ID.ToString(), $"Item {input.ID} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Item Deleted successfully" });
                 }
                 return Json(new AjaxRequestDTO { Status = false, Message = "Failed to Delete Item due to technical difficulties" });
@@ -373,12 +381,16 @@ namespace CoreMedixBeta.Controllers
             {
                 string operationType = formInput.ID > 0 ? "UPDATE" : "INSERT";
 
+                // Keep barcodes decoder-friendly: strip EAN-13 leading 0 and fix UPC-A check digit
+                formInput.UPC = Utilities.NormalizeUpc(formInput.UPC);
+
                 formInput.CreatedBy = Session["Username"]?.ToString() ?? "System";
                 formInput.LastModifiedBy = formInput.CreatedBy;
 
                 var response = await _inventoryItemsRepository.SaveItemVariationAsync(formInput);
                 if (response.Value > 0)
                 {
+                    await _activityLogRepo.LogAsync(formInput.CreatedBy, formInput.ID > 0 ? "VARIATION_UPDATE" : "VARIATION_CREATE", "ProductVariation", response.Value.ToString(), $"Variation {formInput.VariationName} saved", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Variation Saved Successfully" });
                 }
                 return Json(new AjaxRequestDTO { Status = false, Message = response.FirstError.Description });
@@ -402,6 +414,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (await _inventoryItemsRepository.DeleteVariationAsync(input))
                 {
+                    await _activityLogRepo.LogAsync(input.DeletedBy, "VARIATION_DELETE", "ProductVariation", input.ID.ToString(), $"Variation {input.ID} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Variation Deleted successfully" });
                 }
                 return Json(new AjaxRequestDTO { Status = false, Message = "Failed to Delete Variation due to technical difficulties" });

@@ -81,7 +81,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Search and Filter Inventory</h3>
+        <h3 class="card-title">Search and Filter Products</h3>
     </div>
     <div class="card-body">
         <form id="filterForm">
@@ -130,7 +130,7 @@
                         <select class="form-control js-select2" id="productType" name="ProductType" required>
                             <option value="">Select Product</option>
                             <option value="Medicine">
-                                Medicine
+                                Standard
                             </option>
                             <option value="Other">
                                 Other
@@ -140,11 +140,11 @@
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label for="itemUPC" data-toggle="tooltip" title="Twelve digit unique number associated with bar code. (Universal Product Code)">
-                            UPC (Scan Barcode)
+                        <label for="itemUPC" data-toggle="tooltip" title="Unique barcode number for this product variant.">
+                            Barcode (UPC)
                             <i class="fas fa-question-circle bg-white" data-bs-toggle="tooltip"></i>
                         </label>
-                        <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Enter UPC">
+                        <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Scan or enter barcode">
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6">
@@ -213,11 +213,11 @@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-baseline">
-        <h3 class="card-title primary-text font-weight-bold">Inventory Items</h3>
+        <h3 class="card-title primary-text font-weight-bold">Products</h3>
         <div class="card-tools ml-auto">
 
             <a href='@Url.Action("ManageItem", "InventoryItems")' type="button" class="btn btn-primary-custom">
-                <i class="fas fa-plus"></i> Add New Item
+                <i class="fas fa-plus"></i> Add New Product
             </a>
 
             <button type="button" class="btn btn-outline-primary ml-1 js-import-items-btn">

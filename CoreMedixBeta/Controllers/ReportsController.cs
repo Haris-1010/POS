@@ -28,6 +28,7 @@ namespace CoreMedixBeta.Controllers
         private readonly ItemAttributesRepository _itemAttributesRepository;
         private readonly DashBoardRepository _dashBoardRepo;
         private readonly DiscountsRepository _discountsRepository;
+        private readonly ActivityLogRepository _activityLogRepo = new ActivityLogRepository();
 
         public ReportsController() : this(new ReportsRepository(), new ManufacturerRepository(),
             new ManufacturerBrandsRepository(), new SupplierRepository(),
@@ -742,6 +743,37 @@ namespace CoreMedixBeta.Controllers
             {
                 input.DataTableValues = Common.GetMappedDataTableValues(HttpContext);
                 var data = await _reportsRepository.GetPagedDeletedInvoicesReportAsync(input);
+
+                return Json(new PagedAjaxRequestOutputDTO
+                {
+                    draw = Request.Form.GetValues("draw").FirstOrDefault(),
+                    recordsFiltered = data?.Item2 ?? string.Empty,
+                    recordsTotal = data?.Item2 ?? string.Empty,
+                    data = data?.Item1 ?? "[]"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Json(new PagedAjaxRequestOutputDTO());
+            }
+        }
+
+        [AuthorizePermission("Reports_View")]
+        public async Task<ActionResult> AuditLogsReport()
+        {
+            ViewBag.Actions = await _activityLogRepo.GetDistinctActionsAsync();
+            ViewBag.Usernames = await _activityLogRepo.GetDistinctUsernamesAsync();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetAuditLogsReport(GetPagedAuditLogsInputDto input)
+        {
+            try
+            {
+                input.DataTableValues = Common.GetMappedDataTableValues(HttpContext);
+                var data = await _activityLogRepo.GetPagedAuditLogsAsync(input);
 
                 return Json(new PagedAjaxRequestOutputDTO
                 {

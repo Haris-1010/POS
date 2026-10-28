@@ -14,14 +14,16 @@ namespace CoreMedixBeta.Controllers
     public class AccountController : Controller
     {
         private readonly UserRepository _userRepo;
+        private readonly ActivityLogRepository _activityLogRepo;
 
-        public AccountController() : this(new UserRepository())
+        public AccountController() : this(new UserRepository(), new ActivityLogRepository())
         {
         }
 
-        public AccountController(UserRepository userRepo)
+        public AccountController(UserRepository userRepo, ActivityLogRepository activityLogRepo)
         {
             _userRepo = userRepo;
+            _activityLogRepo = activityLogRepo;
         }
 
         // ==========================================
@@ -94,6 +96,8 @@ namespace CoreMedixBeta.Controllers
 
                     System.Diagnostics.Debug.WriteLine($"[LOGIN] Success: UserID={result.UserID}, Role={result.Role}");
 
+                    await _activityLogRepo.LogAsync(result.Username, "LOGIN", "User", result.UserID.ToString(), $"User {result.Username} logged in successfully", Request.UserHostAddress);
+
                     return Json(new AjaxRequestDTO
                     {
                         Status = true,
@@ -102,6 +106,7 @@ namespace CoreMedixBeta.Controllers
                     });
                 }
 
+                await _activityLogRepo.LogAsync(input.Username, "LOGIN_FAILED", "User", "", result.Message, Request.UserHostAddress);
                 return Json(new AjaxRequestDTO { Status = false, Message = result.Message });
             }
             catch (Exception ex)
@@ -119,6 +124,9 @@ namespace CoreMedixBeta.Controllers
         {
             try
             {
+                string logoutUsername = Session["Username"]?.ToString() ?? "Unknown";
+                _activityLogRepo.LogAsync(logoutUsername, "LOGOUT", "User", "", $"User {logoutUsername} logged out", Request.UserHostAddress);
+
                 // Clear session
                 Session.Abandon();
                 Session.Clear();
@@ -221,6 +229,7 @@ namespace CoreMedixBeta.Controllers
                 if (result > 0)
                 {
                     string message = input.ID == 0 ? "User created successfully." : "User updated successfully.";
+                    await _activityLogRepo.LogAsync(loggedinUsername, input.ID == 0 ? "USER_CREATE" : "USER_UPDATE", "User", result.ToString(), $"Username: {input.Username}, Role: {input.Role}", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = message });
                 }
 
@@ -244,7 +253,10 @@ namespace CoreMedixBeta.Controllers
                 bool isDeleted = await _userRepo.DeleteUserAsync(id, loggedinUsername);
 
                 if (isDeleted)
+                {
+                    await _activityLogRepo.LogAsync(loggedinUsername, "USER_DELETE", "User", id.ToString(), $"User ID {id} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "User deleted successfully." });
+                }
 
                 return Json(new AjaxRequestDTO { Status = false, Message = "Failed to delete user." });
             }

@@ -42,7 +42,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label for="">Patient</label>
+                        <label for="">Customer</label>
                         <input type="text" value="@(isUpdate ? SaleInvoice.CustomerName : string.Empty)" name="SearchCustomer" autocomplete="off" class="form-control js-search-customer" required placeholder="Eg: 03001234450" readonly />
                         <input type="hidden" name="CustomerID" value="@(isUpdate ? SaleInvoice.CustomerID : string.Empty)" required>
                         <input type="hidden" name="CustomerType" value="@(isUpdate ? SaleInvoice.CustomerType : string.Empty)" required>

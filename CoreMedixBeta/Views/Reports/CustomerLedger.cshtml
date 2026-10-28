@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "PatientLedger";
+    ViewBag.Title = "CustomerLedger";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section Styles{
@@ -27,7 +27,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="form-group">
-                            <label for="">Patient</label>
+                            <label for="">Customer</label>
                             <input type="text" value="" name="SearchCustomer" autocomplete="off" class="form-control js-search-customer" placeholder="Eg: 03001234450" />
                             <input type="hidden" value="" name="CustomerID">
                             <input type="hidden" value="" name="CustomerType">
@@ -82,7 +82,7 @@
 @* Table part starting ... *@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-baseline">
-        <h3 class="card-title primary-text font-weight-bold">Patient Ledger</h3>
+        <h3 class="card-title primary-text font-weight-bold">Customer Ledger</h3>
     </div>
     <div class="card-body">
         <table id="reportTable" class="table table-hover w-100 table-responsive-sm">
@@ -90,7 +90,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Invoice NO</th>
-                    <th>Patient</th>
+                    <th>Customer</th>
                     <th>Description</th>
                     <th>Debit</th>
                     <th>Credit</th>

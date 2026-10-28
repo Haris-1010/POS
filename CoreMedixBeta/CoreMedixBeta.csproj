@@ -394,6 +394,8 @@
     <Compile Include="Models\Reports\DTOs\GetPagedCustomerOutstandingReportOutputDto.cs" />
     <Compile Include="Models\Reports\DTOs\GetPagedDailyActivityReportInputDto.cs" />
     <Compile Include="Models\Reports\DTOs\GetPagedDailyActivityReportOutputDto.cs" />
+    <Compile Include="Models\Reports\DTOs\GetPagedAuditLogsInputDto.cs" />
+    <Compile Include="Models\Reports\DTOs\GetPagedAuditLogsOutputDto.cs" />
     <Compile Include="Models\Reports\DTOs\GetPagedDailySalesReportInputDto.cs" />
     <Compile Include="Models\Reports\DTOs\GetPagedDailySalesReportOutputDto.cs" />
     <Compile Include="Models\Reports\DTOs\GetPagedDeletedInvoicesReportInputDto.cs" />
@@ -482,7 +484,9 @@
     <Compile Include="Models\Taxes\DTOs\TaxesShortListInputDto.cs" />
     <Compile Include="Models\Taxes\DTOs\TaxesShortListOutputDto.cs" />
     <Compile Include="Models\Taxes\Tax.cs" />
+    <Compile Include="Models\Audit\ActivityLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\ActivityLogRepository.cs" />
     <Compile Include="Repositories\BrandingRepository.cs" />
     <Compile Include="Repositories\BrandingsRepository.cs" />
     <Compile Include="Repositories\ChatbotRepository.cs" />
@@ -3236,6 +3240,7 @@
     <Content Include="JSModels\Reports\cashCollectionReport.js" />
     <Content Include="JSModels\Reports\customerLedger.js" />
     <Content Include="JSModels\Reports\customerOutstandingReport.js" />
+    <Content Include="JSModels\Reports\auditLogsReport.js" />
     <Content Include="JSModels\Reports\dailyActivityReport.js" />
     <Content Include="JSModels\Reports\dailySalesReport.js" />
     <Content Include="JSModels\Reports\deletedInvoicesReport.js" />
@@ -6848,6 +6853,11 @@
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
+    <Content Include="Scripts\barcode\JsBarcode.all.min.js" />
+    <Content Include="Scripts\barcode\html5-qrcode.min.js" />
+    <Content Include="Scripts\barcode\zxing-camera.js" />
+    <Content Include="Scripts\barcode\zxing-reader.min.js" />
+    <Content Include="Scripts\barcode\zxing_reader.wasm" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.js" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
@@ -6925,6 +6935,7 @@
     <Content Include="Views\Reports\BatchWiseStockReport.cshtml" />
     <Content Include="Views\Reports\UserActivityReport.cshtml" />
     <Content Include="Views\Reports\TaxReport.cshtml" />
+    <Content Include="Views\Reports\AuditLogsReport.cshtml" />
     <Content Include="Views\Reports\DeletedInvoicesReport.cshtml" />
     <Content Include="Views\Reports\CustomerOutstandingReport.cshtml" />
     <Content Include="Views\Reports\SupplierOutstandingReport.cshtml" />

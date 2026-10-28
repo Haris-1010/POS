@@ -20,6 +20,7 @@ namespace CoreMedixBeta.Controllers
     public class PatientController : Controller
     {
         private readonly PatientRepository _patientRepository;
+        private readonly ActivityLogRepository _activityLogRepo = new ActivityLogRepository();
 
         public PatientController() : this(new PatientRepository())
         {
@@ -63,6 +64,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (customerId > 0)
                 {
+                    await _activityLogRepo.LogAsync(currentUsername, formInput.ID == 0 ? "CUSTOMER_CREATE" : "CUSTOMER_UPDATE", "Customer", customerId.ToString(), $"Customer {formInput.Name} saved", Request.UserHostAddress);
                     return Json(new
                     {
                         Status = true,
@@ -124,6 +126,7 @@ namespace CoreMedixBeta.Controllers
 
                 if (await _patientRepository.DeletePatientAsync(input))
                 {
+                    await _activityLogRepo.LogAsync(input.DeletedBy, "CUSTOMER_DELETE", "Customer", input.ID.ToString(), $"Customer {input.ID} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Customer Deleted successfully", });
                 }
 

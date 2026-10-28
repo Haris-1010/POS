@@ -18,6 +18,7 @@
             _$addVariationForm.find('input[name="ID"]').val('0');
             _$addVariationForm.find('input[name="ExpiryDate"]').datepicker('setDate', new Date());
             _$addVariationModal.find('.js-modal-title').text("Add Variation"); 
+            $('#printBarcodeLabelBtn').hide();
             _$alternateItemElement.val(null).trigger('change');
             _$addVariationForm.find('select[name="AlternateItems"]').val(null).trigger('change'); 
 
@@ -181,6 +182,7 @@
                 if (status) {
                     $('#itemUPC').val(barcode);
                     toastr.success(message, "", { timeOut: 500 });
+                    $('#printBarcodeLabelBtn').show();
                 } else {
                     toastr.error(message, "", { timeOut: 500 });
                 }
@@ -189,6 +191,25 @@
                 toastr.error("Failed to generate barcode due to a technical error.", "", { timeOut: 500 });
             }
         });
+    });
+
+    $('#printBarcodeLabelBtn').on('click', function () {
+        const upc = $('#itemUPC').val();
+        if (!upc) {
+            toastr.warning("Enter or generate a barcode first.", "", { timeOut: 500 });
+            return;
+        }
+        if (window.POSBarcode) {
+            const name = _$addVariationForm.find('input[name="VariationName"]').val() || '';
+            const price = _$addVariationForm.find('input[name="SellingPrice"]').val() || '';
+            POSBarcode.printLabel(upc, name, price ? parseFloat(price).toFixed(2) : '');
+        } else {
+            toastr.error("Barcode library not loaded.", "", { timeOut: 500 });
+        }
+    });
+
+    $('#itemUPC').on('input', function () {
+        $('#printBarcodeLabelBtn').toggle(!!$(this).val());
     });
 
     _$alternateItemElement.select2({
@@ -275,6 +296,7 @@
                 _$addVariationForm.find('select[name="CategoryID"]').val(response.CategoryID);
                 _$addVariationForm.find('select[name="SubCategoryID"]').val(response.SubCategoryID);
                 _$addVariationForm.find('input[name="UPC"]').val(response.UPC);
+                $('#printBarcodeLabelBtn').toggle(!!response.UPC);
                 _$addVariationForm.find('input[name="OpeningStock"]').val(response.OpeningStock);
                 _$addVariationForm.find('input[name="NoOfPillsInPack"]').val(response.NoOfPillsInPack);
                 _$addVariationForm.find('input[name="ReorderPoint"]').val(response.ReorderPoint);
@@ -295,6 +317,22 @@
             }
         } catch (error) {
             toastr.error("An error occurred", "", { timeOut: 500 });
+        }
+    });
+
+    _$variationsTable.on('click', '.js-print-barcode', function () {
+        const upc = $(this).data('upc');
+        const name = $(this).data('name');
+        const price = $(this).data('price');
+        if (!upc) {
+            toastr.warning("This variation has no barcode.", "", { timeOut: 500 });
+            return;
+        }
+        if (window.POSBarcode) {
+            const priceStr = price ? parseFloat(price).toFixed(2) : '';
+            POSBarcode.printLabel(upc, name, priceStr);
+        } else {
+            toastr.error("Barcode library not loaded.", "", { timeOut: 500 });
         }
     });
 
@@ -379,6 +417,9 @@
                             Actions: `<div class="btn-group-sm action-btns">
                                          <button class="btn btn-default btn-sm js-edit" title="Edit" data-id="${d[i].ID}" data-toggle="tooltip">
                                              <i class="fa fa-edit"></i>
+                                         </button>
+                                         <button class="btn btn-sm btn-info js-print-barcode" title="Print Barcode Label" data-id="${d[i].ID}" data-upc="${d[i].UPC || ''}" data-name="${d[i].VariationName || ''}" data-price="${d[i].SellingPrice || ''}" data-toggle="tooltip" ${d[i].UPC ? '' : 'disabled'}>
+                                             <i class="fas fa-barcode"></i>
                                          </button>
                                          <button class="btn btn-sm btn-danger js-delete" data-toggle="tooltip" data-id="${d[i].ID}" title="Delete Variation">
                                              <i class="fa fa-trash"></i>

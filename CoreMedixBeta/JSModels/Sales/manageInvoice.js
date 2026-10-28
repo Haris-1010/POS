@@ -17,21 +17,456 @@
         isEMRIntegration: "1",
     };
     let isBarcodeScan = false;
+    let barcodeScanValue = '';
+    let _scanBuffer = '';
+    let _scanLastKeyTime = 0;
+    let _scanBurstTimer = null;
+    let _scanPendingCode = '';
+    let _scanPendingUntil = 0;
+    const SCAN_FAST_KEY_MS = 80;
+    const SCAN_MIN_LEN = 6;
+
+    // POS success beep (WebAudio, fully offline) — plays when a scanned item lands in the list
+    function playScanBeep() {
+        try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            if (!window._scanAudioCtx) window._scanAudioCtx = new AC();
+            var ctx = window._scanAudioCtx;
+            if (ctx.state === 'suspended') ctx.resume();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = 1800;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            var t = ctx.currentTime;
+            gain.gain.setValueAtTime(0.12, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            osc.start(t);
+            osc.stop(t + 0.16);
+        } catch (e) { }
+    }
+
+    function handlePossibleScan(val) {
+        console.log('[SCAN] handlePossibleScan called with:', val);
+        var code = String(val === null || val === undefined ? '' : val).trim();
+        // Decoders may return the EAN-13 form of a UPC-A (leading 0) -> use the 12-digit value
+        if (/^0\d{12}$/.test(code)) code = code.substring(1);
+        if (!/^\d{6,14}$/.test(code)) {
+            console.log('[SCAN] Regex failed for:', val);
+            return false;
+        }
+        var now = Date.now();
+        if (code === _scanPendingCode && now < _scanPendingUntil) {
+            console.log('[SCAN] Duplicate ignored (in-flight):', code);
+            return true;
+        }
+        _scanPendingCode = code;
+        _scanPendingUntil = now + 3000;
+        _scanBuffer = '';
+        isBarcodeScan = true;
+        barcodeScanValue = code;
+        _$searchItemElement.addClass('barcode-scanned');
+        console.log('[SCAN] Firing autocomplete search for:', code);
+        _$searchItemElement.autocomplete('search', code);
+        return true;
+    }
 
     $(function () {
-        $('.js-search-item').on('keypress', function (e) {
-            if (e.which === 13) {
-                const inputVal = $(this).val().trim();
-                if (/^\d{10,13}$/.test(inputVal)) {
-                    isBarcodeScan = true;
-                } else {
-                    isBarcodeScan = false;
-                }
+        console.log('[SCAN] Barcode scanner handlers initialized');
 
-                e.preventDefault();
-                $(this).autocomplete("search");
+        // keydown on search box — catch Enter (13) AND Tab (9) as terminators
+        _$searchItemElement.on('keydown', function (e) {
+            console.log('[SCAN] search-box keydown:', e.which, 'val:', $(this).val());
+            if (e.which === 13 || e.which === 9) { // Enter or Tab
+                const inputVal = $(this).val().trim();
+                if (/^\d{6,14}$/.test(inputVal)) {
+                    console.log('[SCAN] Barcode detected in search box:', inputVal);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlePossibleScan(inputVal);
+                    return false;
+                }
             }
         });
+
+        // input event fallback — detect when digits appear very fast
+        var _inputTimestamps = [];
+        _$searchItemElement.on('input', function () {
+            var val = $(this).val().trim();
+            var now = Date.now();
+            _inputTimestamps.push(now);
+            // Keep only last 2 seconds
+            _inputTimestamps = _inputTimestamps.filter(function (t) { return now - t < 2000; });
+            console.log('[SCAN] input event, val:', val, 'recent keystrokes:', _inputTimestamps.length);
+            clearTimeout(_scanBurstTimer);
+            if (/^\d{6,14}$/.test(val)) {
+                // Fire only after a quiet gap so a partial prefix is never
+                // treated as a complete barcode while the scanner is still typing.
+                // 150ms tolerates slow Bluetooth/USB scanners (~80-120ms per char).
+                _scanBurstTimer = setTimeout(function () {
+                    var v = _$searchItemElement.val().trim();
+                    var ts = _inputTimestamps;
+                    var spread = ts.length ? ts[ts.length - 1] - ts[0] : 99999;
+                    console.log('[SCAN] Burst quiet-period fired for:', v, 'keystrokes:', ts.length, 'spread ms:', spread);
+                    if (/^\d{6,14}$/.test(v) && ts.length >= 6 && spread < 1500) {
+                        _inputTimestamps = [];
+                        handlePossibleScan(v);
+                    }
+                }, 150);
+            }
+                }, 80);
+            }
+        });
+
+        // Global keydown capture
+        $(document).on('keydown', function (e) {
+            if (!_$searchItemElement.length || $('.modal.show').length) return;
+            var $t = $(e.target);
+            if ($t.is('input[type=text], input[type=password], input[type=number], textarea, select')) {
+                if (!$t.hasClass('js-search-item')) return;
+            }
+
+            var now = Date.now();
+            var isDigit = (e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105);
+            if (isDigit) {
+                console.log('[SCAN] global digit key:', e.which, 'buffer before:', _scanBuffer);
+                if (now - _scanLastKeyTime <= SCAN_FAST_KEY_MS) {
+                    _scanBuffer += String.fromCharCode(e.which);
+                } else {
+                    _scanBuffer = String.fromCharCode(e.which);
+                }
+                _scanLastKeyTime = now;
+                console.log('[SCAN] buffer after:', _scanBuffer);
+            } else if ((e.which === 13 || e.which === 9) && _scanBuffer.length >= SCAN_MIN_LEN) {
+                console.log('[SCAN] Global burst + terminator, code:', _scanBuffer);
+                e.preventDefault();
+                e.stopPropagation();
+                var code = _scanBuffer;
+                _scanBuffer = '';
+                _$searchItemElement.val(code).focus();
+                handlePossibleScan(code);
+                return false;
+            } else if (e.which !== 16 && e.which !== 17 && e.which !== 18 && e.which !== 91) {
+                if (now - _scanLastKeyTime > 300) _scanBuffer = '';
+            }
+        });
+
+        // Paste fallback
+        _$searchItemElement.on('paste', function (e) {
+            var pasted = (e.originalEvent.clipboardData || window.clipboardData).getData('text').trim();
+            console.log('[SCAN] paste event:', pasted);
+            if (/^\d{6,14}$/.test(pasted)) {
+                e.preventDefault();
+                $(this).val(pasted);
+                handlePossibleScan(pasted);
+            }
+        });
+
+        // ==================== CAMERA SCAN ====================
+        var _cameraStream = null;
+        var _cameraDetectLoop = null;
+        var _html5Scanner = null;
+        var _zxingTimer = null;
+        var _zxingTick = 0;
+        var _zxingBusy = false;
+        var _zxingMisses = 0;
+
+        function stopCamera() {
+            if (_cameraDetectLoop) { cancelAnimationFrame(_cameraDetectLoop); _cameraDetectLoop = null; }
+            if (_zxingTimer) { clearInterval(_zxingTimer); _zxingTimer = null; }
+            _zxingBusy = false;
+            _zxingMisses = 0;
+            if (_cameraStream) {
+                _cameraStream.getTracks().forEach(function (t) { t.stop(); });
+                _cameraStream = null;
+            }
+            if (_html5Scanner) {
+                try { _html5Scanner.stop().then(function () { _html5Scanner.clear(); }).catch(function () { }); } catch (e) { }
+                _html5Scanner = null;
+            }
+            var container = document.getElementById('cameraVideo');
+            if (container) container.innerHTML = '';
+        }
+
+        function onCameraDetect(raw) {
+            var code = String(raw).replace(/\D/g, '');
+            if (code.length < 6) return;
+            console.log('[SCAN] Camera detected:', code);
+            $('#cameraResult').text('Detected: ' + code);
+            $('#cameraStatus').text('Barcode found!');
+            stopCamera();
+            setTimeout(function () {
+                if (document.activeElement) document.activeElement.blur();
+                $('#cameraScanModal').modal('hide');
+                handlePossibleScan(code);
+            }, 400);
+        }
+
+        function getScanRegion(vid) {
+            var vw = vid.videoWidth, vh = vid.videoHeight;
+            var rw = Math.max(240, Math.floor(vw * 0.95));
+            var rh = Math.max(80, Math.floor(vh * 0.35));
+            return {
+                x: Math.floor((vw - rw) / 2),
+                y: Math.floor((vh - rh) / 2),
+                w: rw,
+                h: rh
+            };
+        }
+
+        // Press D while the scanner is open to download the exact region being decoded (on demand only)
+        function captureScanRegion() {
+            try {
+                var vid = document.querySelector('#cameraVideo video');
+                if (!vid || !vid.videoWidth) { console.warn('[SCAN] no video for capture'); return; }
+                var region = getScanRegion(vid);
+                var cv = document.createElement('canvas');
+                cv.width = region.w;
+                cv.height = region.h;
+                cv.getContext('2d').drawImage(vid, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+                var a = document.createElement('a');
+                a.href = cv.toDataURL('image/png');
+                a.download = 'scan-region-' + Date.now() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                console.log('[SCAN] region captured:', region.w + 'x' + region.h);
+            } catch (e) {
+                console.warn('[SCAN] captureScanRegion failed:', e);
+            }
+        }
+
+        // Second decoder: zxing-cpp (wasm) on the qrbox region — much stronger than zxing-js
+        // on blurry/tilted frames. Runs alongside html5-qrcode; first valid hit wins.
+        function startZXingLoop() {
+            if (typeof ZXingCam === 'undefined') {
+                console.warn('[SCAN] ZXingCam not loaded — check that zxing-camera.js and zxing-reader.min.js load (Network tab)');
+                $('#cameraStatus').text('Decoder library missing — press Ctrl+Shift+R and reopen the scanner.');
+                return;
+            }
+            var base = (typeof ZXING_WASM_BASE !== 'undefined') ? ZXING_WASM_BASE : '/Scripts/barcode/';
+            console.log('[SCAN] zxing loop starting, base:', base);
+            var _initAt = Date.now();
+            ZXingCam.init(base).then(function () {
+                console.log('[SCAN] zxing-wasm ready in', (Date.now() - _initAt) + 'ms');
+            }).catch(function (e) {
+                console.warn('[SCAN] zxing-wasm init failed:', e);
+                $('#cameraStatus').text('Barcode decoder failed to load — see console (F12).');
+            });
+            var _lastDecodeMs = 0;
+            _zxingTimer = setInterval(function () {
+                if (!_html5Scanner || _zxingBusy) return;
+                var vid = document.querySelector('#cameraVideo video');
+                if (!vid || !vid.videoWidth || vid.readyState < 2) return;
+                _zxingBusy = true;
+                _zxingTick++;
+                if (_zxingTick === 1) {
+                    try {
+                        var track = vid.srcObject && vid.srcObject.getVideoTracks ? vid.srcObject.getVideoTracks()[0] : null;
+                        if (track) console.log('[SCAN] camera track settings:', JSON.stringify(track.getSettings()));
+                    } catch (eSet) { }
+                }
+                var region = getScanRegion(vid);
+                var t0 = Date.now();
+                ZXingCam.decodeRegion(vid, region, _zxingTick).then(function (text) {
+                    _zxingBusy = false;
+                    _lastDecodeMs = Date.now() - t0;
+                    if (text) {
+                        console.log('[SCAN] zxing-wasm decoded:', text, '(' + _lastDecodeMs + 'ms)');
+                        onCameraDetect(text);
+                        return;
+                    }
+                    _zxingMisses++;
+                    if (_zxingTick % 10 === 0) {
+                        console.log('[SCAN] zxing tick', _zxingTick, '| video', vid.videoWidth + 'x' + vid.videoHeight,
+                            '| region', region.w + 'x' + region.h, '| last', _lastDecodeMs + 'ms', '| misses', _zxingMisses);
+                        $('#cameraStatus').text('zxing decoder running — try #' + _zxingTick + ', hold steady and fill the box.');
+                    }
+                    if (_zxingMisses === 8 && _zxingTick < 10) {
+                        $('#cameraStatus').text('Move closer — the barcode should span the full width of the box, keep the paper flat.');
+                    }
+                }, function (err) {
+                    _zxingBusy = false;
+                    console.warn('[SCAN] zxing-wasm decode error (tick ' + _zxingTick + '):', err);
+                });
+            }, 160);
+        }
+
+        $('.js-camera-scan').on('click', function () {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                toastr.error('Camera not supported in this browser.');
+                return;
+            }
+            $('#cameraResult').text('');
+            $('#cameraStatus').text('Starting camera...');
+            $('#cameraScanModal').modal('show');
+
+            // Preferred: native BarcodeDetector (Chrome/Edge)
+            if (typeof BarcodeDetector !== 'undefined') {
+                navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                }).then(function (stream) {
+                    _cameraStream = stream;
+                    var container = document.getElementById('cameraVideo');
+                    container.innerHTML = '';
+                    var video = document.createElement('video');
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    video.style.width = '100%';
+                    video.srcObject = stream;
+                    container.appendChild(video);
+                    $('#cameraStatus').text('Point camera at barcode... (native)');
+
+                    video.onloadedmetadata = function () {
+                        video.play();
+                        var detector = new BarcodeDetector({
+                            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'codabar']
+                        });
+                        function detect() {
+                            if (!_cameraStream) return;
+                            detector.detect(video).then(function (codes) {
+                                if (codes && codes.length > 0) {
+                                    onCameraDetect(codes[0].rawValue);
+                                    return;
+                                }
+                                _cameraDetectLoop = requestAnimationFrame(detect);
+                            }).catch(function () {
+                                _cameraDetectLoop = requestAnimationFrame(detect);
+                            });
+                        }
+                        detect();
+                    };
+                }).catch(function (err) {
+                    console.error('[SCAN] Camera error:', err);
+                    $('#cameraStatus').text('Camera error: ' + err.message);
+                    toastr.error('Cannot access camera: ' + err.message);
+                });
+                return;
+            }
+
+            // Fallback: html5-qrcode library (all browsers)
+            if (typeof Html5Qrcode === 'undefined') {
+                toastr.error('Barcode scanning library not loaded. Refresh the page (Ctrl+Shift+R).');
+                $('#cameraStatus').text('Library not loaded.');
+                return;
+            }
+
+            $('#cameraStatus').text('Point camera at barcode...');
+            document.getElementById('cameraVideo').innerHTML = '';
+            // Force zxing-js decoder (native BarcodeDetector can return empty rawValue)
+            _html5Scanner = new Html5Qrcode('cameraVideo', { useBarCodeDetectorIfSupported: false });
+            var config = {
+                fps: 12,
+                qrbox: function (viewfinderWidth, viewfinderHeight) {
+                    // 1D barcodes need nearly full WIDTH, less height
+                    return {
+                        width: Math.max(240, Math.floor(viewfinderWidth * 0.95)),
+                        height: Math.max(80, Math.floor(viewfinderHeight * 0.35))
+                    };
+                },
+                disableFlip: false,
+                rememberLastUsedCamera: true,
+                // Request HD feed so 1D barcodes get enough pixels per module
+                videoConstraints: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    facingMode: 'environment'
+                }
+            };
+            var _camStartTime = Date.now();
+            var _camHintShown = false;
+            var _camAttempts = 0;
+            var _emptyHits = 0;
+
+            // Format names for logging (html5-qrcode enum)
+            var _fmtNames = ['QR_CODE','AZTEC','CODABAR','CODE_39','CODE_93','CODE_128','DATA_MATRIX','MAXICODE','ITF','EAN_13','EAN_8','PDF_417','RSS_14','RSS_EXPANDED','UPC_A','UPC_E','UPC_EAN_EXTENSION'];
+
+            // Log the frame size only (no more auto-downloading files)
+            function captureDebugFrame() {
+                try {
+                    var vid = document.querySelector('#cameraVideo video');
+                    if (!vid || !vid.videoWidth) return;
+                    console.log('[SCAN] debug frame available (' + vid.videoWidth + 'x' + vid.videoHeight + ')');
+                } catch (e) {
+                    console.warn('[SCAN] captureDebugFrame failed:', e);
+                }
+            }
+
+            _html5Scanner.start(
+                { facingMode: 'environment' },
+                config,
+                function (decodedText, decodedResult) {
+                    var fmt = decodedResult && decodedResult.result ? decodedResult.result.format : 'unknown';
+                    var fmtName = (fmt && typeof fmt === 'object')
+                        ? (fmt.formatName || String(fmt.format))
+                        : (_fmtNames[fmt] || fmt);
+                    var text = decodedText || (decodedResult && decodedResult.result ? decodedResult.result.text : '') || '';
+                    if (!text || !text.trim()) {
+                        _emptyHits++;
+                        if (_emptyHits <= 3) {
+                            try {
+                                console.warn('[SCAN] Empty decode hit#', _emptyHits,
+                                    'format:', fmtName,
+                                    'decoder:', decodedResult && decodedResult.result && decodedResult.result.debugData ? decodedResult.result.debugData.decoderName : 'n/a',
+                                    'zxingTick:', _zxingTick);
+                            } catch (e) {
+                                console.warn('[SCAN] Empty decode, format:', fmtName, 'hit#', _emptyHits);
+                            }
+                        }
+                        if (_emptyHits === 1) {
+                            captureDebugFrame();
+                        }
+                        if (_emptyHits === 3 && _zxingTick === 0) {
+                            console.warn('[SCAN] zxing loop never ticked. ZXingCam loaded:', typeof ZXingCam !== 'undefined',
+                                '| timer:', !!_zxingTimer, '| script tags stale?');
+                            $('#cameraStatus').text('Decoder not running — press Ctrl+Shift+R and reopen the scanner.');
+                        }
+                        if (_emptyHits === 6) {
+                            $('#cameraStatus').text('Barcode partially visible — hold steady, fill the box width-wise, adjust distance.');
+                        }
+                        return; // ignore empty partial decodes
+                    }
+                    console.log('[SCAN] Camera detected:', text, 'format:', fmtName);
+                    onCameraDetect(text);
+                },
+                function (errorMessage) {
+                    _camAttempts++;
+                    var elapsed = (Date.now() - _camStartTime) / 1000;
+                    if (!_camHintShown && elapsed > 5 && _camAttempts > 20) {
+                        _camHintShown = true;
+                        $('#cameraStatus').text('Not detecting... Move closer, fill the green box with the barcode, avoid glare.');
+                    }
+                }
+            ).then(function () {
+                $('#cameraStatus').text('Point camera at barcode — fill the green box');
+                startZXingLoop();
+            }).catch(function (err) {
+                console.error('[SCAN] html5-qrcode start error:', err);
+                $('#cameraStatus').text('Camera error: ' + err);
+                toastr.error('Cannot start camera: ' + err);
+            });
+        });
+
+        $('.js-close-camera').on('click', function () {
+            if (document.activeElement) document.activeElement.blur();
+            stopCamera();
+        });
+        $('#cameraScanModal').on('hidden.bs.modal', stopCamera);
+
+        // On-demand diagnostic capture: press D while scanner is open (no auto-download)
+        $(document).on('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (!$('#cameraScanModal').is(':visible')) return;
+            if (String(e.key || '').toLowerCase() !== 'd') return;
+            var tag = document.activeElement ? String(document.activeElement.tagName || '').toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+            e.preventDefault();
+            captureScanRegion();
+        });
+        // ================== END CAMERA SCAN ==================
+
         _$searchItemElement.focus();
         $.validator.addMethod("chooseCustomer", function (value, element) {
             return value.trim() !== "0" && value.trim() !== "";
@@ -120,14 +555,21 @@
 
     _$searchItemElement.autocomplete({
         source: function (request, response) {
+            var isBC = isBarcodeScan;
+            var bcVal = barcodeScanValue;
+            const searchType = isBC
+                ? "UPC"
+                : _$itemSearchForm.find('select[name="SearchType"]').val();
+            const searchString = isBC ? bcVal : request.term;
+
             $.ajax({
                 url: SearchItemsUrl,
                 data: {
-                    SearchString: request.term, 
-                    SearchType: _$itemSearchForm.find('select[name="SearchType"]').val(),
+                    SearchString: searchString,
+                    SearchType: searchType,
                     NearToExpire: _$itemSearchForm.find('input[name="NearToExpire"]').is(':checked') ? true : false,
                     ManufacturerID: _$itemSearchForm.find('select[name="ManufacturerID"]').val(),
-                    SupplierID: _$itemSearchForm.find('select[name="SupplierID"]').val() 
+                    SupplierID: _$itemSearchForm.find('select[name="SupplierID"]').val()
                 },
                 type: "POST",
                 success: function (data) {
@@ -135,11 +577,11 @@
 
                         let rackInfo = item.Rack ? ` - Rack(${item.Rack})` : '';
                         let expiryStatus = item.ExpiryStatus === "Expired" ? " [Expired]" : "";
-                         
+
                         let expiryInfo = '';
-                        if (item.ExpiryDate) { 
+                        if (item.ExpiryDate) {
                             let timestamp = parseInt(item.ExpiryDate.replace(/\D/g, ''), 10);
-                            let dateObj = new Date(timestamp); 
+                            let dateObj = new Date(timestamp);
                             expiryInfo = ` - Exp: ${dateObj.toLocaleDateString('en-GB')}`;
                         }
 
@@ -148,20 +590,30 @@
                             value: item.ItemName,
                             data: item
                         };
-                    }); 
+                    });
 
-                    if (isBarcodeScan) {
-                        if (results.length === 1) {
-                            addItemToItemsTable(results[0].data);
-                            _$searchItemElement.removeClass("ui-autocomplete-loading");
-                            _$searchItemElement.val('').focus();
-                            isBarcodeScan = false;
-                            return;
-                        }
-
+                    if (isBC) {
                         _$searchItemElement.removeClass("ui-autocomplete-loading");
-                        response(results);
-                        isBarcodeScan = false;
+                        _$searchItemElement.removeClass("barcode-scanned");
+                        if (results.length >= 1) {
+                            addItemToItemsTable(results[0].data);
+                            _$searchItemElement.val('').focus();
+                            if (results.length > 1) {
+                                toastr.info(`Barcode matched ${results.length} variants. Added the first one.`, "", { timeOut: 1000 });
+                            }
+                        } else {
+                            toastr.warning(`Barcode ${bcVal} not found.`, "", { timeOut: 1000 });
+                            var bcEl = _$searchItemElement[0];
+                            if (bcEl && bcEl.setSelectionRange) {
+                                bcEl.focus();
+                                bcEl.setSelectionRange(bcEl.value.length, bcEl.value.length);
+                            }
+                        }
+                        if (isBarcodeScan && barcodeScanValue === bcVal) {
+                            isBarcodeScan = false;
+                            barcodeScanValue = '';
+                            _scanPendingUntil = 0;
+                        }
                         return;
                     }
                     response(results);
@@ -323,6 +775,7 @@
             if (isBarcodeScan) {
                 if (currentQty < maxQty) {
                     qtyInput.val(currentQty + 1);
+                    playScanBeep();
                 } else {
                     toastr.warning("Reached maximum quantity.", "", { timeOut: 1500 });
                 }
@@ -372,6 +825,7 @@
         </tr>`;
 
         tableBody.append(rowHtml);
+        playScanBeep();
 
         // Move focus to the newly added quantity input
         let newRow = tableBody.find("tr:last"); // Get the last added row

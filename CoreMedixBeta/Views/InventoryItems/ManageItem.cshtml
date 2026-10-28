@@ -25,7 +25,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Item Information</h3>
+        <h3 class="card-title">Product Information</h3>
     </div>
     <div class="card-body">
         <form id="itemInfoForm">
@@ -127,7 +127,7 @@
                         <select class="form-control js-select2" id="productType" name="ProductType" required>
                             <option value="">Select Product</option>
                             <option value="Medicine" @(Model != null && Model.Item != null && Model.Item.ProductType == "Medicine" ? "selected" : "")>
-                                Medicine
+                                Standard
                             </option>
                             <option value="Other" @(Model != null && Model.Item != null && Model.Item.ProductType == "Other" ? "selected" : "")>
                                 Other
@@ -136,7 +136,7 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-sm-6 js-salt-input" @(Model != null && Model.Item != null && Model.Item.ProductType == "Medicine" ? "" : "hidden")>
-                    <label>Generic</label>
+                    <label>Description / Keywords</label>
                     <div class="form-group">
                         <select class="form-control" style="min-width : 30px" name="MedicineSalt" multiple="multiple"></select>
                     </div>
@@ -184,7 +184,7 @@
                         <th class="cutom-th">Formation</th>
                         <th class="cutom-th">Weight</th>
                         <th class="cutom-th">Qty</th>
-                        <th class="cutom-th">No Of Pills In Pack</th>
+                        <th class="cutom-th">Units/Pack</th>
                         <th class="cutom-th">Available Packs</th>
                         <th class="cutom-th">Opening Stock Rate</th>
                         <th class="cutom-th">Reorder Point</th>
@@ -194,7 +194,7 @@
                         <th class="cutom-th">Category</th>
                         <th class="cutom-th">Sub Category</th>
                         <th class="cutom-th">Unit</th>
-                        <th class="cutom-th">UPC</th>
+                        <th class="cutom-th">Barcode</th>
                         <th class="cutom-th">Batch</th>
                         <th class="cutom-th">Margin%</th>
                         <th class="cutom-th">Tax%</th>
@@ -225,16 +225,19 @@
                     <div class="row">
                         <div class="col-sm-6 col-md-4">
                             <div class="form-group">
-                                <label for="itemUPC" data-toggle="tooltip" title="Twelve digit unique number associated with bar code. (Universal Product Code)">
-                                    UPC (Scan Barcode)
+                                <label for="itemUPC" data-toggle="tooltip" title="Unique barcode number for this variant. Generate one or scan an existing barcode.">
+                                    Barcode (UPC)
                                     <i class="fas fa-question-circle bg-white" data-bs-toggle="tooltip"></i>
                                 </label>
 
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Enter UPC">
+                                    <input type="text" class="form-control" id="itemUPC" name="UPC" placeholder="Scan or enter barcode">
                                     <div class="input-group-append">
                                         <button type="button" id="generateBarcodeBtn" class="btn btn-outline-primary" title="Generate Barcode">
                                             <i class="fas fa-barcode"></i>
+                                        </button>
+                                        <button type="button" id="printBarcodeLabelBtn" class="btn btn-outline-secondary" title="Print Barcode Label" style="display:none;">
+                                            <i class="fas fa-print"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -313,8 +316,8 @@
                         </div>
                         <div class="col-sm-6 col-md-4">
                             <div class="form-group">
-                                <label>No. of Items/Pills in Pack<span class="required">*</span></label>
-                                <input type="number" class="form-control" name="NoOfPillsInPack" required placeholder="Enter No. of Pills in Pack">
+                                <label>Units per Pack<span class="required">*</span></label>
+                                <input type="number" class="form-control" name="NoOfPillsInPack" required placeholder="Enter units per pack">
                             </div>
                         </div>
                         <div class="col-sm-6 col-md-4">
@@ -669,6 +672,7 @@
         var GetItemAttributesUrl = '@Url.Action("GetItemAttributes", "InventorySettings")';
     </script>
     <script src="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/barcode/JsBarcode.all.min.js"></script>
     <script src="~/JSModels/InventoryItems/manageItem.js"></script>
     <script src="~/JSModels/InventoryItems/manageItemVariations.js"></script>
     <script src="~/JSModels/InventoryItems/manageItemVariationImages.js"></script>

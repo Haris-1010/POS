@@ -30,6 +30,7 @@ namespace CoreMedixBeta.Controllers
         private readonly SalesRepository _salesRepository;
         private readonly DiscountsRepository _discountsRepository;
         private readonly PatientRepository _patientRepository;
+        private readonly ActivityLogRepository _activityLogRepo = new ActivityLogRepository();
 
         public SalesController() : this(new SupplierRepository(), new ManufacturerRepository(),
             new TaxesRepository(), new ItemAttributesRepository(),
@@ -261,6 +262,15 @@ namespace CoreMedixBeta.Controllers
 
                 var now = ServerConfig.DateTimeNow;
 
+                bool isNew = saveSaleInputDto.SaleInvoice != null && saveSaleInputDto.SaleInvoice.ID == 0;
+                await _activityLogRepo.LogAsync(
+                    string.IsNullOrWhiteSpace(currentUsername) ? "System" : currentUsername,
+                    isNew ? "SALE_CREATE" : "SALE_UPDATE",
+                    "SaleInvoice",
+                    id.ToString(),
+                    $"Invoice saved with {saveSaleInputDto.SaleInvoiceItems?.Count ?? 0} line item(s)",
+                    Request.UserHostAddress);
+
                 return Json(new AjaxRequestDTO { Status = true, Message = "Sale Invoice Saved Successfully", Data = id });
             }
             catch (Exception ex)
@@ -287,6 +297,7 @@ namespace CoreMedixBeta.Controllers
                 input.DeletedBy = Session["Username"]?.ToString() ?? "System";
                 if (await _salesRepository.DeleteSaleAsync(input))
                 {
+                    await _activityLogRepo.LogAsync(input.DeletedBy, "SALE_DELETE", "SaleInvoice", input.ID.ToString(), $"Invoice {viewModel.Invoice?.SaleInvoice?.InvoiceNo} deleted", Request.UserHostAddress);
                     return Json(new AjaxRequestDTO { Status = true, Message = "Sale Invoice Deleted successfully", });
                 }
 

@@ -482,16 +482,26 @@ namespace CoreMedixBeta.Repositories
 
                     if (!string.IsNullOrEmpty(input.SearchString))
                     {
-                        dbValues.Add("@SearchString", $"%{input.SearchString}%");
-
-                        switch (input.SearchType)
+                        if (string.Equals(input.SearchType, "UPC", StringComparison.OrdinalIgnoreCase))
                         {
-                            case "Variation":
-                                query += " AND (V.VariationName LIKE @SearchString OR V.UPC LIKE @SearchString) ";
-                                break;
+                            // Accept EAN-13 form (leading 0) and legacy UPCs with a bad check
+                            // digit: match exact value or first 11 digits.
+                            var searchUpc = Utilities.NormalizeUpc(input.SearchString);
+                            dbValues.Add("@SearchExact", searchUpc);
+                            query += " AND (V.UPC = @SearchExact OR (LEN(V.UPC) = 12 AND LEN(@SearchExact) = 12 AND LEFT(V.UPC, 11) = LEFT(@SearchExact, 11))) ";
+                        }
+                        else
+                        {
+                            dbValues.Add("@SearchString", $"%{input.SearchString}%");
 
-                            case "Salt":
-                                query += @"
+                            switch (input.SearchType)
+                            {
+                                case "Variation":
+                                    query += " AND (V.VariationName LIKE @SearchString OR V.UPC LIKE @SearchString) ";
+                                    break;
+
+                                case "Salt":
+                                    query += @"
                                 AND (
                                     I.MedicineSalt LIKE @SearchString
                                     OR EXISTS (
@@ -502,8 +512,8 @@ namespace CoreMedixBeta.Repositories
                                 )";
                                             break;
 
-                            case "Alternate":
-                                query += @"
+                                case "Alternate":
+                                    query += @"
                                     AND (
                                         LOWER(LTRIM(RTRIM(V.VariationName))) LIKE LOWER(@SearchString)
                                         OR LOWER(LTRIM(RTRIM(V.VariationName))) IN (
@@ -515,12 +525,13 @@ namespace CoreMedixBeta.Repositories
                                               AND value LIKE @SearchString
                                         )
                                     )";
-                                break;
+                                    break;
 
 
-                            default:
-                                query += " AND (I.Name LIKE @SearchString OR V.UPC LIKE @SearchString) ";
-                                break;
+                                default:
+                                    query += " AND (I.Name LIKE @SearchString OR V.UPC LIKE @SearchString) ";
+                                    break;
+                            }
                         }
                     }
                 }
@@ -671,7 +682,9 @@ namespace CoreMedixBeta.Repositories
 
             do
             {
-                barcode = "999" + rand.Next(100000000, 999999999); // 12-digit barcode
+                // 11 data digits + GS1 UPC-A check digit = valid 12-digit barcode
+                var data11 = "999" + rand.Next(10000000, 99999999).ToString("D8");
+                barcode = data11 + Utilities.ComputeUpcCheckDigit(data11);
             }
             while (await DBHelper.ExecuteQueryAsync(
                 "SELECT COUNT(1) FROM Inventory.InventoryItemVariations WHERE UPC = @UPC",

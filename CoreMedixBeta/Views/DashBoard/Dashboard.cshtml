@@ -14,7 +14,7 @@
         new { Title = "Today\u2019s Sales", CardID = 1 },
         new { Title = "Total Invoices", CardID = 2 },
         new { Title = "Today\u2019s Profit", CardID = 3 },
-        new { Title = "Total Patients Today", CardID = 4 },
+        new { Title = "Total Customers Today", CardID = 4 },
         new { Title = "Stock Value", CardID = 5 },
         new { Title = "Expiring Soon", CardID = 6 },
         new { Title = "Today\u2019s Stock Sold Value", CardID = 7 }
@@ -481,7 +481,7 @@
             var card = cards[i];
             var theme = themes.ContainsKey(card.CardID) ? themes[card.CardID] : themes[1];
             var isMoney = moneyIds.Contains(card.CardID);
-            <div class="col-xl-3 col-lg-4 col-sm-6 mb-3 d-flex fade-up" style="animation-delay:@((i * 60))ms">
+            <div class="col-xl-3 col-lg-4 col-sm-6 mb-3 d-flex fade-up" style="animation-delay:@((i * 60))">
                 <div class="stat-card card-clickable" data-card-id="@card.CardID" data-card-title="@card.Title"
                      style="--accent:@theme[0]; --soft:@theme[1];">
                     <div class="stat-ico"><i class="@card.Icon"></i></div>

@@ -110,8 +110,8 @@ namespace CoreMedixBeta.Repositories
                 return await HandleStockQuery(lowerPrompt);
             }
 
-            // 🔹 DETAILED PATIENT QUERIES
-            if (ContainsAny(lowerPrompt, "patient", "mariz", "bimar", "history", "report", "visit", "mr no", "mrn"))
+            // 🔹 DETAILED CUSTOMER QUERIES
+            if (ContainsAny(lowerPrompt, "patient", "customer", "mariz", "bimar", "history", "report", "visit", "mr no", "mrn"))
             {
                 return await HandlePatientQuery(lowerPrompt);
             }
@@ -273,20 +273,20 @@ namespace CoreMedixBeta.Repositories
                 }
                 else
                 {
-                    // Agar exact match nahi mila to similar medicines suggest karein
+                    // Agar exact match nahi mila to similar products suggest karein
                     var similarMedicines = await FindSimilarMedicines(medicineName);
                     if (similarMedicines.Any())
                     {
-                        return L($"'{medicineName}' nahi mila. Kya aap in medicines ki baat kar rahe hain?\n" +
+                        return L($"'{medicineName}' nahi mila. Kya aap in products ki baat kar rahe hain?\n" +
                                  string.Join(", ", similarMedicines.Take(5)) +
                                  "\n\nInme se kisi ka naam likhein.",
-                                 $"'{medicineName}' was not found. Did you mean one of these medicines?\n" +
+                                 $"'{medicineName}' was not found. Did you mean one of these products?\n" +
                                  string.Join(", ", similarMedicines.Take(5)) +
                                  "\n\nType the name of any one of them.");
                     }
 
-                    return L($"'{medicineName}' medicine nahi mili. Spelling check karein ya staff se poochein.",
-                             $"Medicine '{medicineName}' was not found. Please check the spelling or ask the staff.");
+                    return L($"'{medicineName}' product nahi mila. Spelling check karein ya staff se poochein.",
+                             $"Product '{medicineName}' was not found. Please check the spelling or ask the staff.");
                 }
             }
             catch (Exception ex)
@@ -606,14 +606,14 @@ namespace CoreMedixBeta.Repositories
                 }
                 else
                 {
-                    return L($"Mariz '{patientIdentifier}' nahi mila. Details check karein.",
-                             $"Patient '{patientIdentifier}' was not found. Please check the details.");
+                    return L($"Customer '{patientIdentifier}' nahi mila. Details check karein.",
+                             $"Customer '{patientIdentifier}' was not found. Please check the details.");
                 }
             }
             catch (Exception ex)
             {
-                return L($"Patient info mein issue: {ex.Message}",
-                         $"Issue while fetching patient info: {ex.Message}");
+                return L($"Customer info mein issue: {ex.Message}",
+                         $"Issue while fetching customer info: {ex.Message}");
             }
         }
 
@@ -639,26 +639,26 @@ namespace CoreMedixBeta.Repositories
                     int female = Convert.ToInt32(result.FemalePatients);
                     DateTime lastReg = result.LastRegistration != null ? Convert.ToDateTime(result.LastRegistration) : DateTime.Now;
 
-                    return L($"👥 **Kul Marizon ki Tadaad:**\n\n" +
-                             $"• Kul Mariz: {total}\n" +
-                             $"• Mard: {male}\n" +
-                             $"• Khawateen: {female}\n" +
+                    return L($"👥 **Kul Customers ki Tadaad:**\n\n" +
+                             $"• Kul Customers: {total}\n" +
+                             $"• Male: {male}\n" +
+                             $"• Female: {female}\n" +
                              $"• Aakhri Registration: {lastReg:dd-MMM-yyyy}\n\n" +
-                             $"Specific patient ke liye 'patient [name]' likhein.",
-                             $"👥 **Total Patients Summary:**\n\n" +
-                             $"• Total Patients: {total}\n" +
-                             $"• Male Patients: {male}\n" +
-                             $"• Female Patients: {female}\n" +
+                             $"Specific customer ke liye 'customer [name]' likhein.",
+                             $"👥 **Total Customers Summary:**\n\n" +
+                             $"• Total Customers: {total}\n" +
+                             $"• Male Customers: {male}\n" +
+                             $"• Female Customers: {female}\n" +
                              $"• Last Registration: {lastReg:dd-MMM-yyyy}\n\n" +
-                             $"For a specific patient type 'patient [name]'.");
+                             $"For a specific customer type 'customer [name]'.");
                 }
 
-                return L("Patient count nahi mil saka.", "Patient count could not be found.");
+                return L("Customer count nahi mil saka.", "Customer count could not be found.");
             }
             catch (Exception ex)
             {
-                return L($"Patient count check mein issue: {ex.Message}",
-                         $"Issue while checking patient count: {ex.Message}");
+                return L($"Customer count check mein issue: {ex.Message}",
+                         $"Issue while checking customer count: {ex.Message}");
             }
         }
 
@@ -723,8 +723,8 @@ namespace CoreMedixBeta.Repositories
             }
             catch (Exception ex)
             {
-                return L($"Patient invoices check mein issue: {ex.Message}",
-                         $"Issue while checking patient invoices: {ex.Message}");
+                return L($"Customer invoices check mein issue: {ex.Message}",
+                         $"Issue while checking customer invoices: {ex.Message}");
             }
         }
 
@@ -746,8 +746,8 @@ namespace CoreMedixBeta.Repositories
 
                 if (results != null && results.Any())
                 {
-                    var response = L("🆕 **Haal ke Mariz:**\n\n",
-                                     "🆕 **Recent Patients:**\n\n");
+                    var response = L("🆕 **Haal ke Customers:**\n\n",
+                                     "🆕 **Recent Customers:**\n\n");
 
                     foreach (var row in results)
                     {
@@ -758,7 +758,7 @@ namespace CoreMedixBeta.Repositories
                 }
                 else
                 {
-                    return L("Koi recent patient nahi mila.", "No recent patient found.");
+                    return L("Koi recent customer nahi mila.", "No recent customer found.");
                 }
             }
             catch (Exception ex)
@@ -1340,17 +1340,17 @@ namespace CoreMedixBeta.Repositories
                         return medicine;
                 }
 
-                // Common medicine keywords
+                // Common product keywords
                 var medicineKeywords = new[] {
-                    "medicine", "dawa", "drug", "tablet", "capsule", "syrup", "injection"
+                    "medicine", "product", "item", "dawa", "drug", "tablet", "capsule", "syrup", "injection"
                 };
 
-                // Agar medicine keyword hai to first medicine return karein
+                // Agar product keyword hai to first product return karein
                 foreach (var keyword in medicineKeywords)
                 {
                     if (lowerPrompt.Contains(keyword))
                     {
-                        return dbMedicines.FirstOrDefault() ?? "paracetamol";
+                        return dbMedicines.FirstOrDefault() ?? "sample";
                     }
                 }
 
@@ -1358,13 +1358,11 @@ namespace CoreMedixBeta.Repositories
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Medicine extraction error: {ex.Message}");
+                Console.WriteLine($"Product extraction error: {ex.Message}");
 
                 // Fallback hardcoded names
                 var medicines = new[] {
-                    "panadol", "paracetamol", "brufen", "calpol", "diazepam",
-                    "omeprazole", "atorvastatin", "amoxicillin", "insulin", "vitamin",
-                    "aspirin", "diclofenac", "cefixime", "azithromycin", "metformin"
+                    "sample", "product", "item"
                 };
 
                 foreach (var medicine in medicines)
@@ -1486,7 +1484,7 @@ namespace CoreMedixBeta.Repositories
 
         private bool IsCommonPatientWord(string word)
         {
-            var commonWords = new[] { "patient", "mariz", "bimar", "history", "report", "visit", "mr", "no", "mrn" };
+            var commonWords = new[] { "patient", "customer", "mariz", "bimar", "history", "report", "visit", "mr", "no", "mrn" };
             return commonWords.Contains(word.ToLower());
         }
 
@@ -1494,16 +1492,16 @@ namespace CoreMedixBeta.Repositories
         {
             var greetingsUrdu = new[]
             {
-                "Assalam-o-Alaikum! 👋 Main aapka Pharmacy Assistant hun. Aap mujh se yeh cheeze poochh sakte hain:\n• Stock aur inventory\n• Patient information\n• Sales aur invoices\n• Purchases aur suppliers\n• Manufacturers\n• Reports aur summaries\n\nKaisi help chahiye aapko?",
-                "Hello! 😊 Pharmacy Assistant hun. Main aapko in cheezon mein help kar sakta hun:\n• Stock status\n• Patient details\n• Sales reports\n• Purchase orders\n• Supplier info\n• Manufacturer data\n\nKya jan'na chahenge?",
-                "Salam! 👍 Batayein aapko kya chahiye? Main aapko complete pharmacy information de sakta hun - stock, patients, sales, purchases, suppliers, manufacturers, aur reports!"
+                "Assalam-o-Alaikum! 👋 Main aapka POS Assistant hun. Aap mujh se yeh cheeze poochh sakte hain:\n• Stock aur inventory\n• Customer information\n• Sales aur invoices\n• Purchases aur suppliers\n• Manufacturers\n• Reports aur summaries\n\nKaisi help chahiye aapko?",
+                "Hello! 😊 POS Assistant hun. Main aapko in cheezon mein help kar sakta hun:\n• Stock status\n• Customer details\n• Sales reports\n• Purchase orders\n• Supplier info\n• Manufacturer data\n\nKya jan'na chahenge?",
+                "Salam! 👍 Batayein aapko kya chahiye? Main aapko complete store information de sakta hun - stock, customers, sales, purchases, suppliers, manufacturers, aur reports!"
             };
 
             var greetingsEnglish = new[]
             {
-                "Assalam-o-Alaikum! 👋 I am your Pharmacy Assistant. You can ask me about:\n• Stock and inventory\n• Patient information\n• Sales and invoices\n• Purchases and suppliers\n• Manufacturers\n• Reports and summaries\n\nHow can I help you?",
-                "Hello! 😊 I am the Pharmacy Assistant. I can help you with:\n• Stock status\n• Patient details\n• Sales reports\n• Purchase orders\n• Supplier info\n• Manufacturer data\n\nWhat would you like to know?",
-                "Hi! 👍 Tell me what you need? I can give you complete pharmacy information - stock, patients, sales, purchases, suppliers, manufacturers and reports!"
+                "Assalam-o-Alaikum! 👋 I am your POS Assistant. You can ask me about:\n• Stock and inventory\n• Customer information\n• Sales and invoices\n• Purchases and suppliers\n• Manufacturers\n• Reports and summaries\n\nHow can I help you?",
+                "Hello! 😊 I am the POS Assistant. I can help you with:\n• Stock status\n• Customer details\n• Sales reports\n• Purchase orders\n• Supplier info\n• Manufacturer data\n\nWhat would you like to know?",
+                "Hi! 👍 Tell me what you need? I can give you complete store information - stock, customers, sales, purchases, suppliers, manufacturers and reports!"
             };
 
             var pool = _lang == "ur" ? greetingsUrdu : greetingsEnglish;
@@ -1520,25 +1518,25 @@ namespace CoreMedixBeta.Repositories
                 return $"Main samjha aap poochh rahe hain: \"{prompt}\"\n\n" +
                        "Main in cheezon mein help kar sakta hun:\n" +
                        "• Stock aur inventory (total stock, low stock, out of stock)\n" +
-                       "• Patient information (total patients, patient details, invoices)\n" +
+                       "• Customer information (total customers, customer details, invoices)\n" +
                        "• Sales aur invoices (today sales, total sales, revenue)\n" +
                        "• Purchases aur suppliers (purchase orders, received purchases)\n" +
                        "• Manufacturers aur brands\n" +
                        "• Reports (expiry report, dashboard report)\n\n" +
                        "Specific sawal poochein jaise:\n" +
-                       "'total stock', 'patient ali', 'today sales', 'purchase orders', 'suppliers', 'manufacturers', 'expiry report'";
+                       "'total stock', 'customer ali', 'today sales', 'purchase orders', 'suppliers', 'manufacturers', 'expiry report'";
             }
 
             return $"I understand you are asking: \"{prompt}\"\n\n" +
                    "I can help you with:\n" +
                    "• Stock and inventory (total stock, low stock, out of stock)\n" +
-                   "• Patient information (total patients, patient details, invoices)\n" +
+                   "• Customer information (total customers, customer details, invoices)\n" +
                    "• Sales and invoices (today sales, total sales, revenue)\n" +
                    "• Purchases and suppliers (purchase orders, received purchases)\n" +
                    "• Manufacturers and brands\n" +
                    "• Reports (expiry report, dashboard report)\n\n" +
                    "Ask a specific question such as:\n" +
-                   "'total stock', 'patient ali', 'today sales', 'purchase orders', 'suppliers', 'manufacturers', 'expiry report'";
+                   "'total stock', 'customer ali', 'today sales', 'purchase orders', 'suppliers', 'manufacturers', 'expiry report'";
         }
 
         #endregion 🔹 HELPER METHODS
