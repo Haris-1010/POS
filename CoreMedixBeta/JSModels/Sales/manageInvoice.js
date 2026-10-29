@@ -116,8 +116,6 @@
                     }
                 }, 150);
             }
-                }, 80);
-            }
         });
 
         // Global keydown capture
