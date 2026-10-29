@@ -506,7 +506,23 @@
     <Compile Include="Repositories\SupplierRepository.cs" />
     <Compile Include="Repositories\TaxesRepository.cs" />
     <Compile Include="Repositories\UserRepository.cs" />
+    <Compile Include="Repositories\BackupSettingsRepository.cs" />
     <Compile Include="Service\AIService.cs" />
+    <Compile Include="Service\BackupService.cs" />
+    <Compile Include="Service\BackupSchedulerService.cs" />
+    <Compile Include="Controllers\BackupSettingsController.cs" />
+    <Compile Include="Models\BackupSettings\BackupSetting.cs" />
+    <Compile Include="Models\BackupSettings\BackupHistoryEntry.cs" />
+    <Compile Include="Models\BackupSettings\BackupAuditLogEntry.cs" />
+    <Compile Include="Models\BackupSettings\BackupSettingsVM.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\SaveBackupSettingInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\GetPagedBackupHistoryInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\GetPagedBackupHistoryOutputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\BackupIdInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\TestBackupFolderInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\RestoreDatabaseInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\BackupOperationResultDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\BackupValidationInfoDto.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\AdminLTE\build\config\postcss.config.js" />

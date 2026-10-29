@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.Security;
+using CoreMedixBeta.Service;
 
 namespace CoreMedixBeta
 {
@@ -17,6 +18,16 @@ namespace CoreMedixBeta
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            // Starts the in-process database backup scheduler. The persistent
+            // Windows Scheduled Task (Scripts/Setup-BackupScheduledTask.ps1)
+            // remains the fallback when IIS is stopped or the app pool recycles.
+            BackupSchedulerService.Start();
+        }
+
+        protected void Application_End()
+        {
+            BackupSchedulerService.Stop();
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)
