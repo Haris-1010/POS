@@ -10,7 +10,7 @@ namespace CoreMedixBeta.Models.BackupSettings.DTOs
         public bool IsEnabled { get; set; }
 
         [Required]
-        [Range(5, 10080)]
+        [Range(1440, 525600)] // 1 day .. 365 days, stored in minutes (UI offers day/month presets)
         public int FrequencyMinutes { get; set; }
 
         [Required]

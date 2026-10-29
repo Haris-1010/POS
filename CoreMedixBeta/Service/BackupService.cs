@@ -177,7 +177,7 @@ namespace CoreMedixBeta.Service
         public static DateTime? ComputeNextBackupTime(DateTime? lastBackupTime, int frequencyMinutes, bool isEnabled)
         {
             if (!isEnabled) return null;
-            if (frequencyMinutes < 5) frequencyMinutes = 5;
+            if (frequencyMinutes < 1440) frequencyMinutes = 1440;
             if (lastBackupTime.HasValue) return lastBackupTime.Value.AddMinutes(frequencyMinutes);
             return DateTime.Now.AddMinutes(frequencyMinutes);
         }

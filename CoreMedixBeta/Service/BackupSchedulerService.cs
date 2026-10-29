@@ -14,7 +14,7 @@ namespace CoreMedixBeta.Service
     /// pool recycles.
     ///
     /// This timer is intentionally NOT the only safety net: the
-    /// Scripts/Setup-BackupScheduledTask.ps1 script registers a Windows
+    /// Database/Setup-BackupScheduledTask.ps1 script registers a Windows
     /// Scheduled Task that calls BackupSettings/ScheduledBackup. That endpoint
     /// runs this same due-check, so scheduling keeps working even if IIS is
     /// stopped or the application pool is recycled for long periods. Duplicate
@@ -119,8 +119,8 @@ namespace CoreMedixBeta.Service
                 return "Automatic backup is disabled.";
             }
 
-            if (settings.FrequencyMinutes < 5)
-                settings.FrequencyMinutes = 5;
+            if (settings.FrequencyMinutes < 1440)
+                settings.FrequencyMinutes = 1440;
 
             DateTime now = DateTime.Now;
 

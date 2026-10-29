@@ -124,11 +124,13 @@ IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'Branding_Vi
 IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'Branding_Manage')
     INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('Branding_Manage', 'Manage Branding', 'Branding')
 
--- Database Backup
-IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'DatabaseBackup_View')
-    INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('DatabaseBackup_View', 'View Database Backup Settings', 'Database Backup')
-IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'DatabaseBackup_Manage')
-    INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('DatabaseBackup_Manage', 'Manage Database Backups', 'Database Backup')
+-- Database Backup (keys match [AuthorizePermission] in BackupSettingsController.cs)
+IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_View')
+    INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('BackupSettings_View', 'View Database Backup Settings', 'Database Backup')
+IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_Manage')
+    INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('BackupSettings_Manage', 'Manage Database Backups', 'Database Backup')
+IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_Restore')
+    INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module) VALUES ('BackupSettings_Restore', 'Restore Database From Backup', 'Database Backup')
 
 -- User Management (Admin assigns to users)
 IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'Users_View')

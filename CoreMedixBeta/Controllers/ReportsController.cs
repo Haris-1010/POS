@@ -1171,9 +1171,11 @@ namespace CoreMedixBeta.Controllers
         [AuthorizePermission("Reports_View")]
         public async Task<ActionResult> StockInHandReport()
         {
+            // TotalStockValue/TotalStock are live snapshots, unaffected by the date range - "today" is just a placeholder.
+            DateTime stockSnapshotDate = DateTime.Now.Date;
             var dbCard = await _dashBoardRepo.GetDashBoardCardsAsync(new RequestByMasterUsernameDTO
             {
-            });
+            }, stockSnapshotDate, stockSnapshotDate);
             ViewBag.TotalStockValue = Math.Round(dbCard.TotalStockValue, 0, MidpointRounding.AwayFromZero).ToString("N0");
             ViewBag.TotalStockQuantity = dbCard.TotalStock.ToString("N0");
 

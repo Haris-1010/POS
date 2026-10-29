@@ -36,6 +36,10 @@ namespace CoreMedixBeta.Controllers
         public async Task<ActionResult> Index()
         {
             BackupSettingsVM viewModel = await BuildSettingsViewModelAsync();
+
+            ViewBag.CanManage = HasPermission("BackupSettings_Manage") || HasPermission("InventorySettings_Manage");
+            ViewBag.CanRestore = HasPermission("BackupSettings_Restore");
+
             return View(viewModel);
         }
 
@@ -83,7 +87,7 @@ namespace CoreMedixBeta.Controllers
                 if (!folderCheck.Success)
                     return Json(new AjaxRequestDTO { Status = false, Message = folderCheck.Message });
 
-                int frequency = Math.Max(5, Math.Min(10080, formInput.FrequencyMinutes));
+                int frequency = Math.Max(1440, Math.Min(525600, formInput.FrequencyMinutes));
                 int retention = Math.Max(0, Math.Min(3650, formInput.RetentionDays));
 
                 BackupSetting existing = await _backupSettingsRepository.GetSettingsAsync();
@@ -108,15 +112,17 @@ namespace CoreMedixBeta.Controllers
                 string status = saved.IsEnabled ? "Scheduled" : "Disabled";
                 await _backupSettingsRepository.UpdateScheduleStateAsync(saved.ID, saved.LastBackupTime, next, status, null);
 
+                string frequencyDescription = DescribeFrequency(saved.FrequencyMinutes);
+
                 await _backupSettingsRepository.InsertAuditLogAsync("SettingsChange", "Success",
-                    $"Backup settings updated. Enabled: {saved.IsEnabled}, every {saved.FrequencyMinutes} minute(s), retention {saved.RetentionDays} day(s), folder: {fullPath}.",
+                    $"Backup settings updated. Enabled: {saved.IsEnabled}, every {frequencyDescription}, retention {saved.RetentionDays} day(s), folder: {fullPath}.",
                     Session["Username"]?.ToString());
 
                 return Json(new AjaxRequestDTO
                 {
                     Status = true,
                     Message = saved.IsEnabled
-                        ? $"Backup settings saved. Automatic backups will run every {saved.FrequencyMinutes} minute(s)."
+                        ? $"Backup settings saved. Automatic backups will run every {frequencyDescription}."
                         : "Backup settings saved. Automatic backups are currently disabled."
                 });
             }
@@ -166,6 +172,140 @@ namespace CoreMedixBeta.Controllers
         }
 
         #endregion Settings page
+
+        #region Folder browsing
+
+        /// <summary>
+        /// Lists drives (when Path is empty) or the subfolders of Path, so the admin can
+        /// navigate the server's file system from the browser instead of typing a path by
+        /// hand. Browsing is scoped to [AuthorizePermission] the same way as managing the
+        /// backup folder itself - this grants no access beyond what Manage already implies.
+        /// </summary>
+        [HttpPost]
+        [AuthorizePermission("InventorySettings_Manage", "BackupSettings_Manage")]
+        public JsonResult BrowseFolder(BrowseFolderInputDto input)
+        {
+            try
+            {
+                string requested = input?.Path?.Trim();
+
+                if (string.IsNullOrWhiteSpace(requested))
+                {
+                    var drives = DriveInfo.GetDrives()
+                        .Where(d => d.IsReady)
+                        .Select(d => new
+                        {
+                            Name = string.IsNullOrWhiteSpace(d.VolumeLabel) ? d.Name : $"{d.Name} ({d.VolumeLabel})",
+                            Path = d.RootDirectory.FullName
+                        })
+                        .ToList();
+
+                    return Json(new AjaxRequestDTO
+                    {
+                        Status = true,
+                        Message = "Drives loaded.",
+                        Data = new { CurrentPath = "", ParentPath = (string)null, Folders = drives }
+                    });
+                }
+
+                string fullPath;
+                try
+                {
+                    fullPath = Path.GetFullPath(requested);
+                }
+                catch (Exception)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "That folder path is not valid." });
+                }
+
+                if (!Directory.Exists(fullPath))
+                    return Json(new AjaxRequestDTO { Status = false, Message = "That folder does not exist." });
+
+                var folders = new List<object>();
+                try
+                {
+                    foreach (string dir in Directory.GetDirectories(fullPath).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
+                    {
+                        folders.Add(new { Name = Path.GetFileName(dir), Path = dir });
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Some subfolders may be inaccessible to the app pool identity - show what we can.
+                }
+
+                string parent = null;
+                try
+                {
+                    DirectoryInfo parentInfo = Directory.GetParent(fullPath);
+                    parent = parentInfo?.FullName;
+                }
+                catch (Exception)
+                {
+                    // At a drive root, Directory.GetParent returns null already; ignore anything else.
+                }
+
+                return Json(new AjaxRequestDTO
+                {
+                    Status = true,
+                    Message = "Folder loaded.",
+                    Data = new { CurrentPath = fullPath, ParentPath = parent, Folders = folders }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Json(new AjaxRequestDTO { Status = false, Message = "Failed to browse the folder." });
+            }
+        }
+
+        [HttpPost]
+        [AuthorizePermission("InventorySettings_Manage", "BackupSettings_Manage")]
+        [ValidateAntiForgeryToken]
+        public JsonResult CreateSubfolder(CreateSubfolderInputDto input)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return Json(new AjaxRequestDTO { Status = false, Message = "A parent folder and folder name are required." });
+
+                string invalidChars = new string(Path.GetInvalidFileNameChars());
+                if (input.FolderName.Any(c => invalidChars.IndexOf(c) >= 0))
+                    return Json(new AjaxRequestDTO { Status = false, Message = "The folder name contains invalid characters." });
+
+                string parent;
+                try
+                {
+                    parent = Path.GetFullPath(input.Path.Trim());
+                }
+                catch (Exception)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "The parent folder path is not valid." });
+                }
+
+                if (!Directory.Exists(parent))
+                    return Json(new AjaxRequestDTO { Status = false, Message = "The parent folder does not exist." });
+
+                string newPath = Path.Combine(parent, input.FolderName.Trim());
+                try
+                {
+                    Directory.CreateDirectory(newPath);
+                }
+                catch (Exception ex)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Could not create the folder: " + ex.Message });
+                }
+
+                return Json(new AjaxRequestDTO { Status = true, Message = "Folder created.", Data = new { Path = newPath } });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Json(new AjaxRequestDTO { Status = false, Message = "Failed to create the folder." });
+            }
+        }
+
+        #endregion Folder browsing
 
         #region Manual backup
 
@@ -445,7 +585,7 @@ namespace CoreMedixBeta.Controllers
         #region Scheduled task endpoint
 
         /// <summary>
-        /// Called by the Windows Scheduled Task (see Scripts/Setup-BackupScheduledTask.ps1).
+        /// Called by the Windows Scheduled Task (see Database/Setup-BackupScheduledTask.ps1).
         /// The shared key is stored in Web.config (BackupSchedulerKey). The task may
         /// fire on a fixed short cadence; this action only runs a backup when the
         /// schedule saved in the database says one is actually due.
@@ -495,8 +635,42 @@ namespace CoreMedixBeta.Controllers
 
         #region Helpers
 
+        /// <summary>
+        /// Mirrors the permission check in Views/Shared/_Layout.cshtml
+        /// (isAdmin || userPermissions.Contains(key)).
+        /// </summary>
+        private bool HasPermission(string key)
+        {
+            if (string.Equals(Session["Role"] as string, "Admin", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            var permissions = Session["Permissions"] as List<string>;
+            return permissions != null && permissions.Contains(key);
+        }
+
+        /// <summary>
+        /// Formats a frequency stored in minutes as whole months/days for messages and audit
+        /// logs (the UI only offers day/month-scale presets, so minutes are never shown to users).
+        /// </summary>
+        private static string DescribeFrequency(int frequencyMinutes)
+        {
+            const int minutesPerDay = 1440;
+            double days = frequencyMinutes / (double)minutesPerDay;
+
+            if (days >= 28 && Math.Abs(days % 30) < 0.5)
+            {
+                int months = (int)Math.Round(days / 30.0);
+                return months == 1 ? "1 month" : $"{months} months";
+            }
+
+            int wholeDays = (int)Math.Round(days);
+            return wholeDays == 1 ? "1 day" : $"{wholeDays} days";
+        }
+
         private async Task<BackupSettingsVM> BuildSettingsViewModelAsync()
         {
+            await _backupSettingsRepository.HealStaleRunningHistoryAsync();
+
             BackupSetting settings = await _backupSettingsRepository.GetSettingsAsync();
             BackupHistoryEntry latest = await _backupSettingsRepository.GetLatestSuccessAsync();
             string dbName = await _backupSettingsRepository.GetDatabaseNameAsync();

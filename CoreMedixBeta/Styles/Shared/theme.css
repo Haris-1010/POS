@@ -3,6 +3,13 @@
    Loaded AFTER layout.css so it wins over layout.css (same !important rules).
    ========================================================================== */
 
+/* Urdu script (set by JSModels/SharedJS/i18n.js on each translated element only -
+   the surrounding page layout stays LTR so icons/flex rows don't shift). */
+.cm-i18n-ur {
+    font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', Tahoma, 'Segoe UI', sans-serif;
+    line-height: 1.9;
+}
+
 /* --------------------------------------------------------------------------
    1. Dark palette (light palette lives in layout.css :root)
    -------------------------------------------------------------------------- */
@@ -715,7 +722,42 @@ html[data-theme="dark"] .checkbox-wrapper input[type="checkbox"] {
 }
 
 /* --------------------------------------------------------------------------
-   13. Printing always stays black on white
+   13. Smooth page-to-page feel — gentle fade/slide-in on content, smooth
+   scrolling for in-page anchors. Purely additive; the Dashboard's own
+   stat-card / mini-stat / chart-card hover treatments are untouched.
+   -------------------------------------------------------------------------- */
+html {
+    scroll-behavior: smooth;
+}
+
+.cm-page-fade {
+    animation: cm-page-in .22s ease-out;
+}
+
+@keyframes cm-page-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .cm-page-fade {
+        animation: none !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   14. Printing always stays black on white
    -------------------------------------------------------------------------- */
 @media print {
     html,

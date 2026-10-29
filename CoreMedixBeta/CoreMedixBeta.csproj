@@ -258,6 +258,7 @@
     <Compile Include="Models\DashBoard\DashboardSetting.cs" />
     <Compile Include="Models\DashBoard\DTOs\GetDashboardSettingOutputDto.cs" />
     <Compile Include="Models\DashBoard\DTOs\SaveDashboardSettingInputDto.cs" />
+    <Compile Include="Models\DashBoard\DTOs\GetDashboardDataInputDto.cs" />
     <Compile Include="Models\Discounts\Discount.cs" />
     <Compile Include="Models\Discounts\DTOs\DeleteDiscountInputDto.cs" />
     <Compile Include="Models\Discounts\DTOs\DeleteRequestDTO.cs" />
@@ -520,6 +521,8 @@
     <Compile Include="Models\BackupSettings\DTOs\GetPagedBackupHistoryOutputDto.cs" />
     <Compile Include="Models\BackupSettings\DTOs\BackupIdInputDto.cs" />
     <Compile Include="Models\BackupSettings\DTOs\TestBackupFolderInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\BrowseFolderInputDto.cs" />
+    <Compile Include="Models\BackupSettings\DTOs\CreateSubfolderInputDto.cs" />
     <Compile Include="Models\BackupSettings\DTOs\RestoreDatabaseInputDto.cs" />
     <Compile Include="Models\BackupSettings\DTOs\BackupOperationResultDto.cs" />
     <Compile Include="Models\BackupSettings\DTOs\BackupValidationInfoDto.cs" />

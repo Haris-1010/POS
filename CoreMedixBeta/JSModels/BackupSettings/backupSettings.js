@@ -11,6 +11,16 @@
     const _$historyTable = $('#backupHistoryTable');
     const _$detailsModal = $('#backupDetailsModal');
     const _$restoreModal = $('#restoreBackupModal');
+    const _$browseModal = $('#browseFolderModal');
+    const _$browseList = $('.js-browse-list');
+    const _$browseCurrentPath = $('.js-browse-current-path');
+    const _$browseUpBtn = $('.js-browse-up');
+    const _$selectFolderBtn = $('.js-select-folder');
+    const _$newFolderName = $('.js-new-folder-name');
+    const _$createFolderBtn = $('.js-create-folder');
+
+    let browseCurrentPath = '';
+    let browseParentPath = null;
 
     const antiForgeryToken = () => $('input[name="__RequestVerificationToken"]').val();
 
@@ -29,6 +39,7 @@
         initHistoryTable();
         bindHistoryActions();
         bindRestoreActions();
+        bindBrowseFolderActions();
     });
 
     function toggleCustomFrequency() {
@@ -36,10 +47,14 @@
         _$customFrequencyWrap.toggle(isCustom);
     }
 
+    const MIN_FREQUENCY_MINUTES = 1440;   // 1 day
+    const MAX_FREQUENCY_MINUTES = 525600; // 365 days
+
     function collectSettingsPayload() {
         let frequency = parseInt(_$frequencySelect.val(), 10);
         if (frequency === 0) {
-            frequency = parseInt(_$customFrequency.val(), 10);
+            // Custom interval is entered in days; convert to the minutes the backend stores.
+            frequency = parseInt(_$customFrequency.val(), 10) * 1440;
         }
         return {
             ID: parseInt(_$settingsForm.find('input[name="ID"]').val(), 10) || 0,
@@ -58,8 +73,8 @@
             toastr.error('Backup folder path is required.', '', { timeOut: 1000 });
             return;
         }
-        if (!payload.FrequencyMinutes || isNaN(payload.FrequencyMinutes) || payload.FrequencyMinutes < 5 || payload.FrequencyMinutes > 10080) {
-            toastr.error('Backup frequency must be between 5 and 10,080 minutes.', '', { timeOut: 1000 });
+        if (!payload.FrequencyMinutes || isNaN(payload.FrequencyMinutes) || payload.FrequencyMinutes < MIN_FREQUENCY_MINUTES || payload.FrequencyMinutes > MAX_FREQUENCY_MINUTES) {
+            toastr.error('Backup frequency must be between 1 and 365 days.', '', { timeOut: 1000 });
             return;
         }
         if (isNaN(payload.RetentionDays) || payload.RetentionDays < 0 || payload.RetentionDays > 3650) {
@@ -414,6 +429,102 @@
             toastr.error('Failed to restore the database due to a technical error.', '', { timeOut: 1500 });
         } finally {
             _$btn.prop('disabled', false).html('<i class="fas fa-exclamation-circle"></i> Restore Database');
+        }
+    }
+
+    function bindBrowseFolderActions() {
+        $('.js-browse-folder').on('click', function () {
+            const typedPath = $.trim(_$folderPathInput.val());
+            _$browseModal.modal('show');
+            loadBrowseFolder(typedPath || '');
+        });
+
+        _$browseUpBtn.on('click', function () {
+            if (browseParentPath !== null) {
+                loadBrowseFolder(browseParentPath);
+            }
+        });
+
+        _$browseList.on('click', '.js-browse-folder-item', function () {
+            loadBrowseFolder($(this).data('path'));
+        });
+
+        _$selectFolderBtn.on('click', function () {
+            if (!browseCurrentPath) return;
+            _$folderPathInput.val(browseCurrentPath);
+            _$folderTestResult.text('');
+            _$browseModal.modal('hide');
+        });
+
+        _$createFolderBtn.on('click', async function () {
+            const name = $.trim(_$newFolderName.val());
+            if (!name) {
+                toastr.error('Enter a folder name first.', '', { timeOut: 1500 });
+                return;
+            }
+            if (!browseCurrentPath) {
+                toastr.error('Pick a drive or folder first, then create a subfolder inside it.', '', { timeOut: 2500 });
+                return;
+            }
+
+            _$createFolderBtn.prop('disabled', true);
+            try {
+                const resp = await $.post(CreateSubfolderUrl, {
+                    Path: browseCurrentPath,
+                    FolderName: name,
+                    __RequestVerificationToken: antiForgeryToken()
+                });
+                if (resp.Status) {
+                    toastr.success(resp.Message, '', { timeOut: 1500 });
+                    _$newFolderName.val('');
+                    await loadBrowseFolder(browseCurrentPath);
+                } else {
+                    toastr.error(resp.Message || 'Could not create the folder.', '', { timeOut: 2500 });
+                }
+            } catch (error) {
+                toastr.error('Failed to create the folder due to a technical error.', '', { timeOut: 1500 });
+            } finally {
+                _$createFolderBtn.prop('disabled', false);
+            }
+        });
+    }
+
+    async function loadBrowseFolder(path) {
+        _$browseList.html('<div class="text-muted p-3">Loading...</div>');
+        _$selectFolderBtn.prop('disabled', true);
+        _$createFolderBtn.prop('disabled', true);
+
+        try {
+            const resp = await $.post(BrowseFolderUrl, { Path: path || '' });
+            if (!resp.Status || !resp.Data) {
+                _$browseList.html('<div class="text-danger p-3">' + (resp.Message || 'Could not load that folder.') + '</div>');
+                return;
+            }
+
+            const d = resp.Data;
+            browseCurrentPath = d.CurrentPath || '';
+            browseParentPath = d.ParentPath;
+
+            _$browseCurrentPath.text(browseCurrentPath || 'This PC');
+            _$browseUpBtn.prop('disabled', browseParentPath === null);
+            _$selectFolderBtn.prop('disabled', !browseCurrentPath);
+            _$createFolderBtn.prop('disabled', !browseCurrentPath);
+
+            const folders = d.Folders || [];
+            if (folders.length === 0) {
+                _$browseList.html('<div class="text-muted p-3">No subfolders here.</div>');
+                return;
+            }
+
+            const items = folders.map(function (f) {
+                const safeName = $('<div>').text(f.Name).html();
+                const safePath = $('<div>').text(f.Path).html();
+                return '<button type="button" class="list-group-item list-group-item-action js-browse-folder-item" data-path="' + safePath + '">'
+                    + '<i class="fas fa-folder mr-2"></i>' + safeName + '</button>';
+            });
+            _$browseList.html(items.join(''));
+        } catch (error) {
+            _$browseList.html('<div class="text-danger p-3">Failed to load that folder due to a technical error.</div>');
         }
     }
 })(jQuery);

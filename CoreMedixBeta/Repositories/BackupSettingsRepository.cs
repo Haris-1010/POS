@@ -11,6 +11,37 @@ namespace CoreMedixBeta.Repositories
 {
     public class BackupSettingsRepository
     {
+        /// <summary>
+        /// Marks backup/restore history rows that have been stuck in "Running" for too
+        /// long (app pool recycle, crash, or - as seen when testing restore - the database
+        /// being rolled back to a point before its own "Success" update committed) as
+        /// "Failed", so the UI never shows a permanently "Running" row. Safe to call on
+        /// every read; a no-op when nothing is stale.
+        /// </summary>
+        public async Task<bool> HealStaleRunningHistoryAsync(int maxRunningMinutes = 120)
+        {
+            try
+            {
+                Dictionary<string, string> dbValues = new Dictionary<string, string>
+                {
+                    { "@Cutoff", DateTime.Now.AddMinutes(-maxRunningMinutes).ToString("yyyy-MM-dd HH:mm:ss") }
+                };
+
+                string query = @"UPDATE Settings.BackupHistory
+                                 SET Status = 'Failed',
+                                     BackupEndTime = GETDATE(),
+                                     ErrorMessage = 'Backup was interrupted (application recycled, process stopped, or the database was restored from an earlier backup).'
+                                 WHERE Status = 'Running' AND BackupStartTime <= @Cutoff";
+
+                return await DBHelper.ExecuteQueryAsync(query, dbValues);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
         public async Task<BackupSetting> GetSettingsAsync()
         {
             try
@@ -260,6 +291,8 @@ namespace CoreMedixBeta.Repositories
         {
             try
             {
+                await HealStaleRunningHistoryAsync();
+
                 Dictionary<string, string> dbValues = new Dictionary<string, string> { };
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues ?? new DataTableValuesDTO();
@@ -411,7 +444,8 @@ namespace CoreMedixBeta.Repositories
                 { "@NextBackupTime", input.NextBackupTime?.ToString("yyyy-MM-dd HH:mm:ss") },
                 { "@LastStatus", string.IsNullOrEmpty(input.LastStatus) ? null : input.LastStatus },
                 { "@LastErrorMessage", string.IsNullOrEmpty(input.LastErrorMessage) ? null : input.LastErrorMessage },
-                { "@LastModifiedBy", string.IsNullOrEmpty(input.LastModifiedBy) ? null : input.LastModifiedBy }
+                { "@LastModifiedBy", string.IsNullOrEmpty(input.LastModifiedBy) ? null : input.LastModifiedBy },
+                { "@LastModifiedOn", input.LastModifiedOn?.ToString("yyyy-MM-dd HH:mm:ss") }
             };
         }
     }

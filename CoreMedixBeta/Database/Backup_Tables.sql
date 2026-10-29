@@ -4,100 +4,120 @@
 -- Run this script in SQL Server Management Studio
 -- against the POS database (see Web.config connection string)
 -- Safe to run multiple times (idempotent).
+--
+-- Schema/column names below match the live code path exactly:
+--   Models\BackupSettings\BackupSetting.cs        -> Settings.BackupSettings
+--   Models\BackupSettings\BackupHistoryEntry.cs    -> Settings.BackupHistory
+--   Models\BackupSettings\BackupAuditLogEntry.cs   -> Settings.BackupAuditLog
+--   Repositories\BackupSettingsRepository.cs       -> all the SQL text above
+--   Controllers\BackupSettingsController.cs        -> the permission keys below
 -- =============================================
 
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Settings')
+    EXEC('CREATE SCHEMA Settings');
+GO
+
 -- =============================================
--- Table 1: dbo.BackupSettings (singleton row)
+-- Table 1: Settings.BackupSettings (singleton row)
 -- =============================================
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BackupSettings' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BackupSettings' AND schema_id = SCHEMA_ID('Settings'))
 BEGIN
-    CREATE TABLE dbo.BackupSettings (
+    CREATE TABLE Settings.BackupSettings (
         ID INT IDENTITY(1,1) PRIMARY KEY,
         IsEnabled BIT NOT NULL DEFAULT 0,
-        IntervalMinutes INT NOT NULL DEFAULT 60
-            CONSTRAINT CK_BackupSettings_Interval CHECK (IntervalMinutes BETWEEN 1 AND 10080),
-        BackupFolder NVARCHAR(400) NOT NULL,
+        FrequencyMinutes INT NOT NULL DEFAULT 1440
+            CONSTRAINT CK_BackupSettings_Frequency CHECK (FrequencyMinutes BETWEEN 1440 AND 525600), -- 1 day .. 365 days (UI offers day/month presets, not minutes)
+        BackupFolderPath NVARCHAR(500) NOT NULL,
         RetentionDays INT NOT NULL DEFAULT 30
             CONSTRAINT CK_BackupSettings_Retention CHECK (RetentionDays BETWEEN 0 AND 3650),
-        LastSuccessTime DATETIME NULL,
-        LastAttemptTime DATETIME NULL,
-        LastStatus NVARCHAR(20) NOT NULL DEFAULT 'Never Run',
-        LastError NVARCHAR(1000) NULL,
-        LastBackupFile NVARCHAR(300) NULL,
-        UpdatedBy NVARCHAR(100) NULL,
-        UpdatedOn DATETIME NULL
+        LastBackupTime DATETIME NULL,
+        NextBackupTime DATETIME NULL,
+        LastStatus NVARCHAR(20) NOT NULL DEFAULT 'Disabled',
+        LastErrorMessage NVARCHAR(1000) NULL,
+        LastModifiedBy NVARCHAR(100) NULL,
+        LastModifiedOn DATETIME NULL
     );
 END
 GO
 
--- Forward compatibility: add any missing columns on pre-existing installs
-IF COL_LENGTH('dbo.BackupSettings', 'LastAttemptTime') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD LastAttemptTime DATETIME NULL;
-IF COL_LENGTH('dbo.BackupSettings', 'LastStatus') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD LastStatus NVARCHAR(20) NOT NULL DEFAULT 'Never Run';
-IF COL_LENGTH('dbo.BackupSettings', 'LastError') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD LastError NVARCHAR(1000) NULL;
-IF COL_LENGTH('dbo.BackupSettings', 'LastBackupFile') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD LastBackupFile NVARCHAR(300) NULL;
-IF COL_LENGTH('dbo.BackupSettings', 'UpdatedBy') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD UpdatedBy NVARCHAR(100) NULL;
-IF COL_LENGTH('dbo.BackupSettings', 'UpdatedOn') IS NULL
-    ALTER TABLE dbo.BackupSettings ADD UpdatedOn DATETIME NULL;
+-- Migration: widen the frequency range from the original 5-10080 minutes (minutes/hours UI)
+-- to 1440-525600 minutes (1 day .. 365 days, day/month UI). Clamp any existing row into the
+-- new range first so adding the constraint back can't fail on old data.
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_BackupSettings_Frequency' AND parent_object_id = OBJECT_ID('Settings.BackupSettings'))
+BEGIN
+    UPDATE Settings.BackupSettings SET FrequencyMinutes = 1440 WHERE FrequencyMinutes < 1440;
+    UPDATE Settings.BackupSettings SET FrequencyMinutes = 525600 WHERE FrequencyMinutes > 525600;
+    ALTER TABLE Settings.BackupSettings DROP CONSTRAINT CK_BackupSettings_Frequency;
+    ALTER TABLE Settings.BackupSettings ADD CONSTRAINT CK_BackupSettings_Frequency CHECK (FrequencyMinutes BETWEEN 1440 AND 525600);
+END
 GO
 
 -- =============================================
--- Table 2: dbo.BackupHistory
+-- Table 2: Settings.BackupHistory
 -- =============================================
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BackupHistory' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BackupHistory' AND schema_id = SCHEMA_ID('Settings'))
 BEGIN
-    CREATE TABLE dbo.BackupHistory (
-        ID BIGINT IDENTITY(1,1) PRIMARY KEY,
-        FileName NVARCHAR(300) NOT NULL,
-        FilePath NVARCHAR(500) NOT NULL,
-        DatabaseName NVARCHAR(200) NOT NULL,
-        BackupType NVARCHAR(20) NOT NULL,     -- Scheduled | Manual | PreRestore
-        Status NVARCHAR(20) NOT NULL,         -- Running | Success | Failed
+    CREATE TABLE Settings.BackupHistory (
+        ID INT IDENTITY(1,1) PRIMARY KEY,
+        BackupFileName NVARCHAR(300) NOT NULL,
+        BackupFilePath NVARCHAR(500) NOT NULL,
+        BackupStartTime DATETIME NOT NULL,
+        BackupEndTime DATETIME NULL,
         FileSizeBytes BIGINT NULL,
-        StartedOn DATETIME NOT NULL,
-        CompletedOn DATETIME NULL,
+        Status NVARCHAR(20) NOT NULL,          -- Running | Success | Failed | Deleted
         ErrorMessage NVARCHAR(1000) NULL,
-        CreatedBy NVARCHAR(100) NOT NULL,
-        IsDeleted BIT NOT NULL DEFAULT 0,
-        DeletedOn DATETIME NULL,
-        DeletedReason NVARCHAR(50) NULL,      -- Manual | Retention
-        RestoredOn DATETIME NULL,
-        RestoredBy NVARCHAR(100) NULL
+        TriggerType NVARCHAR(30) NOT NULL,     -- Scheduled | Manual | PreRestore | ScheduledTask | Auto
+        CreatedBy NVARCHAR(100) NULL
     );
 
-    CREATE NONCLUSTERED INDEX IX_BackupHistory_StartedOn
-        ON dbo.BackupHistory (StartedOn DESC, ID DESC)
-        INCLUDE (Status, FileName, IsDeleted);
+    CREATE NONCLUSTERED INDEX IX_BackupHistory_StartTime
+        ON Settings.BackupHistory (BackupStartTime DESC, ID DESC)
+        INCLUDE (Status, BackupFileName);
 
     CREATE NONCLUSTERED INDEX IX_BackupHistory_Status
-        ON dbo.BackupHistory (Status, IsDeleted);
+        ON Settings.BackupHistory (Status);
 END
 GO
 
-IF COL_LENGTH('dbo.BackupHistory', 'RestoredOn') IS NULL
-    ALTER TABLE dbo.BackupHistory ADD RestoredOn DATETIME NULL;
-IF COL_LENGTH('dbo.BackupHistory', 'RestoredBy') IS NULL
-    ALTER TABLE dbo.BackupHistory ADD RestoredBy NVARCHAR(100) NULL;
+-- =============================================
+-- Table 3: Settings.BackupAuditLog
+-- =============================================
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BackupAuditLog' AND schema_id = SCHEMA_ID('Settings'))
+BEGIN
+    CREATE TABLE Settings.BackupAuditLog (
+        ID INT IDENTITY(1,1) PRIMARY KEY,
+        ActivityType NVARCHAR(50) NOT NULL,    -- SettingsChange | FolderTest | Backup | Restore | Delete | Download | Cleanup
+        Status NVARCHAR(20) NOT NULL,          -- Success | Failed | Warning
+        Details NVARCHAR(1000) NULL,
+        PerformedBy NVARCHAR(100) NULL,
+        PerformedOn DATETIME NOT NULL DEFAULT GETDATE()
+    );
+
+    CREATE NONCLUSTERED INDEX IX_BackupAuditLog_PerformedOn
+        ON Settings.BackupAuditLog (PerformedOn DESC);
+END
 GO
 
 -- =============================================
 -- Permission seeds (Admin bypasses permission
 -- checks automatically; these rows let Admin
--- delegate access to other roles)
+-- delegate access to other roles). Keys match
+-- [AuthorizePermission] attributes in
+-- Controllers\BackupSettingsController.cs exactly.
 -- =============================================
 IF OBJECT_ID('Auth.Permissions', 'U') IS NOT NULL
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'DatabaseBackup_View')
+    IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_View')
         INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module)
-        VALUES ('DatabaseBackup_View', 'View Database Backup Settings', 'Database Backup');
+        VALUES ('BackupSettings_View', 'View Database Backup Settings', 'Database Backup');
 
-    IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'DatabaseBackup_Manage')
+    IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_Manage')
         INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module)
-        VALUES ('DatabaseBackup_Manage', 'Manage Database Backups', 'Database Backup');
+        VALUES ('BackupSettings_Manage', 'Manage Database Backups', 'Database Backup');
+
+    IF NOT EXISTS (SELECT 1 FROM Auth.Permissions WHERE PermissionKey = 'BackupSettings_Restore')
+        INSERT INTO Auth.Permissions (PermissionKey, PermissionName, Module)
+        VALUES ('BackupSettings_Restore', 'Restore Database From Backup', 'Database Backup');
 END
 GO
 
