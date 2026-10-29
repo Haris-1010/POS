@@ -553,18 +553,18 @@
                 <span class="cm-brand-badge"><i class="fas fa-cash-register"></i></span>
                 <span class="cm-brand-text">@brandName</span>
             </a>
-            <ul class="navbar-nav ml-auto align-items-center">
+            <ul class="navbar-nav ml-auto align-items-center cm-header-actions">
 
                 @if (HasPermission("Sales_View"))
                 {
-                    <li class="nav-item mr-2">
+                    <li class="nav-item">
                         <a class="cm-newsale" href="@Url.Action("ManageInvoice", "Sales")" title="Start a new sale">
                             <i class="fas fa-plus"></i> <span class="cm-newsale-text" data-i18n="header_new_sale">New Sale</span>
                         </a>
                     </li>
                 }
 
-                <li class="nav-item dropdown mr-1">
+                <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="cmLangDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Language / Zaban">
                         <i class="fas fa-language"></i> <span class="js-lang-icon-label">EN</span>
                     </a>
