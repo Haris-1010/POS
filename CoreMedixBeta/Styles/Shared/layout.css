@@ -604,6 +604,18 @@ input[type="search"] {
     }
 }
 
+/* Header-right action row (New Sale, language, theme, user, fullscreen, logout) -
+   one consistent horizontal gap between every item instead of per-item margins. */
+.cm-header-actions {
+    column-gap: 18px;
+}
+
+@media (max-width: 767.98px) {
+    .cm-header-actions {
+        column-gap: 10px;
+    }
+}
+
 /* ==========================================================================
    Top navigation (sidebar ab top par hai) — hover ya click se submenu open
    ========================================================================== */

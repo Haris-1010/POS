@@ -1,0 +1,1011 @@
+@{
+    // Permission helper
+    var userPermissions = Session["Permissions"] as List<string> ?? new List<string>();
+    var userRole = Session["Role"]?.ToString() ?? "";
+    var isAdmin = userRole == "Admin";
+    Func<string, bool> HasPermission = (key) => isAdmin || userPermissions.Contains(key);
+
+    // User initial for avatar
+    string fullName = Session["FullName"]?.ToString() ?? "";
+    string userInitial = fullName.Trim().Length > 0 ? fullName.Trim().Substring(0, 1).ToUpper() : "U";
+
+    // Custom Branding -> top left par business name show hota hai
+    string brandName = "POS";
+    try
+    {
+        // Pehle Brandings (Print Branding) ka Business Name
+        string businessName = CoreMedixBeta.Repositories.BrandingsRepository.GetBusinessName();
+        if (!string.IsNullOrWhiteSpace(businessName))
+        {
+            brandName = businessName;
+        }
+        else
+        {
+            // Warna Branding -> Logo Text (organization name)
+            string location = CoreMedixBeta.DbModels.ServerConfig.GetLocationIDCallback?.Invoke() ?? "";
+            var branding = CoreMedixBeta.Repositories.BrandingRepository.get(location);
+            if (branding != null && !string.IsNullOrWhiteSpace(branding.logo_text))
+            {
+                brandName = branding.logo_text.Trim();
+            }
+        }
+    }
+    catch (Exception)
+    {
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-site-verification" content="8Wn73njA_P2wciuui1f-ZWYMOp8ZV3julgBHtCYnxe8" />
+    <title>@ViewBag.Title</title>
+    <script>
+        (function () {
+            try {
+                var m = localStorage.getItem('cmTheme') || 'auto';
+                var h = new Date().getHours();
+                var dark = (m === 'dark') || (m !== 'light' && (h >= 18 || h < 6));
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme-mode', m);
+            } catch (e) { }
+        })();
+    </script>
+    @{
+        string printLogo = CoreMedixBeta.Repositories.BrandingsRepository.GetPrintLogoUrl();
+    }
+    @if (!string.IsNullOrWhiteSpace(printLogo))
+    {
+        <link rel="icon" type="image/png" href="@printLogo" />
+        <link rel="shortcut icon" type="image/png" href="@printLogo" />
+    }
+    else
+    {
+        <link rel="icon" href="~/favicon.ico" />
+    }
+    <link href="~/assets/Fonts/font.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/fontawesome-free/css/all.min.css">
+    @*<link rel="stylesheet" href="~/assets/AdminLTE/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">*@
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/jqvmap/jqvmap.min.css">
+    <link rel="stylesheet" href="~/assets/AdminLTE/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/daterangepicker/daterangepicker.css">
+    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/summernote/summernote-bs4.min.css">
+    <link href="~/panel-assets/plugins/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/assets/libraries/Jquery-Loading/jquery.loading.min.css" rel="stylesheet" />
+    <link href="~/ReplacementPaths/DataTables/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/assets/libraries/datatables/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/assets/libraries/datatables/datatable_buttons/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="~/panel-assets/plugins/DateRange/daterangepicker.css" rel="stylesheet" />
+    <link href="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/panel-assets/plugins/photoviewer/photoviewer.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/ReplacementPaths/Toastr/toastr.min.css" />
+    <link href="~/ReplacementPaths/DataTables/rowGroup.css" rel="stylesheet" />
+    <link href="~/assets/AdminLTE/plugins/jquery-ui/jquery-ui.css" rel="stylesheet" />
+    <link href="~/Styles/Shared/layout.css" rel="stylesheet" />
+    <link href="~/Styles/Shared/theme.css" rel="stylesheet" />
+    <link href="~/assets/botui/botui.min.css" rel="stylesheet" />
+    <link href="~/assets/botui/botui-theme-default.css" rel="stylesheet" />
+    <link href="~/CSSModels/ChatBot/chatbot.css" rel="stylesheet" />
+
+    <!-- POS look: yeh block sab existing CSS ke baad load hota hai taa ke override kare -->
+    <style>
+        :root {
+            --px-bg: #f1f4fb;
+            --px-surface: #ffffff;
+            --px-border: #e3e7f2;
+            --px-text: #1b2340;
+            --px-muted: #6b7490;
+            --px-ink: #0b1437;
+            --px-ink2: #131f52;
+            --px-green: #16a34a;
+            --px-green-dk: #12873d;
+            --px-green-soft: #e7f6ec;
+            --px-hover: #eef1fb;
+            --px-active: #0b1437;
+            --px-active-text: #ffffff;
+            --px-shadow: 0 12px 30px rgba(11,20,55,.14);
+        }
+
+        [data-theme="dark"] {
+            --px-bg: #0c1020;
+            --px-surface: #151b33;
+            --px-border: #252d4d;
+            --px-text: #e6e9f5;
+            --px-muted: #98a1c4;
+            --px-hover: #1e2748;
+            --px-green-soft: rgba(34,197,94,.16);
+            --px-active: #2f3f8f;
+            --px-shadow: 0 12px 30px rgba(0,0,0,.45);
+        }
+
+        body.layout-top-nav {
+            background: var(--px-bg);
+        }
+
+        .content-wrapper, .content-wrapper > .content-wrapper {
+            background: var(--px-bg) !important;
+        }
+
+        /* ---------- Header ---------- */
+        .main-header.cm-header {
+            min-height: 62px;
+            padding: 0 20px;
+            background: var(--px-surface) !important;
+            border-bottom: 1px solid var(--px-border) !important;
+            box-shadow: none !important;
+        }
+
+        .cm-header .nav-link {
+            color: var(--px-text) !important;
+        }
+
+        .cm-header .cm-brand-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding-left: 0 !important;
+        }
+
+        .cm-brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, var(--px-ink), var(--px-ink2));
+            color: #fff;
+            font-size: 17px;
+            box-shadow: 0 6px 14px rgba(11,20,55,.25);
+        }
+
+        .cm-brand-text {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            color: var(--px-text);
+        }
+
+        .cm-newsale {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+            padding: 0 18px;
+            border-radius: 10px;
+            background: var(--px-green);
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none !important;
+            box-shadow: 0 6px 14px rgba(22,163,74,.28);
+            transition: background .15s, transform .15s;
+        }
+
+            .cm-newsale:hover {
+                background: var(--px-green-dk);
+            }
+
+            .cm-newsale:active {
+                transform: translateY(1px);
+            }
+
+        .cm-header .nav-link:hover {
+            color: var(--px-green) !important;
+        }
+
+        .cm-header .nav-link[data-toggle="dropdown"], .cm-header .nav-link[data-widget="fullscreen"] {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            margin: 0 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+            .cm-header .nav-link[data-toggle="dropdown"]:hover, .cm-header .nav-link[data-widget="fullscreen"]:hover {
+                background: var(--px-hover);
+            }
+
+        .cm-header .cm-header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 12px 4px 5px;
+            margin: 0 6px;
+            border: 1px solid var(--px-border);
+            border-radius: 999px;
+        }
+
+        .cm-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--px-green-soft);
+            color: var(--px-green);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .cm-user-meta {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .cm-user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--px-text);
+        }
+
+        .cm-user-role {
+            font-size: 11px;
+            color: var(--px-muted);
+        }
+
+        .cm-header .cm-logout {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            height: 38px;
+            padding: 0 14px !important;
+            margin-left: 4px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #dc2626 !important;
+            background: rgba(220,38,38,.08);
+        }
+
+            .cm-header .cm-logout:hover {
+                background: rgba(220,38,38,.16);
+                color: #dc2626 !important;
+            }
+
+        .cm-theme-menu {
+            border: 1px solid var(--px-border);
+            border-radius: 12px;
+            padding: 6px;
+            background: var(--px-surface);
+            box-shadow: var(--px-shadow);
+        }
+
+            .cm-theme-menu .dropdown-item {
+                border-radius: 8px;
+                color: var(--px-text);
+                padding: 8px 14px;
+            }
+
+                .cm-theme-menu .dropdown-item i {
+                    width: 18px;
+                    margin-right: 6px;
+                    color: var(--px-muted);
+                }
+
+                .cm-theme-menu .dropdown-item:hover {
+                    background: var(--px-hover);
+                }
+
+        /* ---------- Top menu ---------- */
+        .cm-topnav {
+            background: var(--px-surface) !important;
+            border-bottom: 1px solid var(--px-border) !important;
+            padding: 8px 20px !important;
+            position: relative;
+            z-index: 1030;
+        }
+
+        .cm-topnav-menu {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .cm-menu-item {
+            position: relative;
+        }
+
+        .cm-menu-link {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--px-text) !important;
+            text-decoration: none !important;
+            transition: background .15s, color .15s;
+        }
+
+            .cm-menu-link .nav-icon {
+                margin: 0 !important;
+                width: auto !important;
+                font-size: 14px;
+                color: var(--px-muted);
+                transition: color .15s;
+            }
+
+            .cm-menu-link:hover, .cm-has-sub.cm-open > .cm-menu-link {
+                background: var(--px-hover);
+            }
+
+                .cm-menu-link:hover .nav-icon {
+                    color: var(--px-green);
+                }
+
+        .cm-arrow {
+            font-size: 11px;
+            margin-left: 2px;
+            color: var(--px-muted);
+            transition: transform .2s;
+        }
+
+        .cm-has-sub.cm-open > .cm-menu-link .cm-arrow {
+            transform: rotate(180deg);
+        }
+
+        .cm-menu-item.is-active > .cm-menu-link {
+            background: var(--px-active);
+            color: var(--px-active-text) !important;
+        }
+
+            .cm-menu-item.is-active > .cm-menu-link .nav-icon,
+            .cm-menu-item.is-active > .cm-menu-link .cm-arrow {
+                color: var(--px-active-text);
+            }
+
+        .cm-submenu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 230px;
+            margin: 0;
+            padding: 8px;
+            list-style: none;
+            background: var(--px-surface);
+            border: 1px solid var(--px-border);
+            border-radius: 14px;
+            box-shadow: var(--px-shadow);
+            z-index: 1050;
+        }
+
+            .cm-submenu::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: -8px;
+                height: 8px;
+            }
+
+        .cm-has-sub.cm-open > .cm-submenu, .cm-has-sub:hover > .cm-submenu {
+            display: block;
+        }
+
+        .cm-submenu-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--px-text) !important;
+            text-decoration: none !important;
+        }
+
+            .cm-submenu-link i {
+                width: 30px;
+                height: 30px;
+                border-radius: 9px;
+                flex: 0 0 30px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--px-hover);
+                color: var(--px-ink2);
+                font-size: 13px;
+                transition: background .15s, color .15s;
+            }
+
+        [data-theme="dark"] .cm-submenu-link i {
+            color: #b9c3f0;
+        }
+
+        .cm-submenu-link:hover {
+            background: var(--px-hover);
+        }
+
+            .cm-submenu-link:hover i {
+                background: var(--px-green);
+                color: #fff;
+            }
+
+        .cm-submenu-link.active {
+            background: var(--px-green-soft);
+            color: var(--px-green) !important;
+            font-weight: 700;
+        }
+
+            .cm-submenu-link.active i {
+                background: var(--px-green);
+                color: #fff;
+            }
+
+        /* ---------- Global polish ---------- */
+        .card {
+            border: 1px solid var(--px-border);
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(11,20,55,.05);
+        }
+
+        .card-header {
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+
+        .btn {
+            border-radius: 9px;
+            font-weight: 600;
+        }
+
+        .form-control, .select2-container--default .select2-selection--single {
+            border-radius: 9px;
+        }
+
+            .form-control:focus {
+                border-color: var(--px-ink2);
+                box-shadow: 0 0 0 3px rgba(19,31,82,.12);
+            }
+
+        .modal-content {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: var(--px-shadow);
+        }
+
+        .modal-header {
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: .4em .75em;
+            font-weight: 600;
+        }
+
+        table.dataTable thead th {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .dropdown-menu {
+            border-radius: 12px;
+        }
+
+        #chatbot-toggle {
+            background: linear-gradient(145deg, var(--px-ink), var(--px-ink2)) !important;
+            color: #fff !important;
+            border-radius: 50% !important;
+            box-shadow: 0 10px 24px rgba(11,20,55,.35) !important;
+        }
+
+        /* ---------- Responsive ---------- */
+        @@media (max-width: 991px) {
+            .cm-user-meta, .cm-logout-text, .cm-newsale-text {
+                display: none;
+            }
+
+            .cm-header .cm-header-user {
+                padding: 4px;
+            }
+
+            .cm-newsale {
+                padding: 0 12px;
+            }
+
+            .cm-topnav {
+                padding: 8px 12px !important;
+            }
+
+            .cm-menu-link {
+                padding: 0 10px;
+                font-size: 13px;
+            }
+        }
+
+        @@media (max-width: 575px) {
+            .cm-brand-text {
+                max-width: 130px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    </style>
+
+    @RenderSection("Styles", false)
+</head>
+<body class="layout-top-nav">
+    @Html.AntiForgeryToken()
+    <div class="wrapper">
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light cm-header">
+            <!-- Top left: Branding business name -->
+            <a class="nav-link cm-brand-link" href="@Url.Action("Dashboard", "DashBoard")" title="Home">
+                <span class="cm-brand-badge"><i class="fas fa-cash-register"></i></span>
+                <span class="cm-brand-text">@brandName</span>
+            </a>
+            <ul class="navbar-nav ml-auto align-items-center cm-header-actions">
+
+                @if (HasPermission("Sales_View"))
+                {
+                    <li class="nav-item">
+                        <a class="cm-newsale" href="@Url.Action("ManageInvoice", "Sales")" title="Start a new sale">
+                            <i class="fas fa-plus"></i> <span class="cm-newsale-text" data-i18n="header_new_sale">New Sale</span>
+                        </a>
+                    </li>
+                }
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="cmLangDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Language / Zaban">
+                        <i class="fas fa-language"></i> <span class="js-lang-icon-label">EN</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right cm-theme-menu" aria-labelledby="cmLangDropdown">
+                        <a class="dropdown-item cm-lang-option" href="#" data-lang-mode="en"><i class="fas fa-check-circle"></i> English</a>
+                        <a class="dropdown-item cm-lang-option" href="#" data-lang-mode="ur"><i class="fas fa-check-circle"></i> Urdu</a>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="cmThemeDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Theme">
+                        <i class="fas fa-sun js-theme-icon"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right cm-theme-menu" aria-labelledby="cmThemeDropdown">
+                        <a class="dropdown-item cm-theme-option" href="#" data-theme-mode="light"><i class="fas fa-sun"></i> Light</a>
+                        <a class="dropdown-item cm-theme-option" href="#" data-theme-mode="dark"><i class="fas fa-moon"></i> Dark</a>
+                        <a class="dropdown-item cm-theme-option" href="#" data-theme-mode="auto"><i class="fas fa-clock"></i> Auto (evening)</a>
+                    </div>
+                </li>
+
+                @if (Session["FullName"] != null)
+                {
+                    <li class="nav-item">
+                        <span class="nav-link cm-header-user">
+                            <span class="cm-avatar">@userInitial</span>
+                            <span class="cm-user-meta">
+                                <span class="cm-user-name">@Session["FullName"]</span>
+                                <span class="cm-user-role">@Session["Role"]</span>
+                            </span>
+                        </span>
+                    </li>
+                }
+
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="fullscreen" href="#" role="button" title="Fullscreen">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link js-logout-btn cm-logout" href="javascript:void(0)" role="button" title="Logout">
+                        <i class="fa fa-sign-out-alt"></i> <span class="cm-logout-text" data-i18n="header_logout">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Top menu (pehle left sidebar tha) -->
+        <nav class="cm-topnav" id="cm-topnav">
+            <ul class="cm-topnav-menu">
+
+                @if (HasPermission("Patient_View"))
+                {
+                    <li class="cm-menu-item cm-has-sub">
+                        <a href="#" class="cm-menu-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <span data-i18n="nav_customer_mgmt">Customer Management</span>
+                            <i class="cm-arrow fas fa-angle-down"></i>
+                        </a>
+                        <ul class="cm-submenu">
+                            <li>
+                                <a href="@Url.Action("Patients", "Patient")" class="cm-submenu-link">
+                                    <i class="fas fa-user-friends"></i>
+                                    <span data-i18n="nav_customers">Customers</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                @if (HasPermission("Suppliers_View") || HasPermission("Manufacturers_View") || HasPermission("Inventory_View"))
+                {
+                    <li class="cm-menu-item cm-has-sub">
+                        <a href="#" class="cm-menu-link">
+                            <i class="nav-icon fas fa-building"></i>
+                            <span data-i18n="nav_inventory_mgmt">Inventory Management</span>
+                            <i class="cm-arrow fas fa-angle-down"></i>
+                        </a>
+                        <ul class="cm-submenu">
+                            @if (HasPermission("Suppliers_View"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("Suppliers", "Supplier")" class="cm-submenu-link">
+                                        <i class="fas fa-user-cog"></i>
+                                        <span data-i18n="nav_suppliers">Suppliers</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (HasPermission("Manufacturers_View"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("Manufacturers", "Manufacturers")" class="cm-submenu-link">
+                                        <i class="fas fa-industry"></i>
+                                        <span data-i18n="nav_manufacturers">Manufacturers</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (HasPermission("Inventory_View"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("Items", "InventoryItems")" class="cm-submenu-link">
+                                        <i class="fas fa-boxes"></i>
+                                        <span data-i18n="nav_items">Items</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+
+                @if (HasPermission("Sales_View"))
+                {
+                    <li class="cm-menu-item cm-has-sub">
+                        <a href="#" class="cm-menu-link">
+                            <i class="nav-icon fas fa-cash-register"></i>
+                            <span data-i18n="nav_sales">Sales</span>
+                            <i class="cm-arrow fas fa-angle-down"></i>
+                        </a>
+                        <ul class="cm-submenu">
+                            <li>
+                                <a href="@Url.Action("SaleInvoices", "Sales")" class="cm-submenu-link">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                    <span data-i18n="nav_invoices">Invoices</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("ManageInvoice", "Sales")" class="cm-submenu-link">
+                                    <i class="fas fa-file-invoice"></i>
+                                    <span data-i18n="nav_new_invoice">New Invoice</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                @if (HasPermission("Purchases_View"))
+                {
+                    <li class="cm-menu-item cm-has-sub">
+                        <a href="#" class="cm-menu-link">
+                            <i class="nav-icon fas fa-shopping-basket"></i>
+                            <span data-i18n="nav_purchases">Purchases</span>
+                            <i class="cm-arrow fas fa-angle-down"></i>
+                        </a>
+                        <ul class="cm-submenu">
+                            <li>
+                                <a href="@Url.Action("PurchaseOrders", "Purchases")" class="cm-submenu-link">
+                                    <i class="fas fa-receipt"></i>
+                                    <span data-i18n="nav_purchase_orders">Purchase Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("ReceivedPurchases", "Purchases")" class="cm-submenu-link">
+                                    <i class="fas fa-truck-loading"></i>
+                                    <span data-i18n="nav_received_purchase">Received Purchase</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                @if (HasPermission("Reports_View"))
+                {
+                    <li class="cm-menu-item">
+                        <a href="@Url.Action("ReportsGroup", "Reports")" class="cm-menu-link">
+                            <i class="nav-icon fas fa-sitemap"></i>
+                            <span data-i18n="nav_reports">Reports</span>
+                        </a>
+                    </li>
+                }
+
+                @if (HasPermission("InventorySettings_View") || HasPermission("InventorySettings_Manage"))
+                {
+                    <li class="cm-menu-item">
+                        <a href="@Url.Action("Index", "InventorySettings")" class="cm-menu-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <span data-i18n="nav_settings">Settings</span>
+                        </a>
+                    </li>
+                }
+
+                @if (Session["Role"] != null && Session["Role"].ToString() == "Admin")
+                {
+                    <li class="cm-menu-item">
+                        <a href="@Url.Action("Users", "Account")" class="cm-menu-link">
+                            <i class="nav-icon fas fa-user-shield"></i>
+                            <span data-i18n="nav_user_mgmt">User Management</span>
+                        </a>
+                    </li>
+                }
+
+                <li class="cm-menu-item">
+                    <a href="javascript:void(0)" class="cm-menu-link js-shortcut-keys">
+                        <i class="nav-icon fas fa-key"></i>
+                        <span data-i18n="nav_hot_keys">Hot Keys</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="content-wrapper" style="padding-top:0px !important;">
+            <div class="content-header" style="padding-top:0px !important;">
+                <div class="container-fluid">
+                </div>
+            </div>
+            <div class="content-wrapper" style="margin:0px !important; padding-top: 0px !important">
+                <section class="content cm-page-fade">
+                    <div class="container-fluid">
+                        @RenderBody()
+                    </div>
+                </section>
+            </div>
+            <div id="chatbot-container" class="card" style="display: none;">
+                <div class="card-header">
+                    <div class="d-flex align-items-center">
+                        <h5 class="card-title mb-0 text-white">POS Assistant</h5>
+                    </div>
+                    <button class="btn btn-sm btn-light js-close-chatbot">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="card-body p-0 d-flex flex-column">
+                    <!-- Chat messages will appear here -->
+                    <div id="botui-app" class="flex-grow-1"></div>
+
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <input type="text" id="chatbot-input" class="form-control"
+                                   placeholder="Urdu ya English mein poochein - stock, customers, sales..." autocomplete="off" />
+                            <div class="input-group-append">
+                                <button class="btn btn-primary js-send-message">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="chatbot-toggle" class="btn" title="POS Assistant">
+                <i class="fas fa-comments"></i>
+            </button>
+        </div>
+        <footer class="main-footer justify-content-center text-center">
+        </footer>
+    </div>
+
+    <audio controls="controls" class="d-none" id="alert" preload="auto" autoplay muted="muted">
+        <source src="~/assets/Sounds/buzzer.mp3" />
+        <source src="~/assets/Sounds/buzzer.ogg" />
+    </audio>
+
+    <!-- Generic Excel Export Modal -->
+    <div class="modal fade" id="excelExportModal" tabindex="-1" role="dialog" aria-labelledby="excelExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form id="excelExportForm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Download Excel Report</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <label>Select Date Range</label>
+                        <input type="text" id="excelDateRange" class="form-control" required />
+                        <input type="hidden" id="reportTarget" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Download</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- jQuery -->
+    <script src="~/assets/AdminLTE/plugins/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="~/assets/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/assets/bootstrap4/js/bootstrap.min.js"></script>
+
+    <!-- AdminLTE Plugins -->
+    <script src="~/assets/AdminLTE/plugins/chart.js/Chart.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/sparklines/sparkline.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jqvmap/jquery.vmap.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jquery-knob/jquery.knob.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/summernote/summernote-bs4.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+    <script src="~/assets/AdminLTE/dist/js/adminlte.js"></script>
+
+    <!-- Validation -->
+    <script src="~/assets/AdminLTE/plugins/jquery-validation/jquery.validate.min.js"></script>
+    <script src="~/assets/AdminLTE/plugins/jquery-validation/additional-methods.min.js"></script>
+
+    <!-- UI Plugins -->
+    <script src="~/panel-assets/plugins/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/daterangepicker.js"></script>
+    <script src="~/panel-assets/plugins/select2/js/select2.min.js"></script>
+    <script src="~/assets/libraries/Jquery-Loading/jquery.loading.min.js"></script>
+
+    <!-- DataTables Core -->
+    <script src="~/assets/AdminLTE/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/assets/libraries/datatables/dataTables.bootstrap.min.js"></script>
+
+    <!-- DataTables Buttons -->
+    <script src="~/ReplacementPaths/DataTables/dataTables.buttons.js"></script>
+
+    <!-- UI -->
+    <script src="~/ReplacementPaths/DataTables/rowGroup.js"></script>
+    <script src="~/assets/js/jquery-ui/jquery-ui.min.js"></script>
+
+    <!-- Export Dependencies -->
+    <script src="~/ReplacementPaths/DataTables/jszip.min.js"></script>
+    <script src="~/ReplacementPaths/DataTables/pdfmake.min.js"></script>
+    <script src="~/ReplacementPaths/DataTables/vfs_fonts.js"></script>
+    <script src="~/ReplacementPaths/DataTables/buttons.colVis.js"></script>
+
+    <!-- Export + Print Buttons -->
+    <script src="~/ReplacementPaths/DataTables/buttons.html5.js"></script>
+    <script src="~/ReplacementPaths/DataTables/buttons.print.js"></script>
+
+    <!-- Other Libraries -->
+    <script src="~/ReplacementPaths/BootBox/bootbox.min.js"></script>
+    <script src="~/ReplacementPaths/Toastr/toastr.min.js"></script>
+    <script>
+    var hotkeyUrls = {
+        newInvoice: '@Url.Action("ManageInvoice", "Sales")',
+        newPurchase: '@Url.Action("ManagePurchaseOrder", "Purchases")',
+        newItem: '@Url.Action("ManageItem", "InventoryItems")',
+        reports: '@Url.Action("ReportsGroup", "Reports")'
+    };
+    </script>
+
+    <!-- Custom JS -->
+    <script src="~/JSModels/SharedJS/theme.js"></script>
+    <script src="~/JSModels/SharedJS/i18n.js"></script>
+    <script src="~/JSModels/SharedJS/shared.js"></script>
+    <script src="~/JSModels/ChatBot/chatbot.js"></script>
+    @*<script src="~/Areas/Pharmacy/JSModels/Shared/helperFunctions.js"></script>
+        <script src="~/Areas/Pharmacy/JSModels/Shared/shortcutKeys.js"></script>
+        <script src="~/Areas/Pharmacy/JSModels/Shared/pharmacyLayout.js"></script>*@
+
+    <!-- Logout Handler -->
+    <script>
+        $(document).on('click', '.js-logout-btn', function (e) {
+            e.preventDefault();
+            bootbox.confirm({
+                message: "Are you sure you want to logout?",
+                callback: function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: '@Url.Action("LogOut", "Account")',
+                            type: 'POST',
+                            data: {
+                                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                            },
+                            success: function (response) {
+                                if (response.Status) {
+                                    toastr.success(response.Message);
+                                    setTimeout(function () {
+                                        window.location.href = response.Data.redirectUrl;
+                                    }, 500);
+                                }
+                            },
+                            error: function () {
+                                window.location.href = '@Url.Action("Login", "Account")';
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- Top menu: click ya hover se submenu + active page highlight -->
+    <script>
+        (function () {
+            function alignSub($li) {
+                var $sub = $li.children('.cm-submenu');
+                if (!$sub.length) return;
+                $sub.css({ left: 0, right: 'auto' });
+                var rect = $sub[0].getBoundingClientRect();
+                if (rect.right > window.innerWidth - 8) {
+                    $sub.css({ left: 'auto', right: 0 });
+                }
+            }
+
+            // Click se submenu toggle
+            $(document).on('click', '.cm-has-sub > .cm-menu-link', function (e) {
+                e.preventDefault();
+                var $li = $(this).parent('.cm-has-sub');
+                $('.cm-has-sub').not($li).removeClass('cm-open');
+                alignSub($li);
+                $li.toggleClass('cm-open');
+            });
+
+            // Hover par submenu viewport ke andar align
+            $(document).on('mouseenter', '.cm-has-sub', function () {
+                alignSub($(this));
+            });
+
+            // Bahar click karne par band
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.cm-has-sub').length) {
+                    $('.cm-has-sub').removeClass('cm-open');
+                }
+            });
+
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape') $('.cm-has-sub').removeClass('cm-open');
+            });
+
+            // Current page ka menu highlight
+            $(function () {
+                var path = window.location.pathname.toLowerCase();
+
+                function isActive(href) {
+                    if (!href || href === '#' || href.indexOf('javascript:') === 0) return false;
+                    if (href === path) return true;
+                    if (path.indexOf(href + '/') === 0) return true;
+                    if (href.indexOf(path + '/') === 0) return true;
+                    return false;
+                }
+
+                $('.cm-submenu-link').each(function () {
+                    var href = ($(this).attr('href') || '').split('?')[0].toLowerCase();
+                    if (isActive(href)) {
+                        $(this).addClass('active');
+                        $(this).closest('.cm-has-sub').addClass('is-active');
+                    }
+                });
+
+                $('.cm-topnav-menu > .cm-menu-item > .cm-menu-link').each(function () {
+                    var href = ($(this).attr('href') || '').split('?')[0].toLowerCase();
+                    if (isActive(href)) {
+                        $(this).closest('.cm-menu-item').addClass('is-active');
+                    }
+                });
+            });
+        })();
+    </script>
+
+    @RenderSection("Scripts", false)
+</body>
+</html>

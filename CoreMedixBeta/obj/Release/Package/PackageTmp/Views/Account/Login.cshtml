@@ -1,0 +1,183 @@
+@{
+    ViewBag.Title = "POS Login";
+    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+
+    string brandName = "POS";
+    try
+    {
+        string businessName = CoreMedixBeta.Repositories.BrandingsRepository.GetBusinessName();
+        if (!string.IsNullOrWhiteSpace(businessName))
+        {
+            brandName = businessName;
+        }
+    }
+    catch (Exception) { }
+}
+
+<div class="pos-terminal">
+
+    <!-- LEFT: counter display -->
+    <aside class="pos-side">
+        <div class="pos-brand">
+            <div class="pos-brand-icon"><i class="fas fa-cash-register"></i></div>
+            <div>
+                <h1 style="color:white">@brandName</h1>
+                <p>Point of Sale</p>
+            </div>
+        </div>
+
+        <div class="pos-status">
+            <span class="pos-chip"><span class="pos-dot"></span> Terminal online</span>
+            <span class="pos-chip"><i class="fas fa-barcode"></i> Scanner ready</span>
+            <span class="pos-chip"><i class="fas fa-print"></i> Printer ready</span>
+        </div>
+
+        <div class="pos-clock">
+            <div class="time" id="posTime">--:--:--</div>
+            <div class="date" id="posDate">&nbsp;</div>
+        </div>
+
+        <div class="pos-receipt-wrap">
+            <div class="pos-receipt" aria-hidden="true">
+                <div class="r-title">@brandName</div>
+                <div class="r-sub">Sales receipt</div>
+                <hr />
+                <div class="r-row"><span>Item 1 x2</span><span>0.00</span></div>
+                <div class="r-row"><span>Item 2 x1</span><span>0.00</span></div>
+                <div class="r-row"><span>Item 3 x4</span><span>0.00</span></div>
+                <hr />
+                <div class="r-row r-total"><span>TOTAL</span><span>0.00</span></div>
+                <div class="r-barcode"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- RIGHT: sign in -->
+    <main class="pos-main">
+        <h2>Sign in to start your shift</h2>
+        <p class="lead">Enter your staff credentials to open the sales counter.</p>
+
+        <form id="loginForm" autocomplete="off">
+            @Html.AntiForgeryToken()
+
+            <div class="pos-field">
+                <label for="Username"><i class="fas fa-id-badge login-label-ico"></i> Username</label>
+                <div class="input-group">
+                    <input type="text" id="Username" name="Username" class="form-control"
+                           placeholder="Enter your username" autocomplete="username" required autofocus>
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pos-field">
+                <label for="Password"><i class="fas fa-key login-label-ico"></i> Password</label>
+                <div class="input-group">
+                    <input type="password" id="Password" name="Password" class="form-control"
+                           placeholder="Enter your password" autocomplete="current-password" required>
+                    <div class="input-group-append">
+                        <button type="button" class="btn-toggle-pass js-toggle-pass" title="Show / hide password"
+                                aria-label="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="btnLogin" class="btn-login">
+                <i class="fas fa-unlock-alt"></i> &nbsp;Open Counter
+            </button>
+        </form>
+
+        <div class="pos-hints">
+            <span><i class="fas fa-shield-alt"></i> Secure session</span>
+            <span><i class="fas fa-receipt"></i> Billing and returns</span>
+            <span><i class="fas fa-boxes"></i> Live stock</span>
+        </div>
+
+        <div class="login-footer">
+            &copy; @DateTime.Now.Year @brandName. All rights reserved.
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // Live clock on the counter display
+            function tick() {
+                var d = new Date();
+                $('#posTime').text(d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+                $('#posDate').text(d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            }
+            tick();
+            setInterval(tick, 1000);
+
+            $('.js-toggle-pass').on('click', function () {
+                var $input = $('#Password');
+                var $ico = $(this).find('i');
+                var isHidden = $input.attr('type') === 'password';
+                $input.attr('type', isHidden ? 'text' : 'password');
+                $ico.toggleClass('fa-eye fa-eye-slash');
+                $(this).attr('aria-label', isHidden ? 'Hide password' : 'Show password');
+            });
+
+            var btnHtml = '<i class="fas fa-unlock-alt"></i> &nbsp;Open Counter';
+
+            $('#loginForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var username = $('#Username').val().trim();
+                var password = $('#Password').val().trim();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                if (!username || !password) {
+                    toastr.warning('Please enter username and password.');
+                    return;
+                }
+
+                if (!token) {
+                    toastr.error('Security token missing. Please refresh the page.');
+                    return;
+                }
+
+                var btn = $('#btnLogin');
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> &nbsp;Signing In...');
+
+                $.ajax({
+                    url: '@Url.Action("Login", "Account")',
+                    type: 'POST',
+                    data: {
+                        Username: username,
+                        Password: password,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.Status) {
+                            toastr.success(response.Message);
+                            setTimeout(function () {
+                                window.location.href = response.Data.redirectUrl;
+                            }, 500);
+                        } else {
+                            toastr.error(response.Message);
+                            btn.prop('disabled', false).html(btnHtml);
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Technical error. Please try again.');
+                        btn.prop('disabled', false).html(btnHtml);
+                    }
+                });
+            });
+
+            // Enter key submits (Username or Password)
+            $('#Username, #Password').on('keypress', function (e) {
+                if (e.which === 13) {
+                    $('#loginForm').submit();
+                }
+            });
+        });
+    </script>
+}

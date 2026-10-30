@@ -1,0 +1,119 @@
+@{
+    ViewBag.Title = "PrinterPrefrence";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isUpdatePrinterPrefrence = true;
+
+}
+@model CoreMedixBeta.Models.InventorySettings.PrinterPrefrenceVM
+@section Styles
+{
+    <style>
+        .thumbnail, .img-thumbnail, .caption, .form-check-input {
+            cursor: pointer;
+        }
+
+        .thumbnail {
+            transition: .3s all;
+        }
+
+        .img-thumbnail {
+            border-color: transparent !important;
+        }
+
+        .thumbnail:hover {
+            border: 1px solid var(--cm-accent-ink);
+            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        }
+
+            .thumbnail:hover .radio-input {
+                opacity: 0.8;
+            }
+
+        .radio-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--cm-accent-ink);
+            border-radius: 50%;
+            background-color: white;
+            outline: none;
+            position: relative;
+            transition: .3s all;
+        }
+
+            .radio-input:checked {
+                background-color: var(--cm-accent);
+            }
+
+                .radio-input:checked::before {
+                    content: "";
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background-color: white;
+                }
+
+            .radio-input:hover {
+                opacity: 0.8;
+            }
+    </style>
+}
+<div class="card" id="div_content">
+    <div class="card-header">
+        <h3 class="card-title">Select Printing Options</h3>
+    </div>
+    <div class="card-body">
+        <form id="PrefrenceForm">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <br />
+                    <h5>What kind of printer are you using for printing?</h5>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="card">
+                        <img class="card-img-top img-thumbnail" src="~/assets/img/icons/regular-printer-icon.ico" width="100" height="100" alt="Regular Printer">
+                        <div class="card-body">
+                            <label class="radio-label">
+                                <input type="radio" class="radio-input editable-bg-transition js-printer-type"
+                                       @(Model.Prefrence.Type == "REGULAR" ? "checked" : "")
+                                       name="Type" value="REGULAR" @(isUpdatePrinterPrefrence ? "" : "disabled") />
+                                &nbsp; Regular Laser/Color
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="card">
+
+                        <img class="card-img-top img-thumbnail" style="padding-top:11px;" src="~/assets/img/icons/thermal-printer-icon.png" width="100" height="100" alt="Thermal Printer">
+                        <div class="card-body">
+                            <label class="radio-label">
+                                <input type="radio" class="radio-input editable-bg-transition js-printer-type"
+                                       @(Model.Prefrence.Type == "THERMAL" ? "checked" : "")
+                                       name="Type" value="THERMAL" @(isUpdatePrinterPrefrence ? "" : "disabled") />
+                                &nbsp; Thermal
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="ID" value="@Model.Prefrence.ID" />
+                <input type="hidden" name="LastModifiedBy" value="@Model.Prefrence.LastModifiedBy" required />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+
+        var SavePreference = '@Url.Action("SavePreference", "InventorySettings")';
+    </script>
+    <script src="~/JSModels/InventorySettings/printerPrefrence.js"></script>
+}

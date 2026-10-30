@@ -1,0 +1,123 @@
+﻿@model  CoreMedixBeta.Models.Supplier.SuppliersViewModel
+@using CoreMedixBeta.Models.Supplier
+@{
+    ViewBag.Title = "Suppliers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles{
+    <style>
+        select[name="suppliersTable_length"] {
+            margin-top: -4px !important;
+        }
+    </style>
+}
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <div class="card-title font-weight-bold primary-text mt-2">
+            Suppliers
+        </div>
+        <div class="ml-auto">
+
+            <button class="btn btn-primary-custom text-left" id="addCustomerBtn" data-target="#saveSupplierModal" data-toggle="modal" data-backdrop="static" data-keyboard="false">
+                <i class="fas fa-plus"></i> Add Supplier
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover w-100 table-responsive-sm" id="suppliersTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="saveSupplierModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold ">Save Supplier</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Supplier Name<span class="required">*</span></label>
+                                <input type="text" class="form-control" name="Name" required maxlength="@Supplier.MaxNameLength" minlength="@Supplier.MinNameLength" placeholder="Enter Supplier name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Phone<span class="required">*</span></label>
+                                <input type="number" class="form-control" name="Phone" required maxlength="@Supplier.MaxPhoneLength" minlength="@Supplier.MinPhoneLength" placeholder="e.g 03xxxxxxxxx" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" name="Email" placeholder="example@gmail.com" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>City<span class="required">*</span></label><br />
+                                <select class="form-control js-select2 js-form-city" required name="City">
+                                    <option value="">Select City</option>
+                                    @foreach (var city in Model.Cities)
+                                    {
+                                        <option value="@city">@city</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        @*<div class="col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Area<span class="required">*</span></label><br />
+                                    <select class="form-control js-form-area  js-select2" required name="Area">
+                                        <option value="">Select Area</option>
+                                    </select>
+                                </div>
+                            </div>*@
+                        <input type="hidden" name="ID" value="0" />
+                        @*<input type="hidden" name="CreatedBy" value="@username" required />
+                            <input type="hidden" name="LastModifiedBy" value="@username" required />
+                            <input type="hidden" name="LocationID" value="@user.LocationID" required />
+                            <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<form id="supplierPermissionsForm">
+        <input type="hidden" name="canCreate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Supplier.Create && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canUpdate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Supplier.Update && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canDelete" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Supplier.Delete && x.IsGranted) ? "1" : "0")" />
+    </form>*@
+@section Scripts{
+
+    <script>
+  var getSupplierUrl = '@Url.Action("GetPagedSuppliers", "Supplier")';
+  var saveSupplierUrl = '@Url.Action("SaveSupplier", "Supplier")';
+  var deleteSupplierUrl = '@Url.Action("DeleteSupplier", "Supplier")';
+    </script>
+    <script src="~/JSModels/Supplier/Supplier.js"></script>
+}

@@ -1,4 +1,4 @@
-@model CoreMedixBeta.Models.DashBoard.DashBoardVM
+﻿@model CoreMedixBeta.Models.DashBoard.DashBoardVM
 @{
     ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -11,13 +11,14 @@
 
     var DashBoardCards = new[]
     {
-        new { Title = "Today\u2019s Sales", CardID = 1 },
+        new { Title = "Sales", CardID = 1 },
         new { Title = "Total Invoices", CardID = 2 },
-        new { Title = "Today\u2019s Profit", CardID = 3 },
-        new { Title = "Total Customers Today", CardID = 4 },
+        new { Title = "Profit", CardID = 3 },
+        new { Title = "Total Customers", CardID = 4 },
         new { Title = "Stock Value", CardID = 5 },
         new { Title = "Expiring Soon", CardID = 6 },
-        new { Title = "Today\u2019s Stock Sold Value", CardID = 7 }
+        new { Title = "Stock Sold Value", CardID = 7 },
+        new { Title = "Amount Receivable", CardID = 8 }
     };
 
     var themes = new Dictionary<int, string[]>
@@ -28,9 +29,17 @@
         { 4, new[] { "#7c3aed", "rgba(124,58,237,0.12)" } },
         { 5, new[] { "#0d9488", "rgba(13,148,136,0.12)" } },
         { 6, new[] { "#dc2626", "rgba(220,38,38,0.12)" } },
-        { 7, new[] { "#4f46e5", "rgba(79,70,229,0.12)" } }
+        { 7, new[] { "#4f46e5", "rgba(79,70,229,0.12)" } },
+        { 8, new[] { "#b45309", "rgba(180,83,9,0.12)" } }
     };
-    var moneyIds = new HashSet<int> { 1, 3, 5, 7 };
+
+    var cardI18nKeys = new Dictionary<int, string>
+    {
+        { 1, "dash_card_sales" }, { 2, "dash_card_invoices" }, { 3, "dash_card_profit" },
+        { 4, "dash_card_customers" }, { 5, "dash_card_stock_value" }, { 6, "dash_card_expiring" },
+        { 7, "dash_card_stock_sold" }, { 8, "dash_card_receivable" }
+    };
+    var moneyIds = new HashSet<int> { 1, 3, 5, 7, 8 };
 
     decimal avgBill = 0;
     decimal marginPct = 0;
@@ -454,6 +463,103 @@
             .dash-banner h4 { font-size: 1.1rem; }
             .chart-canvas, .chart-canvas.chart-canvas--donut { height: 230px; }
         }
+
+        /* ===== Lavish pass: banner glow, richer card depth, filter bar ===== */
+        .dash-banner::before,
+        .dash-banner::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .dash-banner::before {
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%);
+            top: -110px;
+            right: -50px;
+        }
+
+        .dash-banner::after {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 70%);
+            bottom: -90px;
+            left: 18%;
+        }
+
+        .dash-banner .card-body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card {
+            position: relative;
+        }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 16px;
+                right: 16px;
+                height: 3px;
+                border-radius: 0 0 6px 6px;
+                background: linear-gradient(90deg, var(--accent), transparent 150%);
+                opacity: .9;
+            }
+
+            .stat-card .stat-ico {
+                background: linear-gradient(145deg, var(--soft), rgba(255,255,255,.35));
+                box-shadow: inset 0 0 0 1px rgba(16,24,40,.03), 0 8px 16px -8px var(--accent);
+            }
+
+        .dash-filter-bar {
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: 12px;
+            padding: 12px 18px;
+            box-shadow: 0 1px 2px rgba(16,24,40,.04);
+            gap: 12px;
+        }
+
+        .dash-filter-label {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--cm-text-muted);
+            white-space: nowrap;
+        }
+
+        .dash-filter-select {
+            font-size: .85rem !important;
+            font-weight: 600;
+            border-radius: 9px !important;
+            width: auto !important;
+            max-width: 190px !important;
+            flex: 0 0 auto;
+        }
+
+        .js-custom-range-btn {
+            font-size: .82rem;
+            font-weight: 600;
+            border-radius: 9px;
+        }
+
+        .dash-range-pill {
+            font-size: .76rem;
+            font-weight: 700;
+            background: var(--cm-soft);
+            color: var(--cm-accent-ink);
+            padding: 6px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        @@media (max-width: 767.98px) {
+            .dash-filter-bar { justify-content: flex-start; }
+            .dash-range-pill { margin-left: 0 !important; margin-top: 6px; }
+        }
     </style>
 }
 
@@ -462,14 +568,37 @@
     <div class="card dash-banner mb-3 fade-up">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
             <div class="mb-2 mb-sm-0 pr-3">
-                <h4 class="mb-1">Welcome back, @fullName</h4>
-                <p>Here is your pharmacy snapshot for <strong style="color:#fff;">@today.ToString("dddd, dd MMMM yyyy")</strong></p>
+                <h4 class="mb-1"><span data-i18n="dash_welcome_back">Welcome back,</span> @fullName</h4>
+                <p><span data-i18n="dash_snapshot_for">Here is your POS snapshot for</span> <strong style="color:#fff;">@today.ToString("dddd, dd MMMM yyyy")</strong></p>
             </div>
             <div class="d-flex align-items-center flex-wrap">
                 <span class="dash-badge mr-2 mb-2 mb-sm-0"><i class="fas fa-shield-alt mr-1"></i> @(Session["Role"] != null ? Session["Role"].ToString() : "User")</span>
                 <button type="button" class="btn btn-settings mb-2 mb-sm-0" data-widget="control-sidebar" data-controlsidebar-slide="true" title="Dashboard Settings">
-                    <i class="fas fa-sliders-h mr-1"></i> Settings
+                    <i class="fas fa-sliders-h mr-1"></i> <span data-i18n="dash_settings_btn">Settings</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date range filter -->
+    <div class="row mb-3 fade-up" style="animation-delay:30ms">
+        <div class="col-12">
+            <div class="dash-filter-bar d-flex align-items-center flex-wrap">
+                <div class="dash-filter-label"><i class="fas fa-calendar-alt mr-1"></i> <span data-i18n="dash_showing">Showing</span></div>
+                <select class="form-control form-control-sm dash-filter-select js-range-select">
+                    <option value="today" data-i18n="dash_range_today" selected>Today</option>
+                    <option value="yesterday" data-i18n="dash_range_yesterday">Yesterday</option>
+                    <option value="lastweek" data-i18n="dash_range_lastweek">Last Week</option>
+                    <option value="thisweek" data-i18n="dash_range_thisweek">This Week</option>
+                    <option value="lastmonth" data-i18n="dash_range_lastmonth">Last Month</option>
+                    <option value="thismonth" data-i18n="dash_range_thismonth">This Month</option>
+                    <option value="alltime" data-i18n="dash_range_alltime">All Time</option>
+                    <option value="custom" data-i18n="dash_range_custom">Custom Date</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-2 js-custom-range-btn" style="display:none;" title="Pick a custom date range">
+                    <i class="fas fa-calendar-week mr-1"></i> <span class="js-custom-range-label" data-i18n="dash_pick_dates">Pick dates</span>
+                </button>
+                <span class="dash-range-pill ml-auto js-range-pill"><i class="fas fa-clock mr-1"></i> Today</span>
             </div>
         </div>
     </div>
@@ -492,7 +621,7 @@
                                 <span class="stat-cur">Rs.</span>
                             }@card.Value
                         </div>
-                        <div class="stat-lbl">@card.Title</div>
+                        <div class="stat-lbl" data-i18n="@(cardI18nKeys.ContainsKey(card.CardID) ? cardI18nKeys[card.CardID] : null)">@card.Title</div>
                     </div>
                     <i class="fas fa-arrow-right stat-arrow"></i>
                 </div>
@@ -511,7 +640,7 @@
     @* Analytics charts *@
     <div class="row mt-1">
         <div class="col-12">
-            <div class="section-title"><i class="fas fa-chart-pie mr-1"></i> Analytics</div>
+            <div class="section-title"><i class="fas fa-chart-pie mr-1"></i> <span data-i18n="dash_analytics">Analytics</span></div>
         </div>
     </div>
 
@@ -520,10 +649,10 @@
             <div class="chart-card h-100">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Sales &amp; Profit</div>
-                        <div class="chart-sub">Last 7 days performance</div>
+                        <div class="chart-title" data-i18n="dash_sales_profit_title">Sales &amp; Profit</div>
+                        <div class="chart-sub js-trend-sub">Today's performance</div>
                     </div>
-                    <span class="chart-pill"><i class="fas fa-calendar-week mr-1"></i> 7 Days</span>
+                    <span class="chart-pill js-trend-pill"><i class="fas fa-calendar-week mr-1"></i> Today</span>
                 </div>
                 <div class="chart-body">
                     <div class="chart-canvas"><canvas id="salesProfitChart"></canvas></div>
@@ -535,8 +664,8 @@
             <div class="chart-card h-100">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Monthly Sales</div>
-                        <div class="chart-sub">Last 6 months revenue</div>
+                        <div class="chart-title" data-i18n="dash_monthly_sales_title">Monthly Sales</div>
+                        <div class="chart-sub" data-i18n="dash_monthly_sales_sub">Last 6 months revenue</div>
                     </div>
                     <span class="chart-pill"><i class="fas fa-calendar-alt mr-1"></i> 6 Months</span>
                 </div>
@@ -547,18 +676,34 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row d-flex">
         <div class="col-md-6 mb-3 fade-up" style="animation-delay:180ms">
             <div class="chart-card h-100">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Top Products</div>
-                        <div class="chart-sub">Best sellers - last 30 days</div>
+                        <div class="chart-title" data-i18n="dash_top_products_title">Top Products</div>
+                        <div class="chart-sub js-top-products-sub">Best sellers - Today</div>
                     </div>
-                    <span class="chart-pill"><i class="fas fa-medal mr-1"></i> Top 5</span>
+                    <span class="chart-pill"><i class="fas fa-medal mr-1"></i> <span data-i18n="dash_top5">Top 5</span></span>
                 </div>
                 <div class="chart-body">
                     <div class="chart-canvas chart-canvas--donut"><canvas id="topProductsChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        @* Inventory health - side by side with Top Products *@
+        <div class="col-md-6 mb-3 fade-up" style="animation-delay:220ms">
+            <div class="chart-card h-100">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title" data-i18n="dash_inventory_health_title">Inventory Health</div>
+                        <div class="chart-sub" data-i18n="dash_inventory_health_sub">Total products vs. low stock &amp; expiring soon</div>
+                    </div>
+                    <span class="chart-pill"><i class="fas fa-capsules mr-1"></i> <span data-i18n="dash_live">Live</span></span>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-canvas chart-canvas--donut"><canvas id="inventoryHealthChart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -572,9 +717,9 @@
         </button>
 
         <div class="p-3 control-sidebar-content">
-            <h5 class="text-center pt-3 primary-text font-weight-bold">Dashboard Setting</h5>
+            <h5 class="text-center pt-3 primary-text font-weight-bold" data-i18n="dash_settings_title">Dashboard Setting</h5>
             <hr class="mb-2">
-            <h6 class="ml-2">Cards Options</h6>
+            <h6 class="ml-2" data-i18n="dash_cards_options">Cards Options</h6>
 
             <table class="table" id="dashboardSettingsTable">
                 <tbody>
@@ -583,7 +728,7 @@
                         foreach (var card in Model.DashboardSettings)
                         {
                             <tr>
-                                <td>@card.Title</td>
+                                <td data-i18n="@(cardI18nKeys.ContainsKey(card.CardID) ? cardI18nKeys[card.CardID] : null)">@card.Title</td>
                                 <td>
                                     <div class="checkbox-wrapper">
                                         <input class="switch pull-right" type="checkbox" name="IsVisible" checked="@card.IsVisible" />
@@ -603,7 +748,7 @@
                         foreach (var card in DashBoardCards)
                         {
                             <tr>
-                                <td>@card.Title</td>
+                                <td data-i18n="@(cardI18nKeys.ContainsKey(card.CardID) ? cardI18nKeys[card.CardID] : null)">@card.Title</td>
                                 <td>
                                     <div class="checkbox-wrapper">
                                         <input class="switch pull-right" type="checkbox" name="IsVisible" checked />
@@ -622,7 +767,7 @@
             </table>
 
             <div style="margin: 0px 60px; display: flex; justify-content: center;">
-                <button type="submit" class="btn btn-block btn-primary btn-sm js-save-btn">Update Settings</button>
+                <button type="submit" class="btn btn-block btn-primary btn-sm js-save-btn" data-i18n="dash_update_settings_btn">Update Settings</button>
             </div>
         </div>
     </aside>
@@ -632,25 +777,48 @@
     <script>
 
         var SaveDashBoardSettingUrl = '@Url.Action("SaveDashBoardSetting", "DashBoard")';
+        var GetDashboardDataUrl = '@Url.Action("GetDashboardData", "DashBoard")';
         var reportSaleUrl = '@Url.Action("SaleReport", "Reports")';
         var saleInvoicesUrl = '@Url.Action("SaleInvoices", "Sales")';
         var profitMarginReportUrl = '@Url.Action("ProfitMarginReport", "Reports")';
         var dailySalesReportUrl = '@Url.Action("DailySalesReport", "Reports")';
         var stockValuationReportUrl = '@Url.Action("StockValuationReport", "Reports")';
         var inventoryItemsUrl = '@Url.Action("Items", "InventoryItems")';
+        var customerLedgerUrl = '@Url.Action("CustomerLedger", "Reports")';
+        var expiryReportUrl = '@Url.Action("ExpiryReport", "Reports")';
+        var itemWiseSaleReportUrl = '@Url.Action("ItemWiseSaleReport", "Reports")';
+        var customerOutstandingReportUrl = '@Url.Action("CustomerOutstandingReport", "Reports")';
+
+        // Date range currently shown on the dashboard (yyyy-MM-dd). Card clicks pass it to
+        // date-based reports; refreshed whenever the range filter changes.
+        window.dashboardRange = { from: '@today.ToString("yyyy-MM-dd")', to: '@today.ToString("yyyy-MM-dd")' };
 
     </script>
     <script src="~/JSModels/DashBoard/dashBoardSetting.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/moment.min.js"></script>
+    @* Re-include after moment.min.js: the global copy in _Layout.cshtml loads before moment exists
+       on any page, so it silently binds to a broken moment reference. Re-running it here (same
+       pattern used by Views/Reports/*.cshtml) re-registers a working $.fn.daterangepicker. *@
+    <script src="~/panel-assets/plugins/DateRange/daterangepicker.js"></script>
     <script>
         var dashCharts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Charts ?? new CoreMedixBeta.Models.DashBoard.DashboardChartsDto()));
 
-        (function () {
-            if (typeof Chart === 'undefined' || !dashCharts) { return; }
+        (function ($) {
+            if (typeof Chart === 'undefined') { return; }
+
+            var MONEY_CARD_IDS = [1, 3, 5, 7, 8];
+            var RANGE_LABELS = {
+                today: 'Today', yesterday: 'Yesterday', thisweek: 'This Week', lastweek: 'Last Week',
+                thismonth: 'This Month', lastmonth: 'Last Month', custom: 'Custom Range', alltime: 'All Time'
+            };
 
             var palette = ['#090650', '#2563eb', '#16a34a', '#7c3aed', '#0d9488', '#f59e0b', '#dc2626'];
             var gridColor = '#eef1f7';
             var tickColor = '#8a90a2';
             var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            var trendChart = null;
+            var topProductsChartInstance = null;
 
             function moneyLabel(value) {
                 return 'Rs. ' + (Number(value) || 0).toLocaleString();
@@ -670,37 +838,46 @@
                 return monthNames[parseInt(parts[1], 10) - 1] + " '" + parts[0].substring(2);
             }
 
+            function trendLabel(point, granularity) {
+                if (granularity === 'year') { return point.Date; }
+                if (granularity === 'month') { return monthLabel(point.Date); }
+                return shortDate(point.Date);
+            }
+
             function legendLabels() {
                 return { usePointStyle: true, boxWidth: 8, padding: 14, fontColor: '#5b6478', fontSize: 11 };
             }
 
-            var daily = dashCharts.DailySales || [];
-            var salesCtx = document.getElementById('salesProfitChart');
-            if (salesCtx) {
-                new Chart(salesCtx.getContext('2d'), {
+            function renderTrendChart(daily, granularity) {
+                var el = document.getElementById('salesProfitChart');
+                if (!el) { return; }
+
+                var labels = daily.map(function (d) { return trendLabel(d, granularity); });
+                var sales = daily.map(function (d) { return d.SaleAmount; });
+                var profit = daily.map(function (d) { return d.ProfitAmount; });
+
+                if (trendChart) {
+                    trendChart.data.labels = labels;
+                    trendChart.data.datasets[0].data = sales;
+                    trendChart.data.datasets[1].data = profit;
+                    trendChart.update();
+                    return;
+                }
+
+                trendChart = new Chart(el.getContext('2d'), {
                     type: 'bar',
                     data: {
-                        labels: daily.map(function (d) { return shortDate(d.Date); }),
+                        labels: labels,
                         datasets: [
                             {
-                                label: 'Sales',
-                                data: daily.map(function (d) { return d.SaleAmount; }),
-                                backgroundColor: 'rgba(9,6,80,.85)',
-                                borderColor: '#090650',
-                                borderWidth: 0,
-                                borderRadius: 5,
-                                barPercentage: 0.55,
-                                categoryPercentage: 0.72
+                                label: 'Sales', data: sales,
+                                backgroundColor: 'rgba(9,6,80,.85)', borderColor: '#090650',
+                                borderWidth: 0, borderRadius: 5, barPercentage: 0.55, categoryPercentage: 0.72
                             },
                             {
-                                label: 'Profit',
-                                data: daily.map(function (d) { return d.ProfitAmount; }),
-                                backgroundColor: 'rgba(22,163,74,.85)',
-                                borderColor: '#16a34a',
-                                borderWidth: 0,
-                                borderRadius: 5,
-                                barPercentage: 0.55,
-                                categoryPercentage: 0.72
+                                label: 'Profit', data: profit,
+                                backgroundColor: 'rgba(22,163,74,.85)', borderColor: '#16a34a',
+                                borderWidth: 0, borderRadius: 5, barPercentage: 0.55, categoryPercentage: 0.72
                             }
                         ]
                     },
@@ -730,8 +907,8 @@
                 });
             }
 
-            function renderDonut(canvasId, labels, values) {
-                var el = document.getElementById(canvasId);
+            function renderDonut(labels, values) {
+                var el = document.getElementById('topProductsChart');
                 if (!el) { return; }
 
                 var hasData = labels.length > 0 && values.some(function (v) { return Number(v) > 0; });
@@ -741,7 +918,11 @@
                     ? labels.map(function (unused, i) { return palette[i % palette.length]; })
                     : ['#e6e9f2'];
 
-                new Chart(el.getContext('2d'), {
+                if (topProductsChartInstance) {
+                    topProductsChartInstance.destroy();
+                }
+
+                topProductsChartInstance = new Chart(el.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: showLabels,
@@ -765,14 +946,10 @@
                 });
             }
 
-            var topProducts = dashCharts.TopProducts || [];
-            renderDonut('topProductsChart',
-                topProducts.map(function (p) { return p.Label; }),
-                topProducts.map(function (p) { return p.Value; }));
+            function renderMonthlyChart(monthly) {
+                var monthlyCtx = document.getElementById('monthlySalesChart');
+                if (!monthlyCtx) { return; }
 
-            var monthly = dashCharts.MonthlySales || [];
-            var monthlyCtx = document.getElementById('monthlySalesChart');
-            if (monthlyCtx) {
                 new Chart(monthlyCtx.getContext('2d'), {
                     type: 'line',
                     data: {
@@ -813,6 +990,165 @@
                     }
                 });
             }
-        })();
+
+            var inventoryHealthChartInstance = null;
+
+            function renderInventoryHealthChart(items) {
+                var el = document.getElementById('inventoryHealthChart');
+                if (!el) { return; }
+
+                items = items || [];
+                var colors = ['#0d9488', '#f59e0b', '#dc2626'];
+
+                if (inventoryHealthChartInstance) {
+                    inventoryHealthChartInstance.destroy();
+                }
+
+                inventoryHealthChartInstance = new Chart(el.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: items.map(function (i) { return i.Label; }),
+                        datasets: [{
+                            data: items.map(function (i) { return i.Value; }),
+                            backgroundColor: items.map(function (i, idx) { return colors[idx % colors.length]; }),
+                            borderWidth: 0,
+                            borderRadius: 6,
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: { display: false },
+                        tooltips: {
+                            backgroundColor: '#0f172a',
+                            callbacks: { label: function (tooltipItem) { return Number(tooltipItem.yLabel).toLocaleString(); } }
+                        },
+                        scales: {
+                            xAxes: [{ gridLines: { display: false }, ticks: { fontColor: tickColor, fontSize: 11 } }],
+                            yAxes: [{
+                                beginAtZero: true,
+                                gridLines: { color: gridColor, drawBorder: false },
+                                ticks: { fontColor: tickColor, fontSize: 11, precision: 0 }
+                            }]
+                        }
+                    }
+                });
+            }
+
+            function renderCards(cards) {
+                // Labels are static per CardID and already translated via data-i18n - only the
+                // value changes with the date range, so only touch .stat-val here.
+                (cards || []).forEach(function (c) {
+                    var $card = $('.stat-card[data-card-id="' + c.CardID + '"]');
+                    if (!$card.length) { return; }
+                    var isMoney = MONEY_CARD_IDS.indexOf(c.CardID) > -1;
+                    $card.find('.stat-val').html((isMoney ? '<span class="stat-cur">Rs.</span>' : '') + c.Value);
+                });
+            }
+
+            function applyDashboardData(data, rangeKey) {
+                renderCards(data.Cards);
+                if (data.FromDate && data.ToDate) {
+                    window.dashboardRange = { from: data.FromDate, to: data.ToDate };
+                }
+
+                var i18n = window.CoreMedixI18n;
+                var translated = i18n ? i18n.t('dash_range_' + rangeKey) : null;
+                var label = translated || data.RangeLabel || RANGE_LABELS[rangeKey] || 'Today';
+                $('.js-range-pill').html('<i class="fas fa-clock mr-1"></i> ' + label);
+                $('.js-trend-sub').text((rangeKey === 'today' ? "Today's" : label) + ' performance');
+                $('.js-trend-pill').html('<i class="fas fa-calendar-week mr-1"></i> ' + label);
+                $('.js-top-products-sub').text('Best sellers - ' + label);
+
+                var charts = data.Charts || {};
+                renderTrendChart(charts.DailySales || [], charts.TrendGranularity || 'day');
+                renderInventoryHealthChart(charts.InventoryHealth || []);
+
+                var topProducts = charts.TopProducts || [];
+                renderDonut(
+                    topProducts.map(function (p) { return p.Label; }),
+                    topProducts.map(function (p) { return p.Value; }));
+            }
+
+            function refreshDashboard(rangeKey, fromMoment, toMoment) {
+                var payload = { Range: rangeKey };
+
+                if (rangeKey === 'custom') {
+                    payload.FromDate = fromMoment.format('YYYY-MM-DD');
+                    payload.ToDate = toMoment.format('YYYY-MM-DD');
+                }
+
+                $('.js-range-pill').html('<i class="fas fa-spinner fa-spin mr-1"></i> Loading...');
+
+                $.post(GetDashboardDataUrl, payload)
+                    .done(function (resp) {
+                        if (!resp || !resp.Status || !resp.Data) {
+                            toastr.error((resp && resp.Message) || 'Could not load that date range.', '', { timeOut: 2000 });
+                            return;
+                        }
+                        applyDashboardData(resp.Data, rangeKey);
+                    })
+                    .fail(function () {
+                        toastr.error('Failed to refresh the dashboard due to a technical error.', '', { timeOut: 1500 });
+                    });
+            }
+
+            $(function () {
+                if (typeof moment === 'undefined' || !$.fn.daterangepicker) { return; }
+
+                var today = moment();
+                var $select = $('.js-range-select');
+                var $customBtn = $('.js-custom-range-btn');
+                var $customLabel = $('.js-custom-range-label');
+                var previousValue = $select.val();
+
+                // Hosts the calendar; only ever opened when "Custom Date" is picked from the dropdown.
+                $customBtn.daterangepicker({
+                    opens: 'left',
+                    autoApply: false,
+                    startDate: today.clone(),
+                    endDate: today.clone(),
+                    locale: { format: 'MM/DD/YYYY' }
+                }, function (start, end) {
+                    previousValue = 'custom';
+                    $customLabel.text(start.format('MM/DD/YYYY') + ' - ' + end.format('MM/DD/YYYY'));
+                    refreshDashboard('custom', start, end);
+                });
+
+                $customBtn.on('cancel.daterangepicker', function () {
+                    // Cancelled without applying: fall back to whatever was selected before.
+                    $select.val(previousValue);
+                    $customBtn.toggle(previousValue === 'custom');
+                });
+
+                $select.on('change', function () {
+                    var rangeKey = $(this).val();
+
+                    if (rangeKey === 'custom') {
+                        $customBtn.show();
+                        $customBtn.data('daterangepicker').show();
+                        return;
+                    }
+
+                    previousValue = rangeKey;
+                    $customBtn.hide();
+                    refreshDashboard(rangeKey, null, null);
+                });
+            });
+
+            if (dashCharts) {
+                renderTrendChart(dashCharts.DailySales || [], dashCharts.TrendGranularity || 'day');
+                renderInventoryHealthChart(dashCharts.InventoryHealth || []);
+
+                var topProducts = dashCharts.TopProducts || [];
+                renderDonut(
+                    topProducts.map(function (p) { return p.Label; }),
+                    topProducts.map(function (p) { return p.Value; }));
+
+                renderMonthlyChart(dashCharts.MonthlySales || []);
+            }
+        })(jQuery);
     </script>
 }

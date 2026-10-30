@@ -553,16 +553,26 @@
                 <span class="cm-brand-badge"><i class="fas fa-cash-register"></i></span>
                 <span class="cm-brand-text">@brandName</span>
             </a>
-            <ul class="navbar-nav ml-auto align-items-center">
+            <ul class="navbar-nav ml-auto align-items-center cm-header-actions">
 
                 @if (HasPermission("Sales_View"))
                 {
-                    <li class="nav-item mr-2">
+                    <li class="nav-item">
                         <a class="cm-newsale" href="@Url.Action("ManageInvoice", "Sales")" title="Start a new sale">
-                            <i class="fas fa-plus"></i> <span class="cm-newsale-text">New Sale</span>
+                            <i class="fas fa-plus"></i> <span class="cm-newsale-text" data-i18n="header_new_sale">New Sale</span>
                         </a>
                     </li>
                 }
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="cmLangDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Language / Zaban">
+                        <i class="fas fa-language"></i> <span class="js-lang-icon-label">EN</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right cm-theme-menu" aria-labelledby="cmLangDropdown">
+                        <a class="dropdown-item cm-lang-option" href="#" data-lang-mode="en"><i class="fas fa-check-circle"></i> English</a>
+                        <a class="dropdown-item cm-lang-option" href="#" data-lang-mode="ur"><i class="fas fa-check-circle"></i> Urdu</a>
+                    </div>
+                </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="cmThemeDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Theme">
@@ -596,7 +606,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link js-logout-btn cm-logout" href="javascript:void(0)" role="button" title="Logout">
-                        <i class="fa fa-sign-out-alt"></i> <span class="cm-logout-text">Logout</span>
+                        <i class="fa fa-sign-out-alt"></i> <span class="cm-logout-text" data-i18n="header_logout">Logout</span>
                     </a>
                 </li>
             </ul>
@@ -611,14 +621,14 @@
                     <li class="cm-menu-item cm-has-sub">
                         <a href="#" class="cm-menu-link">
                             <i class="nav-icon fas fa-users"></i>
-                            <span>Customer Management</span>
+                            <span data-i18n="nav_customer_mgmt">Customer Management</span>
                             <i class="cm-arrow fas fa-angle-down"></i>
                         </a>
                         <ul class="cm-submenu">
                             <li>
                                 <a href="@Url.Action("Patients", "Patient")" class="cm-submenu-link">
                                     <i class="fas fa-user-friends"></i>
-                                    <span>Customers</span>
+                                    <span data-i18n="nav_customers">Customers</span>
                                 </a>
                             </li>
                         </ul>
@@ -630,7 +640,7 @@
                     <li class="cm-menu-item cm-has-sub">
                         <a href="#" class="cm-menu-link">
                             <i class="nav-icon fas fa-building"></i>
-                            <span>Inventory Management</span>
+                            <span data-i18n="nav_inventory_mgmt">Inventory Management</span>
                             <i class="cm-arrow fas fa-angle-down"></i>
                         </a>
                         <ul class="cm-submenu">
@@ -639,7 +649,7 @@
                                 <li>
                                     <a href="@Url.Action("Suppliers", "Supplier")" class="cm-submenu-link">
                                         <i class="fas fa-user-cog"></i>
-                                        <span>Suppliers</span>
+                                        <span data-i18n="nav_suppliers">Suppliers</span>
                                     </a>
                                 </li>
                             }
@@ -648,7 +658,7 @@
                                 <li>
                                     <a href="@Url.Action("Manufacturers", "Manufacturers")" class="cm-submenu-link">
                                         <i class="fas fa-industry"></i>
-                                        <span>Manufacturers</span>
+                                        <span data-i18n="nav_manufacturers">Manufacturers</span>
                                     </a>
                                 </li>
                             }
@@ -657,7 +667,7 @@
                                 <li>
                                     <a href="@Url.Action("Items", "InventoryItems")" class="cm-submenu-link">
                                         <i class="fas fa-boxes"></i>
-                                        <span>Items</span>
+                                        <span data-i18n="nav_items">Items</span>
                                     </a>
                                 </li>
                             }
@@ -670,20 +680,20 @@
                     <li class="cm-menu-item cm-has-sub">
                         <a href="#" class="cm-menu-link">
                             <i class="nav-icon fas fa-cash-register"></i>
-                            <span>Sales</span>
+                            <span data-i18n="nav_sales">Sales</span>
                             <i class="cm-arrow fas fa-angle-down"></i>
                         </a>
                         <ul class="cm-submenu">
                             <li>
                                 <a href="@Url.Action("SaleInvoices", "Sales")" class="cm-submenu-link">
                                     <i class="fas fa-file-invoice-dollar"></i>
-                                    <span>Invoices</span>
+                                    <span data-i18n="nav_invoices">Invoices</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="@Url.Action("ManageInvoice", "Sales")" class="cm-submenu-link">
                                     <i class="fas fa-file-invoice"></i>
-                                    <span>New Invoice</span>
+                                    <span data-i18n="nav_new_invoice">New Invoice</span>
                                 </a>
                             </li>
                         </ul>
@@ -695,20 +705,20 @@
                     <li class="cm-menu-item cm-has-sub">
                         <a href="#" class="cm-menu-link">
                             <i class="nav-icon fas fa-shopping-basket"></i>
-                            <span>Purchases</span>
+                            <span data-i18n="nav_purchases">Purchases</span>
                             <i class="cm-arrow fas fa-angle-down"></i>
                         </a>
                         <ul class="cm-submenu">
                             <li>
                                 <a href="@Url.Action("PurchaseOrders", "Purchases")" class="cm-submenu-link">
                                     <i class="fas fa-receipt"></i>
-                                    <span>Purchase Orders</span>
+                                    <span data-i18n="nav_purchase_orders">Purchase Orders</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="@Url.Action("ReceivedPurchases", "Purchases")" class="cm-submenu-link">
                                     <i class="fas fa-truck-loading"></i>
-                                    <span>Received Purchase</span>
+                                    <span data-i18n="nav_received_purchase">Received Purchase</span>
                                 </a>
                             </li>
                         </ul>
@@ -720,7 +730,7 @@
                     <li class="cm-menu-item">
                         <a href="@Url.Action("ReportsGroup", "Reports")" class="cm-menu-link">
                             <i class="nav-icon fas fa-sitemap"></i>
-                            <span>Reports</span>
+                            <span data-i18n="nav_reports">Reports</span>
                         </a>
                     </li>
                 }
@@ -730,7 +740,7 @@
                     <li class="cm-menu-item">
                         <a href="@Url.Action("Index", "InventorySettings")" class="cm-menu-link">
                             <i class="nav-icon fas fa-cogs"></i>
-                            <span>Settings</span>
+                            <span data-i18n="nav_settings">Settings</span>
                         </a>
                     </li>
                 }
@@ -740,7 +750,7 @@
                     <li class="cm-menu-item">
                         <a href="@Url.Action("Users", "Account")" class="cm-menu-link">
                             <i class="nav-icon fas fa-user-shield"></i>
-                            <span>User Management</span>
+                            <span data-i18n="nav_user_mgmt">User Management</span>
                         </a>
                     </li>
                 }
@@ -748,7 +758,7 @@
                 <li class="cm-menu-item">
                     <a href="javascript:void(0)" class="cm-menu-link js-shortcut-keys">
                         <i class="nav-icon fas fa-key"></i>
-                        <span>Hot Keys</span>
+                        <span data-i18n="nav_hot_keys">Hot Keys</span>
                     </a>
                 </li>
             </ul>
@@ -759,7 +769,7 @@
                 </div>
             </div>
             <div class="content-wrapper" style="margin:0px !important; padding-top: 0px !important">
-                <section class="content">
+                <section class="content cm-page-fade">
                     <div class="container-fluid">
                         @RenderBody()
                     </div>
@@ -889,6 +899,7 @@
 
     <!-- Custom JS -->
     <script src="~/JSModels/SharedJS/theme.js"></script>
+    <script src="~/JSModels/SharedJS/i18n.js"></script>
     <script src="~/JSModels/SharedJS/shared.js"></script>
     <script src="~/JSModels/ChatBot/chatbot.js"></script>
     @*<script src="~/Areas/Pharmacy/JSModels/Shared/helperFunctions.js"></script>

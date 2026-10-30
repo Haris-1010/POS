@@ -1,6 +1,13 @@
 @{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Local permission helper (mirrors Views/Shared/_Layout.cshtml — a child view's own
+    // code block doesn't inherit local variables declared in the layout's code block).
+    var userPermissions = Session["Permissions"] as List<string> ?? new List<string>();
+    var userRole = Session["Role"]?.ToString() ?? "";
+    var isAdmin = userRole == "Admin";
+    Func<string, bool> HasPermission = (key) => isAdmin || userPermissions.Contains(key);
 }
 
 <style>
@@ -149,6 +156,28 @@
                     </div>
                 </a>
             </div>
+
+            @if (HasPermission("BackupSettings_View") || HasPermission("BackupSettings_Manage") || HasPermission("InventorySettings_Manage"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href="@Url.Action("Index", "BackupSettings")" class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="fas fa-database setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h4 class="setting-card-title">Database Backup &amp; Restore</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
 
             @*<div class="col-md-4 col-sm-12">
                 <a href="@Url.Action("PrinterPrefrence","InventorySettings")" class="nav-link setting-card-nav-link">

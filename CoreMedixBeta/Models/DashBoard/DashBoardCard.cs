@@ -22,6 +22,7 @@ namespace CoreMedixBeta.Models.DashBoard
         public string BgColor { get; set; }
         public string Icon { get; set; }
         public int Order { get; set; }
+        public bool IsVisible { get; set; } = true;
     }
 
     public class DashboardChartsDto
@@ -32,12 +33,19 @@ namespace CoreMedixBeta.Models.DashBoard
             TopProducts = new List<LabelValueItem>();
             MonthlySales = new List<LabelValueItem>();
             PaymentModes = new List<LabelValueItem>();
+            InventoryHealth = new List<LabelValueItem>();
         }
 
         public List<DailySalePoint> DailySales { get; set; }
         public List<LabelValueItem> TopProducts { get; set; }
         public List<LabelValueItem> MonthlySales { get; set; }
         public List<LabelValueItem> PaymentModes { get; set; }
+
+        /// <summary>Total Products / Low Stock / Expiring Soon - live snapshot, not date-filtered.</summary>
+        public List<LabelValueItem> InventoryHealth { get; set; }
+
+        /// <summary>"day" | "month" | "year" - how DailySales points are bucketed for the selected date range.</summary>
+        public string TrendGranularity { get; set; } = "day";
     }
 
     public class DailySalePoint

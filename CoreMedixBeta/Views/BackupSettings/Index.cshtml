@@ -1,0 +1,435 @@
+@using System.Linq
+@{
+    ViewBag.Title = "Database Backup Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model CoreMedixBeta.Models.BackupSettings.BackupSettingsVM
+
+@{
+    bool canManage = ViewBag.CanManage != null && (bool)ViewBag.CanManage;
+    bool canRestore = ViewBag.CanRestore != null && (bool)ViewBag.CanRestore;
+
+    // Frequency is stored in minutes, but the dropdown only offers day/month-scale presets.
+    // "1 day" (1440) is the smallest allowed value; anything else falls back to Custom (days).
+    int[] presetFrequencyMinutes = { 1440, 4320, 10080, 21600, 43200, 129600, 259200, 525600 };
+    bool isCustomFrequency = !presetFrequencyMinutes.Contains(Model.Settings.FrequencyMinutes);
+    int customFrequencyDays = isCustomFrequency && Model.Settings.FrequencyMinutes > 0
+        ? Math.Max(1, (int)Math.Round(Model.Settings.FrequencyMinutes / 1440.0))
+        : 1;
+}
+
+<style>
+    .backup-status-card {
+        border: 1px solid var(--cm-accent-ink, #16224f) !important;
+        border-radius: 10px;
+    }
+
+        .backup-status-card .card-body {
+            padding: 1rem 1.2rem;
+        }
+
+    .backup-status-label {
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        opacity: .75;
+        margin-bottom: .25rem;
+    }
+
+    .backup-status-value {
+        font-size: 1rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .backup-folder-path {
+        font-family: Consolas, Monaco, monospace;
+        font-size: .9rem;
+        word-break: break-all;
+        background: var(--cm-soft, #f4f6f9);
+        border-radius: 6px;
+        padding: .6rem .8rem;
+        display: block;
+    }
+
+    .backup-warn-box {
+        border-left: 4px solid #dc3545;
+        background: rgba(220, 53, 69, .08);
+        padding: .75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    .backup-info-box {
+        border-left: 4px solid #007bff;
+        background: rgba(0, 123, 255, .08);
+        padding: .75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    .backup-danger-text {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .backup-restore-warning {
+        border: 2px solid #dc3545;
+        border-radius: 8px;
+        padding: 1rem;
+        background: rgba(220, 53, 69, .06);
+    }
+</style>
+
+@if (TempData["BackupError"] != null)
+{
+    <div class="backup-warn-box">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["BackupError"]
+    </div>
+}
+
+<!-- Status cards -->
+<div class="row">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card backup-status-card">
+            <div class="card-body">
+                <div class="backup-status-label">Backup Status</div>
+                <div class="backup-status-value">
+                    <span class="badge @Model.StatusBadgeClass js-backup-status-badge" style="font-size:.85rem;">@Model.StatusText</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card backup-status-card">
+            <div class="card-body">
+                <div class="backup-status-label">Last Backup</div>
+                <div class="backup-status-value js-last-backup-time">@Model.LastBackupTimeFormatted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card backup-status-card">
+            <div class="card-body">
+                <div class="backup-status-label">Next Scheduled Backup</div>
+                <div class="backup-status-value js-next-backup-time">@Model.NextBackupTimeFormatted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card backup-status-card">
+            <div class="card-body">
+                <div class="backup-status-label">Latest Backup File</div>
+                <div class="backup-status-value js-latest-backup-file" style="font-size:.85rem;">@Model.LastBackupFileName (@Model.LastBackupFileSize)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.LastErrorMessage))
+{
+    <div class="backup-warn-box">
+        <strong><i class="fas fa-exclamation-circle"></i> Last backup error:</strong>
+        <span class="js-last-error-msg">@Model.LastErrorMessage</span>
+    </div>
+}
+
+<div class="row">
+    <!-- Configuration -->
+    <div class="col-lg-8 col-md-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h4 class="font-weight-bold mt-2">Backup Configuration</h4>
+                <span class="mt-2" style="opacity:.75;">Database: <strong class="js-database-name">@Model.DatabaseName</strong></span>
+            </div>
+            <div class="card-body">
+                <form id="backupSettingsForm">
+                    <input type="hidden" name="ID" value="@Model.Settings.ID" />
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input js-enabled-toggle" id="IsEnabled" name="IsEnabled" value="true" @(Model.Settings.IsEnabled ? "checked" : "") @(canManage ? "" : "disabled") />
+                                    <label class="custom-control-label" for="IsEnabled">Enable Automatic Backup</label>
+                                </div>
+                                <small class="text-muted">When enabled, a full database backup runs automatically at the interval below.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Backup Frequency <span class="required">*</span></label>
+                                <select class="form-control js-frequency-select" name="FrequencyMinutes" required @(canManage ? "" : "disabled")>
+                                    <option value="1440" @(Model.Settings.FrequencyMinutes == 1440 ? "selected" : "")>Every 1 day</option>
+                                    <option value="4320" @(Model.Settings.FrequencyMinutes == 4320 ? "selected" : "")>Every 3 days</option>
+                                    <option value="10080" @(Model.Settings.FrequencyMinutes == 10080 ? "selected" : "")>Every 7 days (weekly)</option>
+                                    <option value="21600" @(Model.Settings.FrequencyMinutes == 21600 ? "selected" : "")>Every 15 days</option>
+                                    <option value="43200" @(Model.Settings.FrequencyMinutes == 43200 ? "selected" : "")>Every 1 month</option>
+                                    <option value="129600" @(Model.Settings.FrequencyMinutes == 129600 ? "selected" : "")>Every 3 months</option>
+                                    <option value="259200" @(Model.Settings.FrequencyMinutes == 259200 ? "selected" : "")>Every 6 months</option>
+                                    <option value="525600" @(Model.Settings.FrequencyMinutes == 525600 ? "selected" : "")>Every 12 months</option>
+                                    <option value="0" @(isCustomFrequency ? "selected" : "")>Custom interval (days)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12 js-custom-frequency-wrap" style="display:none;">
+                            <div class="form-group">
+                                <label>Custom Interval (days) <span class="required">*</span></label>
+                                <input type="number" class="form-control js-custom-frequency" name="CustomFrequencyDays" min="1" max="365"
+                                       value="@customFrequencyDays"
+                                       @(canManage ? "" : "disabled") />
+                                <small class="text-muted">Between 1 and 365 days.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Backup Retention (days) <span class="required">*</span></label>
+                                <input type="number" class="form-control" name="RetentionDays" min="0" max="3650" value="@Model.Settings.RetentionDays" required @(canManage ? "" : "disabled") />
+                                <small class="text-muted">Old backups older than this are deleted automatically. Use 0 to keep backups forever. The most recent successful backup is never deleted by cleanup.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-12 col-sm-12">
+                            <div class="form-group">
+                                <label>Backup Folder Path <span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control js-backup-folder-path" name="BackupFolderPath" value="@Model.Settings.BackupFolderPath" required @(canManage ? "" : "disabled") placeholder="D:\POS_Backups" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-primary js-browse-folder" title="Browse the server's folders" @(canManage ? "" : "disabled")>
+                                            <i class="fas fa-folder-open"></i> Browse
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary js-test-folder" title="Validate that the folder can be created and written to" @(canManage ? "" : "disabled")>
+                                            <i class="fas fa-vial"></i> Test Folder
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted js-folder-test-result"></small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            @if (canManage)
+            {
+                <div class="card-footer">
+                    <button type="button" class="btn btn-success js-save-settings">
+                        <i class="far fa-save"></i> Save Settings
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Folder info -->
+    <div class="col-lg-4 col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="font-weight-bold mt-2">Backup Folder</h4>
+            </div>
+            <div class="card-body">
+                <span class="backup-folder-path js-folder-path">@Model.Settings.BackupFolderPath</span>
+                <table class="table table-sm mt-3 mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Accessible</td>
+                            <td>
+                                @if (Model.FolderExists)
+                                {
+                                    <span class="badge badge-success">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">No</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Writable</td>
+                            <td>
+                                @if (Model.FolderWritable)
+                                {
+                                    <span class="badge badge-success">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">No</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Free Space</td>
+                            <td class="js-folder-freespace">@Model.FolderFreeSpace</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Last Success</td>
+                            <td class="js-last-success-time">@(Model.LastSuccessTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never")</td>
+                        </tr>
+                    </tbody>
+                </table>
+                @if (!string.IsNullOrEmpty(Model.FolderError))
+                {
+                    <div class="backup-warn-box mt-3 mb-0">
+                        <small class="js-folder-error">@Model.FolderError</small>
+                    </div>
+                }
+                <small class="text-muted d-block mt-3">
+                    Note: SQL Server's service account must be able to write to this folder, and the IIS application pool identity must be able to read, write and delete files in it.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History -->
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between flex-wrap">
+        <h4 class="font-weight-bold primary-text mt-2">Backup History</h4>
+        <div>
+            <button class="btn btn-primary-custom js-run-backup-now" title="Run a full backup now" @(canManage ? "" : "disabled")>
+                <i class="fas fa-database"></i> Backup Now
+            </button>
+            <button class="btn btn-outline-secondary js-refresh-history" title="Refresh backup history">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover w-100 table-responsive-sm" id="backupHistoryTable">
+            <thead>
+                <tr>
+                    <th>Backup File</th>
+                    <th>Date &amp; Time</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>By</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Details modal -->
+<div class="modal fade" id="backupDetailsModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold">Backup Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr><td class="text-muted" style="width:35%;">File Name</td><td class="js-details-file"></td></tr>
+                        <tr><td class="text-muted">Location</td><td class="js-details-location" style="word-break:break-all;"></td></tr>
+                        <tr><td class="text-muted">Started</td><td class="js-details-start"></td></tr>
+                        <tr><td class="text-muted">Completed</td><td class="js-details-end"></td></tr>
+                        <tr><td class="text-muted">File Size</td><td class="js-details-size"></td></tr>
+                        <tr><td class="text-muted">Status</td><td class="js-details-status"></td></tr>
+                        <tr><td class="text-muted">Triggered By</td><td class="js-details-trigger"></td></tr>
+                        <tr><td class="text-muted">User</td><td class="js-details-user"></td></tr>
+                        <tr><td class="text-muted">Error Message</td><td class="js-details-error" style="word-break:break-word;"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restore modal -->
+<div class="modal fade" id="restoreBackupModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold">Restore Database</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="backup-restore-warning">
+                    <p class="mb-2"><strong><i class="fas fa-exclamation-triangle text-danger"></i> Warning</strong></p>
+                    <p class="mb-1">Restoring this backup will <strong>overwrite ALL current data</strong> in database <strong class="js-restore-dbname">@Model.DatabaseName</strong> with the contents of:</p>
+                    <p class="mb-2"><code class="js-restore-file"></code></p>
+                    <ul class="mb-2">
+                        <li>Sales, invoices, purchases and all other transactions recorded after this backup <strong>will be lost</strong>.</li>
+                        <li>All users currently using the POS will be disconnected.</li>
+                        <li>A safety backup of the current database is created automatically before the restore when possible.</li>
+                    </ul>
+                    <p class="mb-0">Type the database name <strong class="js-restore-dbname">@Model.DatabaseName</strong> to confirm:</p>
+                    <input type="text" class="form-control mt-2" id="RestoreConfirmationName" placeholder="@Model.DatabaseName" autocomplete="off" />
+                </div>
+                <input type="hidden" id="restoreHistoryId" value="0" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger js-confirm-restore">
+                    <i class="fas fa-exclamation-circle"></i> Restore Database
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Browse folder modal -->
+<div class="modal fade" id="browseFolderModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold">Browse Server Folders</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary js-browse-up mr-2" title="Up one level" disabled>
+                        <i class="fas fa-level-up-alt"></i>
+                    </button>
+                    <code class="js-browse-current-path flex-grow-1" style="word-break:break-all;">This PC</code>
+                </div>
+                <div class="list-group js-browse-list" style="max-height:320px; overflow-y:auto;"></div>
+                <div class="input-group mt-3">
+                    <input type="text" class="form-control js-new-folder-name" placeholder="New folder name" maxlength="255" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary js-create-folder" title="Create a new folder here" disabled>
+                            <i class="fas fa-folder-plus"></i> Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-custom js-select-folder" disabled>
+                    <i class="fas fa-check"></i> Select This Folder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        var SaveBackupSettingsUrl = '@Url.Action("SaveSettings", "BackupSettings")';
+        var TestBackupFolderUrl = '@Url.Action("TestBackupFolder", "BackupSettings")';
+        var BrowseFolderUrl = '@Url.Action("BrowseFolder", "BackupSettings")';
+        var CreateSubfolderUrl = '@Url.Action("CreateSubfolder", "BackupSettings")';
+        var RunBackupNowUrl = '@Url.Action("RunBackupNow", "BackupSettings")';
+        var GetPagedBackupHistoryUrl = '@Url.Action("GetPagedBackupHistory", "BackupSettings")';
+        var GetBackupDetailsUrl = '@Url.Action("GetBackupDetails", "BackupSettings")';
+        var DeleteBackupUrl = '@Url.Action("DeleteBackup", "BackupSettings")';
+        var DownloadBackupUrl = '@Url.Action("DownloadBackup", "BackupSettings")';
+        var ValidateRestoreUrl = '@Url.Action("ValidateRestore", "BackupSettings")';
+        var RestoreDatabaseUrl = '@Url.Action("RestoreDatabase", "BackupSettings")';
+        var GetStatusSummaryUrl = '@Url.Action("GetStatusSummary", "BackupSettings")';
+        var CanManageBackups = @(canManage ? "true" : "false");
+        var CanRestoreBackups = @(canRestore ? "true" : "false");
+    </script>
+    <script src="~/JSModels/BackupSettings/backupSettings.js"></script>
+}

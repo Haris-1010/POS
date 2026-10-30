@@ -1,0 +1,98 @@
+﻿@{
+    ViewBag.Title = "Taxes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <div class="card-title font-weight-bold primary-text mt-2">
+            Taxes
+        </div>
+
+        <div class="ml-auto">
+            <button class="btn btn-primary-custom text-left" data-target="#saveTaxModal" data-toggle="modal" data-backdrop="static" data-keyboard="false">
+                <i class="fas fa-plus"></i> Add Tax
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover w-100 table-responsive-sm" id="taxesTable">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Percentage</th>
+                    <th>Payment Mode</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="saveTaxModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title primary-text font-weight-bold ">Add New Tax</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Tax title <span class="required">*</span></label>
+                                <input type="text" class="form-control" required name="Title" placeholder="Tax name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Tax Percentage <span class="required">*</span></label>
+                                <input type="number" class="form-control" required min="0" max="999" name="Percentage" placeholder="10" />
+                              </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12">
+                            <div class="form-group">
+                                <label>Payment Mode<span class="required">*</span></label>
+                                <select class="form-control js-select2" required name="PaymentMode">
+                                    <option value="">Select Payment Mode</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="JazzCash">JazzCash</option>
+                                    <option value="EasyPaisa">EasyPaisa</option>
+                                    <option value="Card">Card</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ID" value="0" />
+                    @*<input type="hidden" name="LastModifiedBy" value="@username" required />
+                        <input type="hidden" name="LocationID" value="@user.LocationID" required />
+                        <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-custom js-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<form id="TaxesPermissionsForm">
+        <input type="hidden" name="canUpdate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.TaxesUpdate && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canDelete" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.TaxesDelete && x.IsGranted) ? "1" : "0")" />
+    </form>*@
+
+@section Scripts{
+    <script>
+
+        var SaveTaxUrl = '@Url.Action("SaveTax", "Taxes")';
+        var GetPagedTaxesUrl = '@Url.Action("GetPagedTaxes", "Taxes")';
+        var DeleteTaxUrl = '@Url.Action("DeleteTax", "Taxes")';
+    </script>
+    <script src="~/JSModels/Taxes/taxes.js"></script>
+}

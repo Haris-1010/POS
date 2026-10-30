@@ -212,7 +212,7 @@
                 : false,
             "language": {
                 emptyTable: "No records found",
-                searchPlaceholder: "Search By Patient Name,Phone,Mr"
+                searchPlaceholder: "Search By Customer Name,Phone,MR"
             },
             drawCallback: function (settings) {
                 var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
@@ -223,7 +223,7 @@
             }
         });
         $('.dataTables_filter input')
-            .attr('title', 'Search By Patient Name,Phone,Mr')
+            .attr('title', 'Search By Customer Name,Phone,MR')
             .addClass('seachbar-tooltip');
     }
 })(jQuery)

@@ -19,5 +19,6 @@ namespace CoreMedixBeta.Models.InventoryItems.DTOs
         public int TotalItems { get; set; }
         public int LowStockItems { get; set; }
         public int NewArrivalItems { get; set; }
+        public decimal TotalReceivable { get; set; }
     }
 }

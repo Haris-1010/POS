@@ -1,0 +1,931 @@
+﻿:root {
+    /* Brand palette: navy / white / black */
+    --cm-accent: #090650;
+    --cm-accent-hover: #16296e;
+    --cm-accent-ink: #090650;
+    --cm-on-accent: #ffffff;
+
+    --cm-bg: #f2f4f9;
+    --cm-surface: #ffffff;
+    --cm-surface-alt: #f8f9fc;
+    --cm-border: #dfe3ec;
+    --cm-text: #12141c;
+    --cm-text-muted: #5d6474;
+
+    --cm-header-bg: #ffffff;
+    --cm-header-fg: #090650;
+    --cm-header-hover: rgba(9, 6, 80, .07);
+    --cm-input-group-bg: #090650;
+    --cm-soft: rgba(9, 6, 80, .10);
+    --cm-shadow: 0 1px 3px rgba(18, 20, 28, .08);
+    --cm-shadow-lg: 0 10px 30px rgba(18, 20, 28, .12);
+}
+
+a {
+    color: var(--cm-accent-ink) !important;
+}
+
+select[name="reportTable_length"] {
+    margin-top: -4px !important;
+}
+ 
+.sidebar {
+    background-color: var(--cm-surface) !important;
+}
+
+.input-group {
+    background-color: var(--cm-input-group-bg) !important;
+}
+
+.nav-icon {
+    color: var(--cm-accent-ink) !important;
+}
+.required-star {
+    color: red;
+}
+.nav-link {
+    color: var(--cm-accent-ink) !important;
+    padding-left: .5rem !important;
+    transition: all ease .3s !important;
+}
+
+.fa-bars {
+    color: var(--cm-accent-ink) !important;
+}
+
+.btn-sidebar {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border: 1px solid var(--cm-accent-ink) !important;
+}
+
+.btn:hover {
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+}
+
+.form-control-sidebar {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border-radius: 0px !important;
+}
+
+.list-group-item {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border: 1px solid var(--cm-border) !important;
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+}
+
+.nav-sidebar > .nav-item {
+    transition: all ease .5ms !important;
+}
+
+    .nav-sidebar > .nav-item:hover {
+        font-size: 15.5px !important;
+    }
+
+#ic-logo {
+    min-width: 120px !important;
+    min-height: 120px !important;
+}
+
+.brand-icon {
+    cursor: pointer;
+}
+
+#brand-icon1 {
+    height: 3.5rem !important;
+    width: 3.5rem !important;
+}
+
+#brand-icon2 {
+    height: 2rem !important;
+    width: 8rem !important;
+    margin-left: -.75rem !important;
+}
+
+[class*=sidebar-dark-] {
+    background-color: var(--cm-surface) !important;
+}
+
+#sidebar-profile {
+    padding-block: 0px !important;
+    margin-block: 0px !important;
+}
+
+/*.main-header{
+    width: 80.5% !important;
+}*/
+.nav-items-container {
+    margin-left: auto;
+    display: flex;
+    gap: 5px;
+}
+
+.primary-text {
+    color: var(--cm-accent-ink) !important;
+}
+
+.search-path, search-title {
+    color: var(--cm-accent-ink) !important;
+}
+
+strong.text-light {
+    color: var(--cm-accent-ink) !important;
+}
+
+[class*=sidebar-dark] .user-panel {
+    border-bottom: 1px solid var(--cm-border);
+}
+
+#bar-logo {
+    max-width: 40px;
+}
+
+#app-title {
+    color: var(--cm-accent-ink) !important;
+    font-size: 1.5rem;
+    font-weight: 600 !important;
+}
+
+.select2-container--default .select2-selection--single {
+    border-color: rgba(0,0,0,0.09);
+    outline: none !important;
+    width: 100% !important;
+    min-height: 38px !important;
+    transition: all .3s;
+}
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 25px;
+        transition: all .3s;
+    }
+
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: var(--cm-accent-ink);
+    transition: all .3s;
+}
+
+.paginate_button {
+    outline: none;
+    background: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-radius: 5px;
+    transition: 0.4s all ease;
+}
+
+.form-control:focus {
+    border-color: var(--cm-accent-ink);
+    box-shadow: inset 0 0 0 transparent;
+}
+
+.btn {
+    transition: 0.4s all ease;
+    font-size: 1rem;
+}
+
+.btn-table {
+    font-size: .84rem !important;
+}
+
+.dt-buttons button {
+    font-size: .85rem !important;
+}
+
+.nav-sidebar .nav-item > .nav-link {
+    position: relative;
+    transition: all ease .4s;
+}
+
+tr {
+    transition: all ease .4s;
+}
+
+.btn-primary-custom {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+    border: none !important;
+}
+
+    .btn-primary-custom:hover {
+        background-color: var(--cm-accent-hover) !important;
+    }
+
+.btn-outline-primary {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-color: var(--cm-accent-ink) !important;
+}
+
+    .btn-outline-primary:hover {
+        background-color: var(--cm-accent) !important;
+        color: var(--cm-on-accent) !important;
+    }
+
+#page-title {
+    color: var(--cm-accent-ink) !important;
+    font-size: 1.5rem;
+    font-weight: 600 !important;
+}
+
+.error {
+    color: red !important;
+    font-weight: normal !important;
+    font-size: .85rem !important;
+}
+
+.required {
+    color: red !important;
+}
+
+.content-wrapper {
+    padding-top: 5rem !important;
+    padding-bottom: 1.5rem !important;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+/*Font size adjustment*/
+body {
+    font-size: .9rem !important;
+}
+
+.btn-sidebar {
+    font-size: .84rem !important;
+    border-radius: 0px !important;
+}
+
+h1 {
+    color: var(--cm-accent-ink);
+}
+
+.form-control {
+    font-size: .9rem !important;
+    /*    height: calc(2rem + 2px) !important;*/
+    height: auto;
+    border-radius: 3px;
+    transition: all .3s;
+}
+
+.select2-selection {
+    width: 100%;
+}
+
+#user-name {
+    font-size: 1rem;
+}
+
+option {
+    font-weight: normal;
+    font-size: .95rem !important;
+}
+
+.modal-title {
+    font-size: 1.1rem;
+}
+
+.pricing-card-title {
+    font-size: 2rem;
+}
+
+ul .fas {
+    font-size: 1rem !important;
+}
+
+.card-footer {
+    background-color: var(--cm-surface) !important;
+}
+
+.action-btns {
+    white-space: nowrap !important;
+}
+
+.list-group-item-action:hover {
+    /*    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+*/ /*font-size: 1.2rem;*/
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    /*margin-block: 2px !important;*/
+    border: var(--cm-accent-ink) 1px solid !important;
+    margin-left: 20px !important;
+    font-weight: bold;
+    transition: all .3s !important;
+}
+
+.name-link {
+    font-weight: 600;
+    padding-block: 4px;
+    padding-inline: 6px;
+    transition: .3s all !important;
+    display: flex;
+}
+
+.fa-eye {
+    color: var(--cm-text-muted);
+    margin-top: 1px;
+    align-self: center;
+    transition: .3s all !important;
+}
+
+.name-link:hover .fa-eye {
+    color: var(--cm-accent-ink);
+}
+
+.name-link:hover {
+    color: var(--cm-accent-ink);
+    transition: .3s all !important;
+}
+
+/*Profile View CSS*/
+.widget-user .widget-user-header {
+    height: 140px;
+}
+
+.widget-user .widget-user-image > img {
+    margin-top: 20px;
+}
+
+.badge-primary {
+    background-color: var(--cm-accent);
+}
+
+input.number-fields::-webkit-inner-spin-button,
+input.number-fields::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/*.card-header-packages {
+    background: rgb(35,16,143);
+    background: radial-gradient(circle, rgba(35,16,143,1) 0%, rgba(255,255,255,1) 100%);
+    color: white;
+}*/
+.custom-bg-primary {
+    background: rgb(35,16,143);
+    background: linear-gradient(18deg, rgba(35,16,143,0.7903536414565826) 100%, rgba(255,255,255,1) 100%);
+}
+
+.card-outline .card-primary {
+    border: 1px solid var(--cm-accent-ink) !important;
+}
+/*
+.tab-content{
+    max-height:35rem;
+}
+    */
+.inside-tab-pane {
+    max-height: 20rem;
+    overflow-y: scroll;
+    height: fit-content;
+}
+
+.inside-tab-pane {
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
+}
+
+    .inside-tab-pane::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+    }
+
+.datepicker-switch {
+    color: var(--cm-accent-ink) !important;
+}
+
+.datepicker table tr td.active.active {
+    background-color: var(--cm-accent) !important;
+    border-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent);
+}
+
+.card-header-img {
+    height: 45px !important;
+    width: 45px !important;
+    box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0,0,0,.12) !important;
+    cursor: pointer;
+}
+
+.eye-btn {
+    border: 1px solid var(--cm-accent-ink) !important
+}
+
+    .eye-btn .fa-eye {
+        color: var(--cm-accent-ink) !important;
+    }
+
+    .eye-btn:hover {
+        background-color: var(--cm-accent) !important;
+    }
+
+        .eye-btn:hover .fa-eye {
+            color: var(--cm-on-accent) !important;
+        }
+
+.select2-container {
+    z-index: 99 !important;
+}
+
+@media screen and (max-width: 767px) {
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        overflow-x: auto !important;
+    }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.dataTables_filter {
+    margin-left: auto !important;
+}
+
+.nav-sidebar .menu-is-opening > .nav-link i.right, .nav-sidebar .menu-is-opening >
+.nav-link svg.right, .nav-sidebar .menu-open > .nav-link i.right, .nav-sidebar .menu-open > .nav-link svg.right {
+    -webkit-transform: rotate(450deg) !important;
+    transform: rotate(90deg) !important;
+}
+
+.btn-sm {
+    font-size: .7rem !important;
+}
+
+.card-outline {
+    border-color: var(--cm-accent-ink) !important
+}
+
+.text-primary-custom {
+    color: var(--cm-accent-ink) !important
+}
+
+/*  Data Table Custom Styles  */
+.dataTables_length label {
+    font-size: 0;
+}
+
+.dataTables_length select {
+    height: 2rem !important;
+    font-size: .9rem;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc !important;
+    outline: none !important;
+    margin-inline: .2rem !important;
+    cursor: pointer !important;
+}
+
+.seachbar-tooltip {
+    outline: none !important;
+    transition: .2ms all ease !important;
+}
+
+    .seachbar-tooltip:focus {
+        border-color: var(--cm-accent-ink) !important;
+        box-shadow: inset 0 0 0 transparent;
+    }
+
+.dt-buttons button {
+    font-size: .9rem !important;
+}
+/* Style the Copy button */
+.dt-button {
+    height: 2rem !important;
+    width: auto;
+    /*padding: 8px 16px !important;*/
+    padding-left: .6rem !important;
+    border: 1px solid var(--cm-border) !important;
+    background: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-radius: 3px !important;
+    font-size: 1.3rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    cursor: pointer;
+    margin-inline: auto !important;
+    transition: all 0.5s ease;
+    font-weight: normal !important;
+}
+
+.dt-down-arrow {
+    display: none !important;
+}
+/* Add icon before the text using ::before pseudo-element */
+.dt-button.buttons-copy::before {
+    content: "\f0c5";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+/* PDF button icon */
+.dt-button.buttons-pdf::before {
+    content: "\f1c1"; /* PDF icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+/* Excel button icon */
+.dt-button.buttons-csv::before {
+    content: "\f1c3"; /* Excel icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+/* Print button icon */
+.dt-button.buttons-print::before {
+    content: "\f02f"; /* Print icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.dt-button.buttons-colvis::before {
+    content: "\f06e"; /* Eye icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+/* Hover effect */
+.dt-button:hover {
+    background-color: var(--cm-accent) !important; /* Darker blue on hover */
+    border-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    color: var(--cm-accent-ink) !important;
+}
+
+input[type="search"] {
+    outline: none;
+}
+
+/*  Data Table Custom Styles  */
+
+/* Search Bar Loader */
+.ui-autocomplete-loading {
+    background-color: var(--cm-surface);
+    background-image: url('/assets/img/loading.gif') !important;
+    background-position: right center !important;
+    background-repeat: no-repeat !important;
+    transition: none !important;
+}
+
+.ui-autocomplete {
+    position: absolute;
+    cursor: default;
+    z-index: 999999999999 !important;
+    font-size: 14px;
+    color: gray;
+    padding: 10px
+}
+
+.blink {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* Header-right action row (New Sale, language, theme, user, fullscreen, logout) -
+   one consistent horizontal gap between every item instead of per-item margins. */
+.cm-header-actions {
+    column-gap: 18px;
+}
+
+@media (max-width: 767.98px) {
+    .cm-header-actions {
+        column-gap: 10px;
+    }
+}
+
+/* ==========================================================================
+   Top navigation (sidebar ab top par hai) — hover ya click se submenu open
+   ========================================================================== */
+.cm-brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: .4rem .9rem !important;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+    .cm-brand-link i {
+        font-size: 1.2rem;
+    }
+
+/* Header ko top menu se ooper rakhein taake header dropdown menu dikhein */
+.main-header {
+    position: relative;
+    z-index: 1035;
+}
+
+.cm-topnav {
+    position: relative;
+    z-index: 1030;
+    background-color: var(--cm-surface);
+    border-bottom: 1px solid var(--cm-border);
+    box-shadow: var(--cm-shadow);
+}
+
+.cm-topnav-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    list-style: none;
+    margin: 0;
+    padding: 0 .35rem;
+    overflow: visible;
+}
+
+.cm-menu-item {
+    position: relative;
+    display: flex;
+}
+
+.cm-menu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .62rem .95rem;
+    color: var(--cm-text) !important;
+    font-size: .9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 2.5px solid transparent;
+    text-decoration: none !important;
+    transition: background-color .18s ease, color .18s ease;
+}
+
+    .cm-menu-link .nav-icon {
+        color: inherit !important;
+    }
+
+    .cm-menu-link:hover {
+        background-color: var(--cm-soft);
+        color: var(--cm-accent-ink) !important;
+    }
+
+.cm-menu-item.is-active > .cm-menu-link,
+.cm-menu-item.cm-open > .cm-menu-link {
+    color: var(--cm-accent-ink) !important;
+    background-color: var(--cm-soft);
+    border-bottom-color: var(--cm-accent);
+}
+
+.cm-arrow {
+    font-size: .72rem;
+    color: var(--cm-text-muted);
+    transition: transform .2s ease;
+}
+
+.cm-menu-item.cm-open > .cm-menu-link .cm-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown submenu */
+.cm-submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 230px;
+    list-style: none;
+    margin: 0;
+    padding: .35rem 0;
+    background-color: var(--cm-surface);
+    border: 1px solid var(--cm-border);
+    border-radius: 0 0 10px 10px;
+    box-shadow: var(--cm-shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+    z-index: 1050;
+}
+
+.cm-menu-item.cm-open > .cm-submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Desktop: hover par submenu */
+@media (hover: hover) and (min-width: 768px) {
+    .cm-menu-item:hover > .cm-submenu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+}
+
+.cm-submenu li {
+    display: block;
+}
+
+.cm-submenu-link {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem .9rem;
+    color: var(--cm-text) !important;
+    font-size: .88rem;
+    text-decoration: none !important;
+    white-space: nowrap;
+    border-left: 3px solid transparent;
+    transition: background-color .15s ease;
+}
+
+    .cm-submenu-link i {
+        width: 1.05rem;
+        text-align: center;
+        font-size: .85rem;
+        color: var(--cm-accent-ink) !important;
+    }
+
+    .cm-submenu-link:hover {
+        background-color: var(--cm-soft);
+        color: var(--cm-accent-ink) !important;
+    }
+
+    .cm-submenu-link.active {
+        background-color: var(--cm-soft);
+        border-left-color: var(--cm-accent);
+        color: var(--cm-accent-ink) !important;
+        font-weight: 600;
+    }
+
+@media (max-width: 767.98px) {
+    .cm-brand-link {
+        font-size: 1rem;
+        padding: .35rem .6rem !important;
+    }
+
+    .cm-menu-link {
+        padding: .6rem .7rem;
+        font-size: .85rem;
+    }
+
+    .cm-submenu {
+        min-width: 200px;
+        max-width: calc(100vw - 1.5rem);
+    }
+}
+
+/* ==========================================================================
+   Responsive — mobile/tablet
+   Bootstrap 4: col-sm/md/lg/xl ke rules unke breakpoint par hi lagte hain,
+   us se neeche column ki width nahi banti (content-size reh jate hain).
+   Har range mein jin columns ka apna breakpoint inactive hai unhe full-width
+   kar dete hain — agar sath mein base class (col-12, col-6 waghera) ho to wo
+   jeet ti hai (neeche :not se exclude kiya gaya hai).
+   ========================================================================== */
+
+@media (max-width: 575.98px) {
+    .row > [class*="col-sm-"]:not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-md-"]:not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-lg-"]:not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-xl-"]:not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .row > [class*="col-md-"]:not([class*="col-sm-"]):not(.col-sm):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-lg-"]:not([class*="col-sm-"]):not(.col-sm):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-xl-"]:not([class*="col-sm-"]):not(.col-sm):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .row > [class*="col-lg-"]:not([class*="col-sm-"]):not(.col-sm):not([class*="col-md-"]):not(.col-md):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12),
+    .row > [class*="col-xl-"]:not([class*="col-sm-"]):not(.col-sm):not([class*="col-md-"]):not(.col-md):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .row > [class*="col-xl-"]:not([class*="col-sm-"]):not(.col-sm):not([class*="col-md-"]):not(.col-md):not([class*="col-lg-"]):not(.col-lg):not(.col):not(.col-auto):not(.col-1):not(.col-2):not(.col-3):not(.col-4):not(.col-5):not(.col-6):not(.col-7):not(.col-8):not(.col-9):not(.col-10):not(.col-11):not(.col-12) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Header mobile par wrap ho jaye taake kuch overflow na ho */
+@media (max-width: 767.98px) {
+    .main-header.navbar-expand {
+        flex-wrap: wrap;
+    }
+
+        .main-header .navbar-nav {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+            .main-header .navbar-nav .nav-link {
+                padding: .5rem .55rem;
+            }
+
+    .cm-brand-link {
+        max-width: 60vw;
+        overflow: hidden;
+    }
+
+    .cm-brand-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cm-header-user {
+        max-width: 55vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .cm-header-user .badge {
+        display: none;
+    }
+
+    /* Card toolbars (title + buttons) wrap hon taake overflow na ho */
+    .card-header .d-flex {
+        flex-wrap: wrap;
+    }
+
+    /* Modal footer buttons wrap hon */
+    .modal-footer {
+        flex-wrap: wrap;
+    }
+}
+
+/* Wide tables mobile/tablet par horizontally scroll hon */
+@media (max-width: 991.98px) {
+    table.table-responsive-sm {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Print mein table wapas normal ho jaye */
+@media print {
+    table.table-responsive-sm {
+        display: table !important;
+        overflow: visible !important;
+    }
+}
+
+/* Dashboard settings drawer — mobile par full-height overlay */
+@media (max-width: 767.98px) {
+    .control-sidebar {
+        top: 0;
+        bottom: 0;
+        width: min(320px, 88vw);
+        right: calc(-1 * min(320px, 88vw));
+        overflow-y: auto;
+        z-index: 1045;
+    }
+
+        .control-sidebar::before {
+            top: 0;
+            bottom: 0;
+            width: min(320px, 88vw);
+            right: calc(-1 * min(320px, 88vw));
+        }
+
+    .control-sidebar-open .control-sidebar,
+    .control-sidebar-open .control-sidebar::before,
+    .control-sidebar-slide-open .control-sidebar,
+    .control-sidebar-slide-open .control-sidebar::before {
+        right: 0;
+    }
+}

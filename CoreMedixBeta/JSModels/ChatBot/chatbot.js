@@ -9,11 +9,16 @@
         // Clear previous messages
         $chatBody.empty();
 
-        // Add welcome message with timestamp (bilingual - Urdu & English)
-        addBotMessage('Assalam-o-Alaikum! 👋 Main aapka Pharmacy Assistant hun / I am your Pharmacy Assistant.<br><br>' +
-            'Urdu mein poochein: "kitna stock bacha", "aaj ki sales", "patient ali"<br>' +
-            'Or ask in English: "low stock report", "today sales", "total patients"<br><br>' +
-            'Kaisi help chahiye aapko? / How can I help you?');
+        // Add welcome message, matching the header's EN/Urdu toggle (window.CoreMedixI18n)
+        var lang = (window.CoreMedixI18n && window.CoreMedixI18n.getMode()) || 'en';
+        var welcomeMessage = lang === 'ur'
+            ? '<span dir="rtl" class="cm-i18n-ur">السلام علیکم! 👋 میں آپ کا POS اسسٹنٹ ہوں۔<br><br>' +
+              'پوچھیں: "کتنا اسٹاک باقی ہے"، "آج کی سیلز"، "کسٹمر علی"<br><br>' +
+              'آپ کو کیسی مدد چاہیے؟</span>'
+            : 'Assalam-o-Alaikum! 👋 I am your POS Assistant.<br><br>' +
+              'Ask me things like: "low stock report", "today sales", "customer ali"<br><br>' +
+              'How can I help you?';
+        addBotMessage(welcomeMessage);
 
         // Show chat container
         $chatContainer.show();

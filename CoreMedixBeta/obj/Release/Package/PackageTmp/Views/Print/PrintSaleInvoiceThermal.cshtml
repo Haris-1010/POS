@@ -1,0 +1,213 @@
+﻿@{
+    ViewBag.Title = "PrintSaleInvoiceThermal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using CoreMedixBeta.Models.Sales.DTOs
+@using CoreMedixBeta.Models.Brandings;
+@model CoreMedixBeta.Models.Sales.PrintSaleInvoiceVM
+@{
+    SaleInvoiceDto Invoice = Model.InvoiceDetail.Invoice;
+    List<SaleInvoiceItemsDto> InvoiceItems = Model.InvoiceDetail.InvoiceItems;
+    SaleInvoiceFinancialsDto Financials = Model.InvoiceDetail.InvoiceFinancials;
+    PrintBranding branding = Model.Branding;
+    bool isBranding = Model.Branding != null && Model.Branding.ID > 0;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>@ViewBag.Title</title>
+    <link media="print" href="~/print-css/bootstrapPrint.min.css" rel="stylesheet" />
+    <link href="~/print-css/bootstrap.css" media="screen" rel="stylesheet" /> 
+    <link rel="icon" href="~/assets/AdminLTE/dist/img/heart-logo.png">
+    <link rel="stylesheet" href="~/assets/AdminLTE/dist/css/adminlte.min.css">
+    <style>
+        body {
+            color: black;
+            font-family: monaco, Consolas, Lucida Console, monospace !important;
+        }
+
+        * {
+            margin: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        .footer, .push {
+            height: 155px;
+        }
+
+        .footer {
+            position: fixed;
+            height: 120px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            margin-bottom: 0px;
+        }
+
+        .noborder {
+            border: none !important;
+        }
+    </style>
+    <style>
+
+        p, label, td, th {
+            font-family: monaco, Consolas, Lucida Console, monospace !important;
+            font-size: 14px;
+            font-style: normal;
+            font-variant: normal;
+            font-weight: 400;
+            line-height: 20px;
+        }
+    </style>
+</head>
+<body class="container">
+    <br>
+    <div class="row">
+        <h1 class="text-bold">Sale Invoice</h1>
+    </div><br>
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <center>
+                <img class="img-responsive"
+                     src="@(isBranding && !string.IsNullOrWhiteSpace(branding.Logo) ? branding.Logo : "")"
+                     width="100" />
+            </center>
+            <h1 class="font-weight-bloder"><strong>@(isBranding && !string.IsNullOrWhiteSpace(branding.BusinessName) ? branding.BusinessName : "")</strong></h1>
+        </div>
+    </div>
+    <div class="row d-flex justify-content-center">
+        <div class="col-4">
+            <p class="m-0 font-weight-blod"><b>Customer Info:</b> @Model.InvoiceDetail.Customer.Name |  @Model.InvoiceDetail.Customer.Phone</p>
+            <p class="m-0"><b>Invoice ID:</b> @Invoice.InvoiceNo</p>
+            <p class="m-0"><b>Invoice Date:</b>&nbsp;@Invoice.InvoiceDate</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 px-0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><b>Item</b></th>
+                        <th><b>Description</b></th>
+                        <th><b>Qty</b></th>
+                        <th style="text-align: right;"><b>Sale Price</b></th>
+                        <th style="text-align: right;"><b>Total</b></th>
+                    </tr>
+                </thead>
+                <tbody style="border: none !important">
+                    @foreach (var item in InvoiceItems)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Formation - @Math.Floor(Convert.ToDouble(item.Weight)) @item.WeightUnit</td>
+                            <td>@item.Qty</td>
+                            <td style="text-align: right;">
+                                @{
+                                    int qtyValue;
+                                    bool isValidQty = int.TryParse(item.Qty, out qtyValue);
+                                }
+                                @Model.CurrencySymbol @(isValidQty && qtyValue > 0 ? (item.LineTotal / Convert.ToDecimal(qtyValue)).ToString("N2") : "0.00")<br>
+                                <span style="text-decoration: line-through;">
+                                    @Model.CurrencySymbol @item.UnitCost.ToString("N2")
+                                </span>
+                            </td>
+                            <td style="text-align: right;">@Model.CurrencySymbol @item.LineTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr style="border-top:dashed 1px black !important">
+                        <td class="noborder text-center font-weight-bolder" style="text-align: right !important;" colspan="5">Gross Total: @Model.CurrencySymbol @Financials.SubTotal.ToString("N0")</td>
+                        @*<td class="noborder text-center font-weight-bolder" colspan="4">Payment Summary</td>*@
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-8">
+            <table class="w-75">
+                <thead>
+                    <tr class="font-weight-bold">
+                        <th class="text-center font-weight-bolder">Payment Date</th>
+                        <th class="text-center font-weight-bolder">Payment Mode</th>
+                        <th class="text-center font-weight-bolder">Paid Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.InvoiceDetail.InvoicePayments != null && Model.InvoiceDetail.InvoicePayments.Count > 0)
+                    {
+                        foreach (var item in Model.InvoiceDetail.InvoicePayments)
+                        {
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="text-align:center">@item.Date </td>
+                                <td style="text-align:center">@item.PaymentMode </td>
+                                <td style="text-align:center">@Model.CurrencySymbol @item.PaidAmount.ToString("N0")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-4">
+
+            @if (Financials.DiscountAmount > 0)
+            {
+                var invoiceIsPercent = Financials.DiscountType == "percentage";
+                var invoiceDiscountRupees = invoiceIsPercent
+                    ? (Financials.SubTotal - Financials.SubtotalAfterDiscount)
+                    : Financials.DiscountAmount;
+                <div class="d-flex justify-content-between">
+                    <p class="font-weight-bolder m-0">Discount @(invoiceIsPercent ? "(" + Financials.DiscountAmount.ToString("0.#") + "%)" : "(Value)")</p>
+                    <p class="m-0">@Model.CurrencySymbol @invoiceDiscountRupees.ToString("N0")</p>
+                </div>
+            }
+
+            @if (Financials.Tax > 0)
+            {
+                <div class="d-flex justify-content-between">
+                    <p class="font-weight-bolder m-0">Tax</p>
+                    <p class="m-0">@Financials.TaxTitle - @Math.Floor(Convert.ToDouble(Financials.Tax))%</p>
+                </div>
+            }
+            <div class="d-flex justify-content-between">
+                <p class="font-weight-bolder m-0">Net Total</p>
+                <p class="m-0">@Model.CurrencySymbol @Financials.SubtotalAfterTax.ToString("N1")</p>
+            </div>
+            <div class="d-flex justify-content-between">
+                <p class="font-weight-bolder m-0">Paid Amount</p>
+                <p class="m-0">@Model.CurrencySymbol @Financials.PaidAmount.ToString("N1")</p>
+            </div>
+            <div class="d-flex justify-content-between">
+                <p class="font-weight-bolder m-0">Remaining Amount</p>
+                <p class="m-0">@Model.CurrencySymbol @Financials.RemainingAmount.ToString("N1")</p>
+            </div>
+            <div class="d-flex justify-content-between">
+                <p class="font-weight-bolder m-0">Balance</p>
+                <p class="m-0">@Model.CurrencySymbol @Financials.ReturnAmount.ToString("N1")</p>
+            </div>
+        </div>
+    </div>
+    <br>
+    <hr style="border: none; border-top: 1px solid black; margin: 20px 0;">
+
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <p>
+                Thank you for visiting us
+            </p>
+            <p>
+                Powered By PharmaX
+            </p>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            window.print();
+        });
+    </script>
+</body>
+</html>

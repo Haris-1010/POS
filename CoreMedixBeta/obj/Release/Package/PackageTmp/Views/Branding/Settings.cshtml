@@ -1,0 +1,610 @@
+﻿@{
+    ViewBag.Title = "Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using CoreMedixBeta.Repositories
+
+<style>
+    .pac-container {
+        z-index: 999999991051 !important;
+    }
+
+    .hoverable-profile-pic {
+        position: relative;
+        width: 100%;
+    }
+
+    .image {
+        opacity: 1;
+        display: block;
+        width: 100%;
+        height: auto;
+        transition: .3s ease;
+        backface-visibility: hidden;
+    }
+
+    .middle {
+        transition: .5s ease;
+        opacity: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .hoverable-profile-pic:hover .image {
+        opacity: 0.3;
+    }
+
+    .hoverable-profile-pic:hover .middle {
+        opacity: 1;
+    }
+
+    .select2-dropdown {
+        z-index: 90000000001;
+    }
+</style>
+
+<div class="col-md-6 col-md-offset-3">
+    <form id="generalform" method="post">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <div class="panel-control" style="display: flex;align-items: center;width:auto;max-width:300px;">
+                    <select class="form-control" id="brandingSelect" style="margin-right:10px;">
+
+                        <option value="0">@Model.name</option>
+                        <option value="1">Personal</option>
+                    </select>
+                </div>
+                <h3 class="panel-title">Make this software your brand</h3>
+            </div>
+
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label>Logo:</label>
+                    <div class="hoverable-profile-pic" style="background-color:gainsboro">
+                        <img src="@Model.logo" id="previewImage" alt="Avatar" class="image" style="width:100%">
+                        <div class="middle">
+                            <button type="button" id="changePicBtn" class="btn btn-danger btn-small disable-input">Upload Change</button>
+                            <button class="btn btn-danger" type="button" onclick="removeLogo()">
+                                Remove Logo
+                            </button>
+                            <input style="display:none" id="ImagePath" name="ImagePath" value="@Model.logo" />
+                            <input id="ImageControl" name="ImageControl" type="file" style="opacity:0;visibility:hidden">
+                        </div>
+                    </div>
+
+                    <label id="logoError"></label>
+                </div>
+
+                <div class="form-group">
+                    <label>Header:</label>
+                    <div class="hoverable-profile-pic" style="background-color:gainsboro">
+                        <img src="@Model.headerImage" id="headerImage" alt="Header" class="image img-responsive" style="width:100%;">
+                        <div class="middle">
+                            <button type="button" id="changeHeaderImageBtn" class="btn btn-danger btn-small disable-input">Upload Change</button>
+                            <button class="btn btn-danger" type="button" onclick="removeHeaderImage()">
+                                Remove Image
+                            </button>
+                            <input style="display:none" id="headerImagePath" name="headerImagePath" value="@Model.headerImage" />
+                            <input id="headerImageControl" name="headerImageControl" type="file" style="opacity:0;visibility:hidden">
+                        </div>
+                    </div>
+
+                    <label id="headerError"></label>
+                </div>
+
+                @* Water mark *@
+                <div class="form-group">
+                    <label>Water Mark:</label>
+                    <div class="hoverable-profile-pic" style="background-color:gainsboro">
+                        <img src="@Model.WaterMarkImage" id="waterMarkImage" alt="Water Mark" class="image img-responsive" style="width:100%;">
+                        <div class="middle">
+                            <button type="button" id="changeWaterMarkImageBtn" class="btn btn-danger btn-small disable-input">Upload Change</button>
+                            <button class="btn btn-danger" type="button" onclick="removeWaterMarkImage()">
+                                Remove Image
+                            </button>
+                            <input style="display:none" id="waterMarkImagePath" name="waterMarkImagePath" value="@Model.WaterMarkImage" />
+                            <input id="waterMarkImageControl" name="waterMarkImageControl" type="file" style="opacity:0;visibility:hidden">
+                        </div>
+                    </div>
+
+                    <label id="WaterMarkError"></label>
+                </div>
+
+                <div class="form-group">
+                    <label>Logo Text (If you don't have any logo picture)</label>
+                    <input class="form-control disable-input" value="@Model.logo_text" name="logo_text" id="logo_text" placeholder="Name of your organization" />
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input class="form-control disable-input" value="@Model.phone" name="phone" id="phone" placeholder="Organization Phone Number" />
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input class="form-control disable-input" value="@Model.address" name="address" id="address" placeholder="Organization Address" />
+                </div>
+                <div class="form-group">
+                    <label>Footer Text</label>
+                    <input class="form-control disable-input" value="@Model.footer_text" name="footer_text" id="footer_text" placeholder="if you want to write something on footer of prints" />
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Do you want a graphical print out?</label>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-control disable-input" id="show_graphics" name="show_graphics">
+                                @try
+                                {
+                                    if (Model.show_graphics != null && Model.show_graphics.Equals("True"))
+                                    {
+                                        <option value="1" selected>Yes</option>
+                                        <option value="0">No</option>
+
+                                    }
+                                    else
+                                    {
+
+                                        <option value="1">Yes</option>
+                                        <option value="0" selected>No</option>
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    <option value="1">Yes</option>
+                                    <option value="0" selected>No</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer text-center">
+                <button type="button" class="btn btn-primary disable-input" id="BasicInfoSaveBtn"><span class="fa fa-check"></span> Save</button>
+            </div>
+        </div>
+    </form>
+
+    <br>
+    <br />
+</div>
+<div class="modal fade" id="maskmodal">
+    <div class="modal-dialog modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Masking Request</h3>
+            </div>
+            <div class="modal-body">
+                <form id="maskform" method="post">
+                    <div class="row">
+                        <div class="col-md-8 col-xs-12">
+                            <p>Note: Masking is use to overwrite default PharmaX masking when sms is received by any person.</p>
+                            <br />
+                            <div class="form-group">
+                                <label>Your Mask (Can not be no longer than 11 digits)</label>
+                                <input class="form-control" id="masking" name="masking" placeholder="Example: DR-AHMED" required maxlength="11" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-xs-12">
+                            <img src="~/panel-assets/img/insta-care-sms-masking.png" class="img-responsive" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-body">
+                <button type="button" id="reqbtn" class="btn btn-primary"><span class="fa fa-check"></span> Submit Request</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal"><span class="fa fa-remove"></span> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section footer{
+    <script>
+
+        function readURL(input, targetEl) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $(targetEl).attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#changePicBtn").click(function () {
+            $("#ImageControl").trigger("click");
+            $("#ImageControl").change(function () {
+                readURL(this, "#previewImage");
+            });
+        });
+
+        $("#changeHeaderImageBtn").click(function () {
+            $("#headerImageControl").trigger("click");
+            $("#headerImageControl").change(function () {
+                readURL(this, "#headerImage");
+            });
+        });
+        $("#changeWaterMarkImageBtn").click(function () {
+            $("#waterMarkImageControl").trigger("click");
+            $("#waterMarkImageControl").change(function () {
+                readURL(this, "#waterMarkImage");
+            });
+        });
+    </script>
+    <script>
+        var brandArray = [];
+        $(document).ready(function () {
+
+            $("#ImageControl").on('change', function () {
+                $(this).valid();
+            });
+
+            $("#headerImageControl").on('change', function () {
+                $(this).valid();
+            });
+
+            $("#waterMarkImageControl").on('change', function () {
+                $(this).valid();
+            });
+
+            $.validator.addMethod('filesize', function (value, element, arg) {
+                if (this.optional(element)) {
+                    return this.optional(element);
+                } else {
+                    if (element.files[0].size <= arg) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+            });
+
+        jQuery.validator.addMethod("alphaNumericOnly", function (value, element) {
+                    return this.optional(element) || /^[a-z," "]+$/i.test(value);
+        }, "Please enter valid value");
+
+            jQuery.validator.addMethod("numberWithComma", function (value, element) {
+                return this.optional(element) || /^[0-9,-]+$/i.test(value);
+            }, "Please enter valid value");
+
+        $("#generalform").validate({
+            rules: {
+                logo_text: {
+                    alphaNumericOnly: true
+                },
+                phone: {
+                    numberWithComma: true,
+                },
+                'ImageControl': {
+                    extension: "jpeg|jpg|png",
+                    filesize: 2000000
+                },
+                headerImageControl: {
+                    extension: "jpeg|jpg|png",
+                    filesize: 2000000
+                },
+                waterMarkImageControl: {
+                    extension: "jpeg|jpg|png",
+                    filesize: 2000000
+                }
+            },
+            messages: {
+                phone: {
+                   number : "Please enter valid number"
+                },
+                'ImageControl': {
+                    required: "this field is required",
+                    extension: "Only jpg or png files are supported",
+                    filesize: "Max file size is 2 MB",
+                },
+                'headerImageControl': {
+                    required: "this field is required",
+                    extension: "Only jpg or png files are supported",
+                    filesize: "Max file size is 2 MB",
+                },
+                'waterMarkImageControl': {
+                    required: "this field is required",
+                    extension: "Only jpg or png files are supported",
+                    filesize: "Max file size is 2 MB",
+                }
+            },
+            submitHandler: function (form) {
+                const valid = $(form).valid();
+                return valid;
+            },
+            errorPlacement: function (error, element) {
+                if ($(element).attr('name') === 'ImageControl') {
+                    error.appendTo($("#logoError"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+            }
+        });
+
+        if ($("#brandingSelect").val() === "0" {
+            $("#generalform .disable-input").prop("disabled", true);
+        }
+
+        loadBrandings();
+
+        $("#brandingSelect").on('change', function () {
+            var selected = $(this).val();
+            var source = '';
+            if (selected === "0") {
+                source = "Primary";
+                $("#generalform .disable-input").prop("disabled", true);
+            }
+            else {
+                source = "Secondary";
+                $("#generalform :input").prop("disabled", false);
+            }
+
+            $.get('/Branding/UpdateBrandingSource', { "Source": source }, function (resp) {
+                if (resp === true) {
+
+                    if (brandArray.length > 1) {
+                        var showGraphics = brandArray[selected].show_graphics;
+                        if (showGraphics === "True") {
+                            showGraphics = "1";
+                        }
+                        else {
+                            showGraphics = "0";
+                        }
+                        $("#show_graphics option[value='" + showGraphics + "']").attr('selected', 'selected');
+                        $("#logo_text").val(brandArray[selected].logo_text);
+                        $("#footer_text").val(brandArray[selected].footer_text);
+                        $("#phone").val(brandArray[selected].phone);
+                        $("#address").val(brandArray[selected].address);
+                        $("#previewImage").attr('src', brandArray[selected].logo);
+                        show_notification("success", "Success", "Branding Source Is Updated Successfully.");
+                    }
+                    else {
+                        $("#logo_text").val('');
+                        $("#footer_text").val('');
+                        $("#phone").val('');
+                        $("#address").val('');
+                        $("#previewImage").attr('src', '');
+                    }
+
+                    }
+                });
+
+        });
+    });
+        $("#BasicInfoSaveBtn").click(function () {
+
+            var formval = $("#generalform").valid();
+            if (formval) {
+                $('body').loading({
+                    theme: 'dark',
+                    message: 'Processing Please Wait...'
+                });
+
+                UpdateBasicInfo();
+            }
+            else {
+                $('body').loading('stop');
+
+            }
+        });
+            function removeLogo() {
+                bootbox.confirm({
+                    title: "Action Confirmation",
+                    message: "Do you want to delete the logo?",
+                    size: "small",
+                    buttons: {
+                        confirm: {
+                            label: 'Confirm',
+                            className: 'btn-success'
+                        },
+                        cancel: {
+                            label: 'Cancel',
+                            className: 'btn-danger'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            $("#previewImage").attr('src', '');
+                            $("#ImagePath").val('');
+                        }
+                    }
+                });
+            }
+            function removeHeaderImage() {
+                bootbox.confirm({
+                    title: "Action Confirmation",
+                    message: "Do you want to delete the header image?",
+                    size: "small",
+                    buttons: {
+                        confirm: {
+                            label: 'Confirm',
+                            className: 'btn-success'
+                        },
+                        cancel: {
+                            label: 'Cancel',
+                            className: 'btn-danger'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            $("#headerImage").attr('src','');
+                            $("#headerImagePath").val('');
+                        }
+                    }
+                });
+            }
+            function removeWaterMarkImage() {
+                bootbox.confirm({
+                    title: "Action Confirmation",
+                    message: "Do you want to delete the water mark?",
+                    size: "small",
+                    buttons: {
+                        confirm: {
+                            label: 'Confirm',
+                            className: 'btn-success'
+                        },
+                        cancel: {
+                            label: 'Cancel',
+                            className: 'btn-danger'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            $("#waterMarkImage").attr('src','');
+                            $("#waterMarkImagePath").val('');
+                        }
+                    }
+                });
+            }
+        function UpdateBasicInfo()
+        {
+            var location = "1";
+
+            var formData = new FormData();
+            var totalFiles = document.getElementById("ImageControl").files.length;
+            for (var i = 0; i < totalFiles; i++) {
+                var file = document.getElementById("ImageControl").files[i];
+                formData.append("logo", file);
+            }
+
+            var headerFile = document.getElementById("headerImageControl").files.length;
+            for (var i = 0; i < headerFile; i++) {
+                var file = document.getElementById("headerImageControl").files[i];
+                formData.append("headerImage", file);
+            }
+
+            var waterMarkFile = document.getElementById("waterMarkImageControl").files.length;
+            for (var i = 0; i < waterMarkFile; i++) {
+                var file = document.getElementById("waterMarkImageControl").files[i];
+                formData.append("WaterMarkImage", file);
+            }
+        var branding =
+            {
+                show_graphics: $("#show_graphics").val(),
+                logo_text: $("#logo_text").val(),
+                footer_text: $("#footer_text").val(),
+                phone: $("#phone").val(),
+                address: $("#address").val(),
+                primary_color: $("#primary_color").val(),
+                Location: location,
+                Type: $("#brandingSelect").val() === "0" ? "Primary" : "Secondary",
+                BrandingSource: $("#brandingSelect").val() === "0" ? "Primary" : "Secondary",
+                logo: $("#ImagePath").val() || '',
+                headerImage: $("#headerImagePath").val() || '',
+                WaterMarkImage: $("#waterMarkImagePath").val() || ''
+            };
+            formData.append("branding", JSON.stringify(branding));
+
+            $.ajax({
+                url: "@Url.Action("Update", "Branding")",
+                data: formData,
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                contentType: false,
+                processData: false,
+            success: function (data) {
+                if (data.status)
+                {
+                    bootbox.alert(
+                        {
+                        title: '<span class="fa fa-check"></span> Information Updated',
+                        message: data.message,
+                        backdrop: true,
+                        callback: function ()
+                        {
+                            window.location.reload();
+                        }
+                    });
+                    $('body').loading('stop');
+                }
+                else {
+                    bootbox.alert(
+                        {
+                        title: '<span class="fa fa-remove"></span> Failed to Update Information',
+                        message: data.message,
+                        backdrop: true
+                    });
+                    $('body').loading('stop');
+
+                }
+
+            },
+            error: function (errormessage)
+            {
+
+                bootbox.alert({
+                    title: '<span class="fa fa-remove"></span> Failed to Update Information',
+                    message: "It seems that branding is not updated due to technical issue.",
+                    backdrop: true
+                });
+                $('body').loading('stop');
+
+            }
+        });
+
+        }
+    </script>
+    <script>
+        $("#reqbtn").click(function () {
+
+            var valid = $("#maskform").valid();
+            if (valid)
+            {
+                requestmask();
+            }
+
+        });
+        function requestmask() {
+            $('#maskmodal').loading({
+                theme: 'dark',
+                message: 'Processing Please Wait...'
+            });
+            var masking = $("#masking").val();
+            if (masking) {
+
+                 $.ajax(
+                {
+                         url: '@Url.Action("RequestMask","Branding")',
+                         data: JSON.stringify({ 'masking': masking }),
+                    method: 'POST',
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (data)
+                    {
+                        $('#maskmodal').loading('stop');
+                        $("#maskmodal").modal("hide");
+
+                    }
+                }
+            );
+            }
+                }
+
+                function loadBrandings() {
+                    $.get('/Branding/LoadMultipleBranding', function (resp) {
+                        if (resp !== null) {
+                            $.each(resp, function (i, v) {
+                                brandArray.push(v);
+                            });
+                        }
+
+                    });
+                }
+    </script>
+
+}
+
+}
+else
+{
+@Html.Partial("~/Views/Partial/Package_Details.cshtml")
+}

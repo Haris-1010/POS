@@ -1,0 +1,263 @@
+@{
+    ViewBag.Title = "StockInHandReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model CoreMedixBeta.Models.Reports.StockInHandReportVM
+@using CoreMedixBeta.Enums
+@section Styles
+{
+    <link href="~/panel-assets/plugins/DateRange/daterangepicker.css" rel="stylesheet" />
+    <style>
+        .radio-inline {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer !important;
+        }
+
+        .radio-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--cm-accent-ink);
+            border-radius: 50%;
+            background-color: white;
+            outline: none;
+            position: relative;
+            transition: .3s all;
+            cursor: pointer !important;
+        }
+
+            .radio-input:checked {
+                background-color: var(--cm-accent);
+            }
+
+                .radio-input:checked::before {
+                    content: "";
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background-color: white;
+                }
+
+            .radio-input:hover {
+                opacity: 0.8;
+            }
+    </style>
+}
+
+<div class="card">
+    <form id="filterForm">
+        <div class="card-header">
+            <h3 class="card-title primary-text font-weight-bold"><i class="fas fa-filter"></i> Filters</h3>
+            <div class="card-tools">
+                <button class="btn btn-tool" type="button" data-toggle="collapse" data-target="#filterCard" aria-expanded="false" aria-controls="filterCard">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div id="filterCard" class="collapse">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="text" class="form-control" name="Date" autocomplete="off" placeholder="Select date range">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-group">
+                            <label>Suppliers</label>
+                            <select class="form-control js-select2" name="SupplierID" required>
+                                <option value="">Choose Supplier</option>
+                                @if (Model != null && Model.Suppliers != null && Model.Suppliers.Any())
+                                {
+                                    foreach (var item in Model.Suppliers)
+                                    {
+                                        <option value="@item.ID">@item.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>No Suppliers available</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-group">
+                            <label for="">Manufacturers</label>
+                            <select class="form-control js-select2" name="ManufacturerID" required>
+                                <option value="">Choose Manufacturer</option>
+                                @if (Model != null && Model.Manufacturers != null && Model.Manufacturers.Any())
+                                {
+                                    foreach (var item in Model.Manufacturers)
+                                    {
+                                        <option value="@item.ID">@item.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>No Manufacturers available</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-group">
+                            <label>Brands</label>
+                            <select class="form-control js-select2" name="BrandID" required>
+                                <option value="">Choose Brand</option>
+                                @if (Model != null && Model.Brands != null && Model.Brands.Any())
+                                {
+                                    foreach (var item in Model.Brands)
+                                    {
+                                        <option value="@item.ID">@item.Title</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>No Brands available</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Sort By</label>
+                                    <select class="form-control js-select2" name="SortBy">
+                                        <option value="ID" selected>Latest</option>
+                                        <option value="Location">Location</option>
+                                        <option value="SalePrice">Sale Price</option>
+                                        @*<option value="ItemName">Item</option>
+                                            <option value="VariationName">Variation</option>*@
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 pl-0">
+                                <div class="form-group">
+                                    <label>Order</label>
+                                    <select class="form-control js-select2" name="SortByOrder">
+                                        <option value="ASC" selected>Ascending</option>
+                                        <option value="DESC">Descending</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label>Qty Filter</label>
+                                    <select class="form-control js-select2" name="QtyFilter" required>
+                                        @foreach (var item in Enum.GetValues(typeof(QtyFilter)).Cast<QtyFilter>().ToList())
+                                        {
+                                            <option value="@((int)item)">@item.GetDisplayName()</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 pl-0">
+                                <div class="form-group">
+                                    <label>Qty</label>
+                                    <input type="text" class="form-control" name="QtyValue" placeholder="Eg: 1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="form-group">
+                            <label class="m-0">Group By</label>
+                            <div class="d-flex mt-2">
+                                <div class="radio-inline">
+                                    <input type="radio" class="radio-input" name="GroupBy" value="Category" id="groupByCategory">
+                                    <label for="groupByCategory" class="m-0 font-weight-normal">Category</label>
+                                </div>
+                                @*<div class="radio-inline mx-3">
+                                        <input type="radio" class="radio-input" name="GroupBy" value="Manufacturer" id="groupByManufacturer">
+                                        <label for="groupByManufacturer" class="m-0 font-weight-normal">Manufacturer</label>
+                                    </div>
+                                    <div class="radio-inline">
+                                        <input type="radio" class="radio-input" name="GroupBy" value="Supplier" id="groupBySupplier">
+                                        <label for="groupBySupplier" class="m-0 font-weight-normal">Supplier</label>
+                                    </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 ml-auto">
+                        <div class="form-group mb-0 d-flex justify-content-between">
+                            <label></label>
+                            <button type="button" class="btn btn-primary-custom form-control text-nowrap js-apply-filter-btn">Apply Filter</button>
+                            <button type="button" class="btn btn-default form-control js-clear-filter-btn ml-2">Clear Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <input type="hidden" value="@Model.CurrencySymbol" class="form-control" id="currency">
+    <input type="hidden" value="@ViewBag.TotalStockValue" class="form-control" id="totalStockValue">
+    <input type="hidden" value="@ViewBag.TotalStockQuantity" class="form-control" id="totalStockQuantity">
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-baseline">
+        <h3 class="card-title primary-text font-weight-bold">Stock In Hand</h3>
+    </div>
+    <div class="card-body">
+        <table id="reportTable" class="table table-hover w-100 table-responsive-sm">
+            <thead>
+                <tr>
+                    <th>Sr. #</th>
+                    <th>SKU</th>
+                    <th>Item Name</th>
+                    <th>Qty</th>
+                    <th>Shelf Qty</th>
+                    <th>Difference</th>
+                    <th>Purchase Price</th>
+                    <th>Sale Price</th>
+                    <th>Profit</th>
+                    <th>Profit Margin %</th>
+                    <th>P/Unit</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+@section Scripts{
+    <script> 
+        var GetPagedStockInHandReportUrl = '@Url.Action("GetPagedStockInHandReport", "Reports")';
+    </script>
+    <script src="~/panel-assets/plugins/DateRange/moment.min.js"></script>
+    <script src="~/panel-assets/plugins/DateRange/daterangepicker.js"></script>
+    <script src="~/JSModels/Reports/stockInHandReport.js"></script>
+}
