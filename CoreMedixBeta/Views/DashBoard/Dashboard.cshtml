@@ -1,4 +1,4 @@
-@model CoreMedixBeta.Models.DashBoard.DashBoardVM
+﻿@model CoreMedixBeta.Models.DashBoard.DashBoardVM
 @{
     ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -784,6 +784,14 @@
         var dailySalesReportUrl = '@Url.Action("DailySalesReport", "Reports")';
         var stockValuationReportUrl = '@Url.Action("StockValuationReport", "Reports")';
         var inventoryItemsUrl = '@Url.Action("Items", "InventoryItems")';
+        var customerLedgerUrl = '@Url.Action("CustomerLedger", "Reports")';
+        var expiryReportUrl = '@Url.Action("ExpiryReport", "Reports")';
+        var itemWiseSaleReportUrl = '@Url.Action("ItemWiseSaleReport", "Reports")';
+        var customerOutstandingReportUrl = '@Url.Action("CustomerOutstandingReport", "Reports")';
+
+        // Date range currently shown on the dashboard (yyyy-MM-dd). Card clicks pass it to
+        // date-based reports; refreshed whenever the range filter changes.
+        window.dashboardRange = { from: '@today.ToString("yyyy-MM-dd")', to: '@today.ToString("yyyy-MM-dd")' };
 
     </script>
     <script src="~/JSModels/DashBoard/dashBoardSetting.js"></script>
@@ -1042,6 +1050,9 @@
 
             function applyDashboardData(data, rangeKey) {
                 renderCards(data.Cards);
+                if (data.FromDate && data.ToDate) {
+                    window.dashboardRange = { from: data.FromDate, to: data.ToDate };
+                }
 
                 var i18n = window.CoreMedixI18n;
                 var translated = i18n ? i18n.t('dash_range_' + rangeKey) : null;

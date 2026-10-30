@@ -35,69 +35,33 @@
 
 
 
-        $('.card-clickable').on('click', function () {
-            const cardTitle = $(this).data('card-title');
+        // Each dashboard card opens the most relevant report. Keyed by CardID (titles can be
+        // renamed/translated). Date-based reports get the range currently shown on the dashboard.
+        $(document).on('click', '.card-clickable', function () {
+            const cardId = parseInt($(this).data('card-id'), 10);
+            const range = window.dashboardRange || {};
+            const withRange = function (url) {
+                return (range.from && range.to)
+                    ? url + '?StartDate=' + encodeURIComponent(range.from) + '&EndDate=' + encodeURIComponent(range.to)
+                    : url;
+            };
 
             const cardRedirects = {
-                "Today’s Sales": function () {
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const startDate = `${yyyy}-${mm}-${dd}`;
-                    const endDate = `${yyyy}-${mm}-${dd}`;
-                    window.location.href = `${reportSaleUrl}?StartDate=${startDate}&EndDate=${endDate}`;
-                },
+                1: function () { return withRange(reportSaleUrl); },              // Sales
+                2: function () { return withRange(saleInvoicesUrl); },            // Total Invoices
+                3: function () { return withRange(profitMarginReportUrl); },      // Profit
+                4: function () { return customerLedgerUrl; },                     // Total Customers
+                5: function () { return stockValuationReportUrl; },               // Stock Value
+                6: function () { return expiryReportUrl; },                       // Expiring Soon
+                7: function () { return itemWiseSaleReportUrl; },                 // Stock Sold Value
+                8: function () { return customerOutstandingReportUrl; }           // Amount Receivable
+            };
 
-                "Today Total Invoices": function () {
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const startDate = `${yyyy}-${mm}-${dd}`;
-                    const endDate = `${yyyy}-${mm}-${dd}`;
-                    window.location.href = `${saleInvoicesUrl}?StartDate=${startDate}&EndDate=${endDate}`;
-                },
-
-                "Today’s Profit": function () {
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const startDate = `${yyyy}-${mm}-${dd}`;
-                    const endDate = `${yyyy}-${mm}-${dd}`;
-                    window.location.href = `${profitMarginReportUrl}?StartDate=${startDate}&EndDate=${endDate}`;
-                },
-
-                "Total Patients Today": function () {
-                    window.location.href = dailySalesReportUrl;
-                },
-
-                "Stock Value": function () {
-                    window.location.href = stockValuationReportUrl;
-                },
-
-                "Today’s Stock Sold Value": function () {
-                    window.location.href = stockValuationReportUrl;
-                },
-
-                "Expiring Soon": function () {
-                    var Expire = 'ExpiringSoon';
-                    window.location.href = `${inventoryItemsUrl}?FilterType=${Expire}`;
-                }
-            }; 
-
-            if (cardRedirects[cardTitle]) {
-                const url = cardRedirects[cardTitle]();
-                if (url) { 
-                    window.location.href = url;
-                }
-            } else {
-                console.error("No redirect defined for card:", cardTitle);
+            const getUrl = cardRedirects[cardId];
+            if (getUrl) {
+                window.location.href = getUrl();
             }
         });
-
-
     });
 
     function readDashBoardItems() {
