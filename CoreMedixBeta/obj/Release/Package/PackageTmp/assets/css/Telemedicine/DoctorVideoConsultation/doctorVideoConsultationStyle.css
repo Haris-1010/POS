@@ -1,0 +1,245 @@
+﻿:root {
+    --primary-color: #294f75;
+}
+
+#floating {
+    z-index: 9999999999 !important;
+    transition: all ease-in-out 1s;
+}
+
+#navbar-container {
+    background-color: white;
+}
+
+.navbar-content {
+    background-color: white;
+}
+
+.navbar-header:before {
+    background-color: white;
+}
+
+.brand-title {
+    color: #28328c;
+}
+
+.brand-text {
+    display: flex;
+    align-items: center;
+}
+
+.instacare-logo {
+    width: 100px;
+    object-fit: contain;
+    margin-left: 5px;
+}
+
+.error {
+    color: red;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.d-none {
+    display: none;
+}
+
+.d-block {
+    display: block;
+}
+
+.img-border-radius {
+    border-radius: 5px;
+}
+
+.patient-details .media-body {
+    width: 100%;
+}
+
+.patient-details .label-warning {
+    color: black;
+}
+
+.panel-control--left {
+    float: left !important;
+}
+
+.video-body {
+    min-height: 75vh;
+}
+
+.nav-tabs {
+    border: none;
+}
+
+    .nav-tabs li {
+        transition: all ease 1s;
+    }
+
+        .nav-tabs li.active {
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+.remote-media video {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 50vh;
+}
+
+#floating {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+.media-actions--absolute {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    bottom: 30px;
+}
+
+.media-actions .col-sm-12 {
+    display: flex;
+    justify-content: center;
+}
+
+.mar-hor-5 {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.mar-lft-5 {
+    margin-left: 5px;
+}
+
+.tab-body {
+    max-height: 83vh;
+    overflow-y: auto;
+}
+
+.btn-outline-primary, .btn-outline-primary:hover {
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.ui-autocomplete-loading {
+    background-color: white;
+    background-image: url('/assets/img/loading.gif');
+    background-position: right center;
+    background-repeat: no-repeat;
+}
+
+.ui-autocomplete {
+    position: absolute;
+    cursor: default;
+    z-index: 999999999999 !important;
+    font-size: 14px;
+    color: gray;
+    padding: 10px
+}
+
+.modal {
+    z-index: 999999999 !important;
+}
+
+.modal-backdrop {
+    z-index: -1 !important;
+}
+
+.select2-container {
+    z-index: 99999 !important;
+}
+
+.medical-alerts .label {
+    display: inline-block;
+    margin: 2px;
+}
+
+@media only screen and (max-width: 600px) {
+    .medical-alerts .label {
+        white-space: normal;
+    }
+}
+
+.local-media {
+    height: 100px;
+    padding: 0;
+}
+
+    .local-media video {
+        width: 100%;
+        height: 100%;
+    }
+
+.select2-selection--single, .select2-selection--multiple {
+    border: 1px solid darkgray !important;
+}
+
+.datepicker {
+    z-index: 9999999999 !important;
+}
+
+.btn.btn-custom {
+    background-color: #5CBEC2 !important;
+    color: white !important;
+}
+
+.main__controls {
+    background-color: #08054f;
+    color: #d2d2d2;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+    .main__controls .dropdown-menu {
+        width: 300px;
+    }
+
+        .main__controls .dropdown-menu label {
+            color: gray;
+        }
+
+.main__controls__block {
+    display: flex;
+}
+
+.main__controls__button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 10px;
+    min-width: 80px;
+    cursor: pointer;
+}
+
+    .main__controls__button:hover {
+        background-color: #343434;
+        border-radius: 5px;
+    }
+
+    .main__controls__button .content {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .main__controls__button i {
+        font-size: 24px;
+    }
+
+.main__controls__button {
+    position: relative;
+}
+
+.main__controls__button__dropdown {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}

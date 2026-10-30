@@ -1,0 +1,120 @@
+﻿@font-face {
+    font-family: 'instacare';
+    src: url('../Icons/instacare.woff') format('woff');
+}
+
+.insta-icons
+{
+    font-family:instacare;
+    font-size:30px;
+    color:white;
+}
+.insta-logo:before
+{
+     content: "ฅ";
+   
+}
+.insta-call-start:before
+{
+     content: "ง";
+   
+}
+.insta-call-end:before
+{
+     content: "จ";
+   
+}
+.insta-preview-show:before
+{
+     content: "ค";
+  
+}
+.insta-preview-hide:before
+{
+     content: "ฃ";
+  
+}
+.insta-cam-show:before
+{
+     content: "ข";
+  
+}
+.insta-cam-hide:before
+{
+     content: "ก";
+  
+}
+.insta-screenshot:before {
+    content: "ฆ";
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Black';
+    src: url('../Fonts/SanFranciscoDisplay-Black.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Bold';
+    src: url('../Fonts/SanFranciscoDisplay-Bold.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Heavy';
+    src: url('../Fonts/SanFranciscoDisplay-Heavy.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Light';
+    src: url('../Fonts/SanFranciscoDisplay-Light.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Medium';
+    src: url('../Fonts/SanFranciscoDisplay-Medium.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Regular';
+    src: url('../Fonts/SanFranciscoDisplay-Regular.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Semibold';
+    src: url('../Fonts/SanFranciscoDisplay-Semibold.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Thin';
+    src: url('../Fonts/SanFranciscoDisplay-Thin.woff') format('woff');
+}
+@font-face {
+    font-family: 'SanFranciscoDisplay-Ultralight';
+    src: url('../Fonts/SanFranciscoDisplay-Ultralight.woff') format('woff');
+}
+.sanfrancisco
+{
+    font-family:SanFranciscoDisplay-Regular;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-ultralight
+{
+    font-family:SanFranciscoDisplay-Ultralight;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-light
+{
+    font-family:SanFranciscoDisplay-Light;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-semibold
+{
+    font-family:SanFranciscoDisplay-Semibold;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-bold
+{
+    font-family:SanFranciscoDisplay-Bold;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-heavy
+{
+    font-family:SanFranciscoDisplay-Heavy;
+    color:rgba(54, 54, 54, 0.6);
+}
+.sanfrancisco-black
+{
+    font-family:SanFranciscoDisplay-Black;
+    color:rgba(54, 54, 54, 0.6);
+}

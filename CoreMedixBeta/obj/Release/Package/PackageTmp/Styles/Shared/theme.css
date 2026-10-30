@@ -1,0 +1,797 @@
+/* ==========================================================================
+   CoreMedix theme layer  —  navy / white / black palette + dark mode
+   Loaded AFTER layout.css so it wins over layout.css (same !important rules).
+   ========================================================================== */
+
+/* Urdu script (set by JSModels/SharedJS/i18n.js on each translated element only -
+   the surrounding page layout stays LTR so icons/flex rows don't shift). */
+.cm-i18n-ur {
+    font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', Tahoma, 'Segoe UI', sans-serif;
+    line-height: 1.9;
+}
+
+/* --------------------------------------------------------------------------
+   1. Dark palette (light palette lives in layout.css :root)
+   -------------------------------------------------------------------------- */
+html {
+    /* lets native widgets (select popups, date pickers, scrollbars) follow the theme */
+    color-scheme: light;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --cm-accent: #16224f;
+    --cm-accent-hover: #1f2f6b;
+    --cm-accent-ink: #9db0ff;
+    --cm-on-accent: #ffffff;
+
+    --cm-bg: #080a10;
+    --cm-surface: #0e1220;
+    --cm-surface-alt: #161c2f;
+    --cm-border: #232a42;
+    --cm-text: #e7eaf3;
+    --cm-text-muted: #97a0b8;
+
+    --cm-header-bg: #05070d;
+    --cm-header-fg: #ffffff;
+    --cm-header-hover: rgba(255, 255, 255, .12);
+    --cm-input-group-bg: #0a0f26;
+    --cm-soft: rgba(157, 176, 255, .16);
+    --cm-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+    --cm-shadow-lg: 0 14px 36px rgba(0, 0, 0, .6);
+}
+
+/* --------------------------------------------------------------------------
+   2. Base surfaces (both themes)
+   -------------------------------------------------------------------------- */
+html {
+    background-color: var(--cm-bg) !important;
+}
+
+body {
+    color: var(--cm-text) !important;
+}
+
+body:not(.login-page) {
+    background-color: var(--cm-bg) !important;
+}
+
+.wrapper {
+    background-color: var(--cm-bg);
+}
+
+::selection {
+    background: var(--cm-accent);
+    color: var(--cm-on-accent);
+}
+
+.text-muted {
+    color: var(--cm-text-muted) !important;
+}
+
+hr {
+    border-color: var(--cm-border) !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. Top bar — white on light, near-black on dark, navy ink for icons/links
+   -------------------------------------------------------------------------- */
+.main-header.navbar {
+    background-color: var(--cm-header-bg) !important;
+    box-shadow: var(--cm-shadow);
+    border-bottom: 1px solid var(--cm-border) !important;
+}
+
+.main-header .nav-link {
+    color: var(--cm-header-fg) !important;
+}
+
+.main-header .fa-bars,
+.main-header .fa-expand-arrows-alt,
+.main-header .fa-sign-out-alt {
+    color: var(--cm-header-fg) !important;
+}
+
+.main-header .badge {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.cm-header-user {
+    color: var(--cm-header-fg) !important;
+    font-weight: bold;
+    cursor: default;
+}
+
+.main-header a.nav-link:hover {
+    background-color: var(--cm-header-hover) !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. Sidebar
+   -------------------------------------------------------------------------- */
+.main-sidebar,
+.sidebar {
+    background-color: var(--cm-surface) !important;
+    border-right: 1px solid var(--cm-border) !important;
+    color: var(--cm-text) !important;
+}
+
+.sidebar h3,
+#sidebar-profile h3 {
+    color: var(--cm-accent-ink) !important;
+}
+
+.main-sidebar .user-panel > .info,
+.main-sidebar .user-panel > .info > .d-flex {
+    color: var(--cm-text) !important;
+}
+
+.nav-sidebar > .nav-item > .nav-link,
+.nav-sidebar .nav-treeview > .nav-item > .nav-link {
+    color: var(--cm-accent-ink) !important;
+}
+
+.nav-sidebar .nav-link:hover {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-accent-ink) !important;
+}
+
+.nav-sidebar .nav-item > .nav-link.active,
+.nav-sidebar .nav-item > .nav-link.active:hover {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.nav-sidebar .nav-item > .nav-link.active .nav-icon,
+.nav-sidebar .nav-item > .nav-link.active p,
+.nav-sidebar .nav-item > .nav-link.active > i,
+.nav-sidebar .nav-item > .nav-link.active .right {
+    color: var(--cm-on-accent) !important;
+}
+
+.nav-sidebar .nav-treeview .nav-link.active,
+.nav-sidebar .nav-treeview .nav-link.active:hover {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. Content + cards
+   -------------------------------------------------------------------------- */
+.content-wrapper,
+.right-bar {
+    background-color: var(--cm-bg) !important;
+}
+
+.card {
+    /* no !important on background — view :hover rules must be able to recolor a card */
+    background-color: var(--cm-surface);
+    color: var(--cm-text) !important;
+    border: 1px solid var(--cm-border) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--cm-shadow);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--cm-border);
+}
+
+.card-footer:not([class*="bg-"]) {
+    background-color: var(--cm-surface-alt) !important;
+    border-top: 1px solid var(--cm-border) !important;
+    color: var(--cm-text);
+}
+
+.card-outline {
+    border-color: var(--cm-border) !important;
+}
+
+.card-header-pills .nav-link.active {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.jumbotron {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text) !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. Forms
+   -------------------------------------------------------------------------- */
+.form-control,
+.custom-select {
+    color: var(--cm-text) !important;
+}
+
+.form-control {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.form-control::placeholder {
+    color: var(--cm-text-muted) !important;
+    opacity: 1;
+}
+
+.form-control:focus {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border-color: var(--cm-accent-ink) !important;
+    box-shadow: none !important;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text-muted) !important;
+}
+
+select.form-control option,
+.custom-select option {
+    background-color: var(--cm-surface);
+    color: var(--cm-text);
+}
+
+.input-group-text {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.input-group > .form-control {
+    color: var(--cm-text) !important;
+}
+
+.custom-control-label::before {
+    border-color: var(--cm-border) !important;
+    background-color: var(--cm-surface-alt) !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. Tables + DataTables
+   -------------------------------------------------------------------------- */
+.table {
+    color: var(--cm-text) !important;
+    background-color: transparent;
+}
+
+.table thead th,
+.table td,
+.table-bordered th,
+.table-bordered td,
+.table-bordered,
+.table-sm td,
+.table-sm th {
+    border-color: var(--cm-border) !important;
+    color: var(--cm-text) !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--cm-surface-alt) !important;
+}
+
+.table-bordered > thead > tr > th {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text) !important;
+}
+
+.dataTables_wrapper {
+    color: var(--cm-text) !important;
+}
+
+.dataTables_wrapper .dataTables_filter label,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_length label {
+    color: var(--cm-text-muted) !important;
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border: 1px solid var(--cm-border) !important;
+    border-radius: 3px !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--cm-accent-ink) !important;
+    outline: none !important;
+}
+
+table.dataTable thead th,
+table.dataTable thead td,
+table.dataTable.no-footer {
+    border-bottom-color: var(--cm-border) !important;
+    color: var(--cm-text) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border: 1px solid var(--cm-border) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--cm-surface-alt) !important;
+    color: var(--cm-accent-ink) !important;
+    border: 1px solid var(--cm-border) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+    border: 1px solid var(--cm-accent) !important;
+}
+
+.dt-button {
+    background: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-color: var(--cm-border) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. Select2
+   -------------------------------------------------------------------------- */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    color: var(--cm-text) !important;
+}
+
+.select2-container--default .select2-selection__arrow {
+    color: var(--cm-text-muted) !important;
+}
+
+.select2-container--default .select2-dropdown {
+    background-color: var(--cm-surface) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.select2-container--default .select2-results {
+    color: var(--cm-text) !important;
+}
+
+.select2-container--default .select2-results__option {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-text) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--cm-accent) !important;
+    border-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+/* --------------------------------------------------------------------------
+   9. Modals, dropdowns, tabs, pagination, alerts
+   -------------------------------------------------------------------------- */
+.modal-content {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border: 1px solid var(--cm-border) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--cm-shadow-lg);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--cm-border) !important;
+}
+
+.modal-title {
+    color: var(--cm-text) !important;
+}
+
+.modal .close {
+    color: var(--cm-text);
+    text-shadow: none;
+    opacity: .65;
+}
+
+.dropdown-menu {
+    background-color: var(--cm-surface) !important;
+    border: 1px solid var(--cm-border) !important;
+    box-shadow: var(--cm-shadow-lg);
+}
+
+.dropdown-item {
+    color: var(--cm-text) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item.active {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.dropdown-divider {
+    border-color: var(--cm-border) !important;
+}
+
+.nav-tabs {
+    border-color: var(--cm-border) !important;
+}
+
+.nav-tabs .nav-link {
+    color: var(--cm-text-muted) !important;
+    border-color: transparent !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--cm-accent-ink) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.show {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-color: var(--cm-border) var(--cm-border) var(--cm-surface) !important;
+}
+
+.nav-pills .nav-link {
+    color: var(--cm-text-muted) !important;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.page-link {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-accent-ink) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--cm-accent) !important;
+    border-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.alert {
+    border-color: var(--cm-border);
+    color: var(--cm-text);
+}
+
+.main-footer {
+    background-color: var(--cm-surface) !important;
+    border-top-color: var(--cm-border) !important;
+    color: var(--cm-text-muted) !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. Popups: jQuery UI autocomplete, datepicker, daterangepicker, tooltip
+   -------------------------------------------------------------------------- */
+/* ManageInvoice.css re-declares width/padding later without !important — ours must win */
+.ui-autocomplete {
+    background: var(--cm-surface) !important;
+    border: 1px solid var(--cm-border) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--cm-shadow-lg);
+    color: var(--cm-text) !important;
+    padding: 6px 0 !important;
+    width: max-content !important;
+    min-width: 320px !important;
+    max-width: 640px !important;
+    max-height: 360px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+}
+
+.ui-autocomplete::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ui-autocomplete::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ui-autocomplete::-webkit-scrollbar-thumb {
+    background: var(--cm-border);
+    border-radius: 8px;
+}
+
+.ui-autocomplete .ui-menu-item {
+    background: transparent !important;
+    border: none !important;
+    margin: 0;
+    padding: 0 !important;
+}
+
+/* items are rendered as a bare <div> by _renderItem, plus jQuery UI's wrapper class */
+.ui-autocomplete .ui-menu-item > div,
+.ui-autocomplete .ui-menu-item-wrapper {
+    background-color: transparent !important;
+    color: var(--cm-text) !important;
+    border: none !important;
+    border-radius: 6px;
+    padding: 9px 14px !important;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+    cursor: pointer;
+    transition: background-color .14s ease, color .14s ease, padding-left .14s ease;
+}
+
+.ui-autocomplete .ui-menu-item:hover > div,
+.ui-autocomplete .ui-menu-item:hover .ui-menu-item-wrapper,
+.ui-autocomplete .ui-menu-item > div:hover,
+.ui-autocomplete .ui-menu-item-wrapper:hover,
+.ui-autocomplete .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete .ui-menu-item.ui-state-active > div {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+/* re-triggered on every autocompleteopen by theme.js */
+.ui-autocomplete.cm-menu-anim {
+    animation: cm-menu-in .16s ease-out;
+}
+
+@keyframes cm-menu-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-autocomplete.cm-menu-anim {
+        animation: none !important;
+    }
+}
+
+.datepicker {
+    background-color: var(--cm-surface) !important;
+    border: 1px solid var(--cm-border) !important;
+}
+
+.datepicker table tr th,
+.datepicker table tr td {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+}
+
+.datepicker table tr th.dow {
+    color: var(--cm-text-muted) !important;
+}
+
+.datepicker-days th.dow {
+    color: var(--cm-text-muted) !important;
+}
+
+.datepicker table tr td.day:hover,
+.datepicker table tr td.day:focus {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-accent-ink) !important;
+}
+
+.datepicker-dropdown {
+    background-color: var(--cm-surface) !important;
+    border-color: var(--cm-border) !important;
+}
+
+.daterangepicker {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+    border: 1px solid var(--cm-border) !important;
+}
+
+.daterangepicker .drp-calendar-left,
+.daterangepicker .drp-calendar-right {
+    border-color: var(--cm-border) !important;
+}
+
+.daterangepicker td,
+.daterangepicker th {
+    color: var(--cm-text) !important;
+}
+
+.daterangepicker .drp-buttons .btn {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.tooltip-inner {
+    background-color: var(--cm-accent);
+    color: var(--cm-on-accent);
+}
+
+/* --------------------------------------------------------------------------
+   11. Scrollbars + misc
+   -------------------------------------------------------------------------- */
+body::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: var(--cm-border);
+    border-radius: 6px;
+}
+
+::placeholder {
+    color: var(--cm-text-muted) !important;
+    opacity: 1;
+}
+
+a:hover {
+    color: var(--cm-accent-ink) !important;
+}
+
+/* Dashboard stat chips keep their hue but stay readable on dark surfaces */
+html[data-theme="dark"] .stat-card .stat-ico,
+html[data-theme="dark"] .mini-stat .mini-ico {
+    background-color: #e9edf6 !important;
+}
+
+html[data-theme="dark"] .chart-pill {
+    background-color: var(--cm-surface-alt) !important;
+    color: var(--cm-accent-ink) !important;
+}
+
+html[data-theme="dark"] .checkbox-wrapper input[type="checkbox"] {
+    --active: var(--cm-accent);
+    --active-inner: #ffffff;
+    --background: var(--cm-surface);
+}
+
+/* Info / small boxes */
+.info-box {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+}
+
+.info-box .info-box-icon[class*="bg-"] {
+    color: #ffffff !important;
+}
+
+.small-box:not([class*="bg-"]) {
+    background-color: var(--cm-surface) !important;
+    color: var(--cm-text) !important;
+}
+
+/* --------------------------------------------------------------------------
+   12. Header theme switcher
+   -------------------------------------------------------------------------- */
+.cm-theme-menu .cm-theme-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 132px;
+}
+
+.cm-theme-menu .cm-theme-option i {
+    width: 16px;
+    text-align: center;
+    color: var(--cm-accent-ink);
+}
+
+.cm-theme-menu .cm-theme-option.active {
+    background-color: var(--cm-accent) !important;
+    color: var(--cm-on-accent) !important;
+}
+
+.cm-theme-menu .cm-theme-option.active i {
+    color: var(--cm-on-accent) !important;
+}
+
+/* --------------------------------------------------------------------------
+   13. Smooth page-to-page feel — gentle fade/slide-in on content, smooth
+   scrolling for in-page anchors. Purely additive; the Dashboard's own
+   stat-card / mini-stat / chart-card hover treatments are untouched.
+   -------------------------------------------------------------------------- */
+html {
+    scroll-behavior: smooth;
+}
+
+.cm-page-fade {
+    animation: cm-page-in .22s ease-out;
+}
+
+@keyframes cm-page-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .cm-page-fade {
+        animation: none !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   14. Printing always stays black on white
+   -------------------------------------------------------------------------- */
+@media print {
+    html,
+    body,
+    .content-wrapper,
+    .wrapper,
+    .card,
+    .main-sidebar,
+    .sidebar,
+    .form-control,
+    .modal-content {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .table,
+    .table th,
+    .table td,
+    .table thead th {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #cccccc !important;
+    }
+
+    .card-header:not([class*="bg-"]),
+    .card-footer:not([class*="bg-"]) {
+        background-color: #f4f4f4 !important;
+        color: #000000 !important;
+        border-color: #cccccc !important;
+    }
+
+    .main-header,
+    .cm-topnav,
+    .main-sidebar {
+        display: none !important;
+    }
+}

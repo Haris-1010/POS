@@ -1,0 +1,454 @@
+﻿@{
+    ViewBag.Title = "ReportsGroup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using CoreMedixBeta.Models.Reports.DTOs
+@{
+    bool isActiveSet = false;
+
+    bool isAllowSaleReports = true;
+    bool isAllowPurchaseReports = true;
+    bool isAllowStockReports = true;
+    bool isAllowLedgerReports = true;
+
+}
+@section Styles{
+    <style>
+        .tab-btn {
+            font-size: 1.1rem !important;
+        }
+
+            .tab-btn.active {
+                font-size: 1.2rem !important;
+            }
+    </style>
+}
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h4 class="text-primary-custom"><i class="fas fa-sitemap"></i> Reports</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-5 col-sm-3">
+                <div class="nav flex-column nav-tabs h-100" id="vert-tabs-tab" role="tablist" aria-orientation="vertical">
+                    @if (!isActiveSet && isAllowSaleReports)
+                    {
+                        isActiveSet = true;
+                        <a class="nav-link tab-btn active" id="sales-reports-tab" data-toggle="pill" href="#sales-reports" role="tab" aria-controls="sales-reports" aria-selected="true">Sales</a>
+                    }
+                    else if (isAllowSaleReports)
+                    {
+                        <a class="nav-link tab-btn" id="sales-reports-tab" data-toggle="pill" href="#sales-reports" role="tab" aria-controls="sales-reports" aria-selected="false">Sales</a>
+                    }
+
+                    @if (!isActiveSet && isAllowPurchaseReports)
+                    {
+                        isActiveSet = true;
+                        <a class="nav-link tab-btn active" id="purchase-reports-tab" data-toggle="pill" href="#purchase-reports" role="tab" aria-controls="purchase-reports" aria-selected="true">Purchase</a>
+                    }
+                    else if (isAllowPurchaseReports)
+                    {
+                        <a class="nav-link tab-btn" id="purchase-reports-tab" data-toggle="pill" href="#purchase-reports" role="tab" aria-controls="purchase-reports" aria-selected="false">Purchase</a>
+                    }
+
+                    @if (!isActiveSet && isAllowStockReports)
+                    {
+                        isActiveSet = true;
+                        <a class="nav-link tab-btn active" id="stock-reports-tab" data-toggle="pill" href="#stock-reports" role="tab" aria-controls="stock-reports" aria-selected="true">Stock</a>
+                    }
+                    else if (isAllowStockReports)
+                    {
+                        <a class="nav-link tab-btn" id="stock-reports-tab" data-toggle="pill" href="#stock-reports" role="tab" aria-controls="stock-reports" aria-selected="false">Stock</a>
+                    }
+
+                    @if (!isActiveSet && isAllowLedgerReports)
+                    {
+                        isActiveSet = true;
+                        <a class="nav-link tab-btn active" id="ledger-reports-tab" data-toggle="pill" href="#ledger-reports" role="tab" aria-controls="ledger-reports" aria-selected="true">Ledgers</a>
+                    }
+                    else if (isAllowLedgerReports)
+                    {
+                        <a class="nav-link tab-btn" id="ledger-reports-tab" data-toggle="pill" href="#ledger-reports" role="tab" aria-controls="ledger-reports" aria-selected="false">Ledger</a>
+                    }
+                </div>
+            </div>
+            <div class="col-7 col-sm-9">
+                <div class="tab-content" id="vert-tabs-tabContent">
+                    @{
+                        isActiveSet = false;
+                    }
+
+                    <div class="tab-pane text-left fade @(isActiveSet ? "" : "active show")" id="sales-reports" role="tabpanel" aria-labelledby="sales-reports-tab">
+
+                        @{
+                            if (!isActiveSet) { isActiveSet = true; }
+                        }
+
+                        <div class="row">
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("SaleReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Sale Report</h5>
+                                            <p class="text-primary-custom m-0">Sell all sales report.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ItemWiseSaleReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Item Wise Sale Report</h5>
+                                            <p class="text-primary-custom m-0">See all item wise sale report.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("DailySalesReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Daily Sales Report</h5>
+                                            <p class="text-primary-custom m-0">For see daily sale invoices</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("SalesSummaryReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Sales Summary Report</h5>
+                                            <p class="text-primary-custom m-0">Sales summary report for product wise and category base.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("SalesReturnReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Sales Return Report</h5>
+                                            <p class="text-primary-custom m-0">Records of return and refund items values.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("TopSellingProducts", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Top Selling Products</h5>
+                                            <p class="text-primary-custom m-0">Analysis of most sold out items report.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ProfitMarginReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Profit Margin Report</h5>
+                                            <p class="text-primary-custom m-0">Difference between sale & pruchase price and profit analysis.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("TaxReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Tax Report(GST Summary)</h5>
+                                            <p class="text-primary-custom m-0">GST collected summary report.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ManufacturerWiseSalesReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Manufacturer Wise Sales Report</h5>
+                                            <p class="text-primary-custom m-0">
+                                                All manufacturer total sales.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ProductWiseProfitReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Product Wise Profit Report</h5>
+                                            <p class="text-primary-custom m-0">
+                                                How much profit was generated from each product.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("SlowMovingItemsReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-file-invoice-dollar"></i> Slow Moving Items Report</h5>
+                                            <p class="text-primary-custom m-0">
+                                                Items that are selling very little.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade @(isActiveSet ? "" : "active show")" id="purchase-reports" role="tabpanel" aria-labelledby="purchase-reports-tab">
+
+                        @{
+                            if (!isActiveSet) { isActiveSet = true; }
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6 col-sm-12">
+                                <a class="link-cards" href='@Url.Action("PurchaseReport", "Reports")' >
+                                    <div class="card card-primary card-outline">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Purchase Report</h5>
+                                            <p class="text-primary-custom m-0">Complete breakdown of purchase invoices.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade @(isActiveSet ? "" : "active show")" id="stock-reports" role="tabpanel" aria-labelledby="stock-reports-tab">
+
+                        @{
+                            if (!isActiveSet) { isActiveSet = true; }
+                        }
+
+                        <div class="row">
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("StockInHandReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Stock In-Hand</h5>
+                                            <p class="text-primary-custom m-0">To see item stock details, like quantity, sale & purchase price etc.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("LowStockReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Low Stock Report</h5>
+                                            <p class="text-primary-custom m-0">Reaming items less than stock threshold.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("StockValuationReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Stock Valuation Report</h5>
+                                            <p class="text-primary-custom m-0">Total value of stock as per cost.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("InventoryMovementReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Inventory Movement Report</h5>
+                                            <p class="text-primary-custom m-0">Track of inventory movement any item.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards"href='@Url.Action("BatchWiseStockReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Batchwise Stock Report</h5>
+                                            <p class="text-primary-custom m-0">Status of every batch expiry and quantity.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ManualStockAdjustment", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-boxes"></i> Manual Stock Adjustment Report</h5>
+                                            <p class="text-primary-custom m-0">Stock entries of manually adjusted.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade @(isActiveSet ? "" : "active show")" id="ledger-reports" role="tabpanel" aria-labelledby="ledger-reports-tab">
+
+                        @{
+                            if (!isActiveSet) { isActiveSet = true; }
+                        }
+
+                        <div class="row">
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("CustomerLedger", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Customer Ledger Report</h5>
+                                            <p class="text-primary-custom m-0">To see every customer transaction and balance history.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("SupplierLedgerReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Supplier Ledger Report</h5>
+                                            <p class="text-primary-custom m-0">Supplier ledger with payable balance.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("DeletedInvoicesReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Deleted Invoices Report</h5>
+                                            <p class="text-primary-custom m-0">Deleted invoices audit trail.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("AuditLogsReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-clipboard-list"></i> Audit Logs</h5>
+                                            <p class="text-primary-custom m-0">Logins, deletions &amp; user activity trail.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards"href='@Url.Action("SupplierOutstandingReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Supplier Outstanding Report</h5>
+                                            <p class="text-primary-custom m-0">The amount which is yet to be paid to the suppliers.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("IncomeReport", "Reports")' >
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Income Report</h5>
+                                            <p class="text-primary-custom m-0">This report to see Net, Dicount, Tax and Income Amount.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("CashCollectionReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Cash Collection Report</h5>
+                                            <p class="text-primary-custom m-0">
+                                                How much money was collected from the cash counter and by which mode.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("CustomerOutstandingReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Customer Outstanding Report</h5>
+                                            <p class="text-primary-custom m-0">The customers loan is still pending.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            @*<div class="col-md-6 col-sm-12">
+                                <a class="link-cards" href="/Reports/UserActivityReport">
+                                    <div class="card card-primary card-outline">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> User activity Report</h5>
+                                            <p class="text-primary-custom m-0">Tracking of user activity in system.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <a class="link-cards" href="/Reports/DailyActivityReport">
+                                    <div class="card card-primary card-outline">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Daily Activity Report</h5>
+                                            <p class="text-primary-custom m-0">What activities happened in the system in one day.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>*@
+
+                            <div class="col-md-6 col-sm-12 mb-3">
+                                <a class="link-cards" href='@Url.Action("ExpiryReport", "Reports")'>
+                                    <div class="card card-primary card-outline  h-100">
+                                        <div class="card-body p-3">
+                                            <h5 class="text-primary-custom"><i class="fas fa-address-book"></i> Expiry Report</h5>
+                                            <p class="text-primary-custom m-0">Tracking of expiring or expired medicines.</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/JSModels/Reports/reportsGroup.js"></script>
+}

@@ -1,0 +1,188 @@
+﻿@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+
+[data-notify="container"][class*="alert-metro-"] {
+    background-color: rgb(255, 255, 238);
+    border-width: 0px;
+    border-left: 15px solid rgb(255, 240, 106);
+    border-radius: 0px;
+    box-shadow: 0px 0px 5px rgba(51, 51, 51, 0.3);
+    font-family: 'Old Standard TT', serif;
+    letter-spacing: 1px;
+}
+
+[data-notify="container"].alert-metro-default {
+    color: #fafafa !important;
+    background-color: #ABB7B7;
+    border: 1px solid #ABB7B7;
+}
+
+[data-notify="container"].alert-metro-error {
+    color: #fafafa !important;
+    background-color: #E15554;
+    border: 1px solid #E15554;
+}
+
+[data-notify="container"].alert-metro-success {
+    color: #fafafa !important;
+    background-color: #68C39F;
+    border: 1px solid #68C39F;
+}
+
+[data-notify="container"].alert-metro-info {
+    color: white !important;
+    background-color: #65BBD6;
+    border: 1px solid #65BBD6;
+}
+
+[data-notify="container"].alert-metro-warning {
+    color: #fafafa !important;
+    background-color: #FFC052;
+    border: 1px solid #FFC052;
+}
+
+[data-notify="container"].alert-metro-black {
+    color: #fafafa !important;
+    background-color: #333;
+    border: 1px solid #000;
+}
+
+[data-notify="container"].alert-metro-cool {
+    color: #fafafa !important;
+    background-color: #4A525F;
+    border: 1px solid #4A525F;
+}
+
+[data-notify="container"].alert-metro-nonspaced {
+    color: #fafafa !important;
+    background-color: #4A525F;
+    min-width: 150px;
+    border: 1px solid #4A525F;
+}
+
+[data-notify="container"].alert-metro-white {
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+}
+
+
+
+[data-notify="container"][class*="alert-metro-"] > [data-notify="title"] {
+    color: rgb(80, 80, 57);
+    display: block;
+    font-weight: 700;
+    font-family: "Open Sans", sans-serif;
+    margin-bottom: 5px;
+    color: white;
+}
+
+[data-notify="container"][class*="alert-metro-"] > [data-notify="message"] {
+    font-weight: 400;
+    color: black;
+    font-family: "Open Sans", sans-serif;
+    color: white;
+}
+
+
+
+
+
+
+
+[data-notify="container"][class*="alert-pastel-"] {
+    background-color: rgb(255, 255, 238);
+    border-width: 0px;
+    border-left: 15px solid rgb(255, 240, 106);
+    border-radius: 0px;
+    box-shadow: 0px 0px 5px rgba(51, 51, 51, 0.3);
+    font-family: 'Old Standard TT', serif;
+    letter-spacing: 1px;
+}
+
+[data-notify="container"].alert-pastel-info {
+    border-left-color: rgb(0, 148, 255);
+}
+
+[data-notify="container"].alert-pastel-danger {
+    border-left-color: rgb(255, 103, 76);
+}
+
+[data-notify="container"].alert-pastel-success {
+    border-left-color: rgb(40, 112, 7);
+}
+
+[data-notify="container"].alert-pastel-warning {
+    border-left-color: rgb(255, 103, 7);
+}
+
+[data-notify="container"][class*="alert-pastel-"] > [data-notify="title"] {
+    color: rgb(80, 80, 57);
+    display: block;
+    font-weight: 700;
+    font-family: "Open Sans", sans-serif;
+    margin-bottom: 5px;
+    color: black;
+}
+
+[data-notify="container"][class*="alert-pastel-"] > [data-notify="message"] {
+    font-weight: 400;
+    color: black;
+    font-family: "Open Sans", sans-serif;
+    color: black;
+}
+
+.notifyjs-metro-base {
+    position: relative;
+    min-height: 52px;
+    min-width: 250px;
+    color: #444;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.2);
+}
+
+    .notifyjs-metro-base .image {
+        display: table;
+        position: absolute;
+        height: auto;
+        width: auto;
+        left: 25px;
+        top: 50%;
+        font-size: 24px;
+        -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        -o-transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+    .notifyjs-metro-base .text-wrapper {
+        display: inline-block;
+        vertical-align: top;
+        text-align: left;
+        margin: 10px 10px 10px 52px;
+        clear: both;
+    }
+
+    .notifyjs-metro-base .title {
+        font-size: 15px;
+        line-height: 20px;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-family: 'Open Sans';
+    }
+
+    .notifyjs-metro-base .text {
+        font-size: 12px;
+        font-weight: normal;
+        max-width: 360px;
+        vertical-align: middle;
+    }
+
+.notifyjs-metro-nonspaced {
+    min-height: 22px;
+}
+
+    .notifyjs-metro-nonspaced .text-wrapper {
+        margin: 5px 5px 8px 8px;
+    }

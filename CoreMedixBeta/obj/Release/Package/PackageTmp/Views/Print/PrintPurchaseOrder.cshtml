@@ -1,0 +1,263 @@
+﻿@{
+    ViewBag.Title = "PrintPurchaseOrder";
+    Layout = null;
+}
+
+@using CoreMedixBeta.Models.Brandings
+@using CoreMedixBeta.Models.PurchaseOrders.DTOs;
+@model CoreMedixBeta.Models.PurchaseOrders.PrintPurchaseOrderVM
+@{
+
+    PurchaseOrderDto Order = Model.DetailedOrder.Order;
+    PrintBranding branding = Model.Branding;
+    bool isBranding = Model.Branding != null && Model.Branding.ID > 0;
+}
+
+<style>
+    /* reset */
+
+    /* * {
+        border: 0;
+        box-sizing: content-box;
+        color: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        font-style: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        text-decoration: none;
+        vertical-align: top;
+    }*/
+
+    /* content editable */
+
+    /* *[contenteditable] {
+            border-radius: 0.25em;
+            min-width: 1em;
+            outline: 0;
+        }
+
+        *[contenteditable] {
+            cursor: pointer;
+        }
+
+            *[contenteditable]:hover, *[contenteditable]:focus, td:hover *[contenteditable], td:focus *[contenteditable], img.hover {
+                background: #DEF;
+                box-shadow: 0 0 1em 0.5em #DEF;
+            }
+
+    span[contenteditable] {
+        display: inline-block;
+    }*/
+
+    /* heading */
+
+    h1 {
+        font: bold 100% sans-serif;
+        letter-spacing: 0.5em;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    /* table */
+
+    table {
+        font-size: 75%;
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 2px;
+    }
+
+    th, td {
+        border-width: 1px;
+        padding: 0.5em;
+        position: relative;
+        text-align: left;
+    }
+
+    th, td {
+        border-radius: 0.25em;
+        border-style: solid;
+    }
+
+    th {
+        background: #EEE;
+        border-color: #BBB;
+    }
+
+    td {
+        border-color: #DDD;
+    }
+
+    /* page */
+
+    /* html {
+        font: 16px/1 'Open Sans', sans-serif;
+        overflow: auto;
+        padding: 0.5in;
+    }
+
+    html {
+        background: #999;
+        cursor: default;
+    }
+
+    body {
+        box-sizing: border-box;
+        height: 11in;
+        margin: 0 auto;
+        overflow: hidden;
+        padding: 0.5in;
+        width: 8.5in;
+    }
+
+    body {
+        background: #FFF;
+        border-radius: 1px;
+        box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);
+    }*/
+
+    /*    .main-footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background-color: #f8f9fa;
+        padding-inline: 0;
+        padding-top: 8px;
+        padding-bottom: 6px !important;
+    }*/
+
+    tr:hover .cut {
+        opacity: 1;
+    }
+
+    /*@@media print {
+        * {
+            -webkit-print-color-adjust: exact;
+        }
+
+        html {
+            background: none;
+            padding: 0;
+        }
+
+        body {
+            box-shadow: none;
+            margin: 0;
+        }
+
+        span:empty {
+            display: none;
+        }
+    }
+
+    @@page {
+        margin: 0;
+    }*/
+</style>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Purchase Order</title> 
+    <link rel="icon" href="~/assets/AdminLTE/dist/img/heart-logo.png">
+    <link rel="stylesheet" href="~/assets/AdminLTE/dist/css/adminlte.min.css">
+</head>
+<body class="mx-auto">
+    <header class="pb-3 mb-3">
+        <br>
+        <div class="row d-flex justify-content-center">
+            <h3 class="text-bold">Purchase Order</h3>
+        </div><br>
+
+        <div class="row">
+            <div class="col-6">
+                <img class="img-responsive"
+                     src="@(isBranding && !string.IsNullOrWhiteSpace(branding.Logo) ? branding.Logo : "")"
+                     width="100" />
+            </div>
+            <div class="col-6 d-flex justify-content-end">
+                <p><small>PharmaX CoreMedix <br>Award Winning & No.1 Choice<br> of Doctors </small></p>
+            </div>
+        </div>
+    </header>
+
+    <div class="row">
+        <div class="col-5">
+            <table>
+                <tr>
+                    <th style="width:40%"><span class="font-weight-bold">Reference No</span></th>
+                    <td><span>@Order.ReferenceNo</span></td>
+                </tr>
+                <tr>
+                    <th><span class="font-weight-bold">Purchase Date</span></th>
+                    <td><span>@Order.OrderDateFormatted</span></td>
+                </tr>
+                <tr>
+                    <th><span class="font-weight-bold">Supplier Details</span></th>
+                    <td><span>@Order.SupplierName - @Order.SupplierPhone</span></td>
+                </tr> 
+                <tr>
+                    <th><span class="font-weight-bold">Purchase Status</span></th>
+                    <td><span>@Order.Status</span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <br />
+    <p class="font-weight-bold mb-1">Item Details</p>
+    <table>
+        <thead>
+            <tr class="font-weight-bold">
+                <th class="text-center">Item</th>
+                <th class="text-center">Rate</th>
+                <th class="text-center">Qty</th>
+                <th class="text-center">Tax</th>
+                <th class="text-center">Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.DetailedOrder.OrderItems != null && Model.DetailedOrder.OrderItems.Count > 0)
+            {
+                foreach (var item in Model.DetailedOrder.OrderItems)
+                {
+                    <tr>
+                        <td style="text-align: center">@item.Name </td>
+                        <td style="text-align: center">@Model.CurrencySymbol @item.UnitCost.ToString("N2")</td>
+                        <td style="text-align: center">@item.Qty</td>
+                        <td style="text-align: center">@Model.CurrencySymbol @((item.UnitCostWithTax - item.UnitCost).ToString("N2"))</td>
+                        <td style="text-align: center">@Model.CurrencySymbol @item.LineTotal.ToString("N2")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <br />
+    <div class="row justify-content-end">
+        <div class="col-4">
+            <table>
+                <tr>
+                    <th><span class="font-weight-bold">Sub Total</span></th>
+                    <td><span>@Model.CurrencySymbol @Order.SubTotal.ToString("N2")</span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    @*<footer class="main-footer text-center">
+            <h5 class="" style="margin:0% !important;"> PharmaX</h5>
+            <p style="margin-bottom:0% !important; font-size:12px !important;">This invoice has been computer-generated using Integris ERP Software.</p>
+        </footer>*@
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            window.print();
+        });
+    </script>
+</body>
+</html>

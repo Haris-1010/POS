@@ -1,0 +1,214 @@
+@{
+    ViewBag.Title = "ItemAttributes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using CoreMedixBeta.Models.InventoryItems
+<style>
+    .btn-primary-custom {
+        margin-bottom: 20px;
+    }
+
+    .card-primary.card-outline-tabs > .card-header a.active,
+    .card-primary.card-outline-tabs > .card-header a.active:hover {
+        border-top: 3px solid var(--cm-accent-ink);
+    }
+</style>
+
+<div class="container">
+    <div class="row mt-0">
+        <div class="col-md-12 col-sm-12">
+            <div class="scrollable-cards">
+                <!-- Box Comment -->
+                <div class="card card-widget">
+                    <h3 class="mt-2 ml-2">Item Attributes</h3>
+                    <div class="card-body">
+                        <div class="card card-primary card-outline card-outline-tabs">
+                            <div class="card-header p-0 border-bottom-0">
+                                <ul class="nav nav-tabs" id="custom-tabs-three-tab" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link primary-text active" id="categories-tab-btn" data-toggle="pill" href="#categories-tab" role="tab" aria-controls="categories-tab" aria-selected="true">Categories</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link primary-text" id="formations-tab-btn" data-toggle="pill" href="#formations-tab" role="tab" aria-controls="formations-tab" aria-selected="false">Formations</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link primary-text" id="units-tab-btn" data-toggle="pill" href="#units-tab" role="tab" aria-controls="units-tab" aria-selected="false">Units</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link primary-text" id="subcategories-tab-btn" data-toggle="pill" href="#subcategories-tab" role="tab" aria-controls="subcategories-tab" aria-selected="false">SubCategories</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link primary-text" id="weights-tab-btn" data-toggle="pill" href="#weights-tab" role="tab" aria-controls="weigths-tab" aria-selected="false">Weight Units</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content" id="custom-tabs-three-tabContent">
+                                    <!-- Categories Tab -->
+                                    <div class="tab-pane fade show active" id="categories-tab" role="tabpanel" aria-labelledby="categories-tab-btn">
+
+                                        <div class="ml-auto">
+                                            <button class="btn btn-primary-custom js-open-attribute-modal text-center pull-right" type="button" id="createCategoryBtn" data-type="Category">
+                                                <i class="fas fa-plus-circle"></i> Add Category
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table id="categoriesTable" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="categoriesTabRow">
+                                                    <!-- Data will be populated by DataTable -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- Formations Tab -->
+                                    <div class="tab-pane fade" id="formations-tab" role="tabpanel" aria-labelledby="formations-tab-btn">
+
+                                        <div class="ml-auto">
+                                            <button class="btn btn-primary-custom js-open-attribute-modal  text-center pull-right" type="button" id="createFormationBtn" data-type="Formation">
+                                                <i class="fas fa-plus-circle"></i> Add Formation
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table id="formationsTable" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="formationsTabRow">
+                                                    <!-- Data will be populated by DataTable -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- Units Tab -->
+                                    <div class="tab-pane fade" id="units-tab" role="tabpanel" aria-labelledby="units-tab-btn">
+
+                                        <div class="ml-auto">
+                                            <button class="btn btn-primary-custom js-open-attribute-modal text-center pull-right" type="button" id="createUnitBtn" data-type="Unit">
+                                                <i class="fas fa-plus-circle"></i> Add Unit
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table id="unitsTable" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="unitsTabRow">
+                                                    <!-- Data will be populated by DataTable -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- Subcategories Tab -->
+                                    <div class="tab-pane fade" id="subcategories-tab" role="tabpanel" aria-labelledby="subcategories-tab-btn">
+
+                                        <div class="ml-auto">
+                                            <button class="btn btn-primary-custom js-open-attribute-modal text-center pull-right" type="button" id="createSubcategoryBtn" data-type="Subcategory">
+                                                <i class="fas fa-plus-circle"></i> Add Subcategory
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table id="subcategoryTable" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="subcategoryTabRow">
+                                                    <!-- Data will be populated by DataTable -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Weights Tab -->
+                                    <div class="tab-pane fade" id="weights-tab" role="tabpanel" aria-labelledby="weights-tab-btn">
+
+                                        <div class="ml-auto">
+                                            <button class="btn btn-primary-custom js-open-attribute-modal text-center pull-right" type="button" id="createWeightBtn" data-type="WeightUnit">
+                                                <i class="fas fa-plus-circle"></i> Add Weight Unit
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table id="weightUnitsTable" class="display" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="weightTabRow">
+                                                    <!-- Data will be populated by DataTable -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reusable Modal -->
+<div class="modal fade" id="saveItemModal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title js-modal-title primary-text font-weight-bold">Create Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createItemForm">
+                    <div class="form-group">
+                        <label for="itemTitle">Title <span class="required-star">*</span></label>
+                        <input type="text" class="form-control" id="itemTitle" name="Title" required maxlength="@ItemAttribute.MaxTitleLength" minlength="@ItemAttribute.MinTitleLength" placeholder="Enter Title" />
+                    </div>
+                    <input type="hidden" name="ID" value="0" />
+                    <input type="hidden" name="Type" value="" required />
+                    @*<input type="hidden" name="LocationID" value="@user.LocationID" required />
+                        <input type="hidden" name="MasterUsername" value="@user.MasterUsername" required />*@
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary js-save-btn" style="background-color: #23108F;">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<form id="ItemAttributesPermissionsForm">
+        <input type="hidden" name="canUpdate" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.ItemAttributesUpdate && x.IsGranted) ? "1" : "0")" />
+        <input type="hidden" name="canDelete" value="@(user.IsAdmin || user.Permissions.Any(x => x.Discriminator == Constants.PharmacyPermDisc && x.Name == PharmacyUserPermissions.Settings.ItemAttributesDelete && x.IsGranted) ? "1" : "0")" />
+    </form>*@
+@section Scripts{
+    <script> 
+        var SaveItemAttributeUrl = '@Url.Action("SaveItemAttribute", "InventorySettings")';
+        var GetItemAttributesUrl = '@Url.Action("GetItemAttributes", "InventorySettings")';
+        var DeleteItemAttributeUrl = '@Url.Action("DeleteItemAttribute", "InventorySettings")';
+    </script>
+    <script src="~/JSModels/InventorySettings/itemAttributes.js"></script>
+}
