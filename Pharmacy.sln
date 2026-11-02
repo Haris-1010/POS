@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreMedixBeta", "CoreMedixBeta\CoreMedixBeta.csproj", "{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HART POS", "HART POS\HART POS.csproj", "{DE98CA0B-4EBC-461A-AA9B-FC0F2B832781}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

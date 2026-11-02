@@ -1,0 +1,108 @@
+@model HARTPOS.Service.LicenseStatus
+@{
+    Layout = null;
+    ViewBag.Title = "HART POS License Activation";
+    string notice = ViewBag.LicenseNotice as string;
+    bool installSucceeded = ViewBag.LicenseInstallSucceeded == true;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 32px 16px; background: #f3f5f9; color: #172033; font: 16px/1.5 "Segoe UI", Arial, sans-serif; }
+        main { max-width: 720px; margin: 4vh auto; padding: 32px; border: 1px solid #e1e6ef; border-radius: 12px; background: #fff; box-shadow: 0 12px 36px rgba(20, 33, 61, .09); }
+        h1 { margin: 0 0 8px; font-size: 28px; }
+        h2 { margin: 24px 0 8px; font-size: 18px; }
+        p { color: #4a5568; }
+        .status, .notice { margin: 20px 0; padding: 14px 16px; border-radius: 8px; background: #fff5e6; color: #804b00; }
+        .status.valid, .notice.success { background: #eaf7ef; color: #17653a; }
+        .notice.error { background: #fff0ef; color: #982c22; }
+        code, textarea { font-family: Consolas, monospace; }
+        .installation-id { display: block; width: 100%; padding: 12px; overflow-wrap: anywhere; border: 1px solid #ccd4e0; border-radius: 6px; background: #f8f9fb; color: #172033; font-size: 14px; }
+        .hint { margin-top: 8px; font-size: 13px; }
+        label { display: block; margin: 16px 0 8px; font-weight: 600; }
+        input[type=file] { display: block; width: 100%; padding: 12px; border: 1px solid #ccd4e0; border-radius: 6px; background: #fff; }
+        button { margin-top: 14px; padding: 11px 18px; border: 0; border-radius: 6px; background: #174ea6; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+        button:hover { background: #123d83; }
+        .login-link { display: inline-block; margin-top: 20px; padding: 11px 18px; border-radius: 6px; background: #174ea6; color: #fff; font-weight: 600; text-decoration: none; }
+        .login-link:hover { background: #123d83; }
+        .copy-button { margin-top: 10px; background: #465469; }
+        .copy-button:hover { background: #344055; }
+        .details { display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; }
+        .details dt { color: #596579; }
+        .details dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
+        @@media (max-width: 520px) { main { padding: 22px 18px; } .details { grid-template-columns: 1fr; gap: 2px; } .details dd { margin-bottom: 10px; } }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>HART POS License</h1>
+        <p>This server checks its signed license locally. No internet connection is required.</p>
+
+        <div class="status @(Model.IsValid ? "valid" : "")">
+            <strong>@(Model.IsValid ? "License active" : "Activation required")</strong>
+            <div>@Model.Message</div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(notice))
+        {
+            <div class="notice @(installSucceeded ? "success" : "error")" role="status">@notice</div>
+        }
+
+        @if (!Model.IsValid && !string.IsNullOrWhiteSpace(Model.InstallationId))
+        {
+            <h2>This server's Installation ID</h2>
+            <code class="installation-id" id="installationId">@Model.InstallationId</code>
+            <button type="button" class="copy-button" id="copyInstallationId">Copy Installation ID</button>
+            <p class="hint">Send this ID to your POS license provider. A license issued for another server will not activate this installation.</p>
+        }
+
+        @if (Model.IsValid)
+        {
+            <a class="login-link" href="@Url.Action("Login", "Account")">Go to POS Login</a>
+
+            <h2>License details</h2>
+            <dl class="details">
+                <dt>Customer</dt>
+                <dd>@Model.CustomerName</dd>
+                <dt>License ID</dt>
+                <dd>@Model.LicenseId</dd>
+                <dt>Expiry</dt>
+                <dd>@(Model.ExpiresOnUtc.HasValue ? Model.ExpiresOnUtc.Value.ToString("yyyy-MM-dd") + " UTC" : "Perpetual")</dd>
+            </dl>
+        }
+
+        <h2>Install a license file</h2>
+        <p>Choose the signed <code>.json</code> license file supplied for this server.</p>
+        <form action="@Url.Action("Install", "License")" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <label for="licenseFile">Signed license file</label>
+            <input id="licenseFile" name="licenseFile" type="file" accept=".json,application/json" required />
+            <button type="submit">Verify and install license</button>
+        </form>
+    </main>
+    <script>
+        (function () {
+            var button = document.getElementById('copyInstallationId');
+            var code = document.getElementById('installationId');
+            if (!button || !code) return;
+            button.addEventListener('click', function () {
+                var text = code.textContent.trim();
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function () {
+                        button.textContent = 'Copied';
+                    }, function () {
+                        window.prompt('Copy this Installation ID:', text);
+                    });
+                    return;
+                }
+                window.prompt('Copy this Installation ID:', text);
+            });
+        })();
+    </script>
+</body>
+</html>

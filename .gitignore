@@ -1,2 +1,7 @@
 
 .vs/
+**/.vs/
+**/obj/
+**/Uploads/
+**/*.csproj.user
+**/*.dll.config
