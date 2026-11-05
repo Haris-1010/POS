@@ -52,6 +52,26 @@
             } catch (e) { }
         })();
     </script>
+    <script>
+        // What this user may do, for showing/hiding buttons. The server checks again on every
+        // request, so this only keeps the screen honest; it is not the security itself.
+        window.cmAccess = { isAdmin: @(isAdmin ? "true" : "false"), perms: @Html.Raw(Json.Encode(userPermissions)) };
+        window.cmCan = function () {
+            if (window.cmAccess.isAdmin) return true;
+            for (var i = 0; i < arguments.length; i++) {
+                if (window.cmAccess.perms.indexOf(arguments[i]) >= 0) return true;
+            }
+            return false;
+        };
+        // Elements marked data-perm="Key1,Key2" are removed unless the user has one of the keys.
+        document.addEventListener('DOMContentLoaded', function () {
+            var els = document.querySelectorAll('[data-perm]');
+            for (var i = 0; i < els.length; i++) {
+                var keys = els[i].getAttribute('data-perm').split(',');
+                if (!window.cmCan.apply(null, keys)) els[i].parentNode.removeChild(els[i]);
+            }
+        });
+    </script>
     @{
         string printLogo = HARTPOS.Repositories.BrandingsRepository.GetPrintLogoUrl();
     }
@@ -68,11 +88,9 @@
     <link rel="stylesheet" href="~/assets/AdminLTE/plugins/fontawesome-free/css/all.min.css">
     @*<link rel="stylesheet" href="~/assets/AdminLTE/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">*@
     <link rel="stylesheet" href="~/assets/AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/jqvmap/jqvmap.min.css">
     <link rel="stylesheet" href="~/assets/AdminLTE/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="~/assets/AdminLTE/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
     <link rel="stylesheet" href="~/assets/AdminLTE/plugins/daterangepicker/daterangepicker.css">
-    <link rel="stylesheet" href="~/assets/AdminLTE/plugins/summernote/summernote-bs4.min.css">
     <link href="~/panel-assets/plugins/select2/css/select2.min.css" rel="stylesheet" />
     <link href="~/assets/libraries/Jquery-Loading/jquery.loading.min.css" rel="stylesheet" />
     <link href="~/ReplacementPaths/DataTables/jquery.dataTables.min.css" rel="stylesheet" />
@@ -86,9 +104,12 @@
     <link href="~/assets/AdminLTE/plugins/jquery-ui/jquery-ui.css" rel="stylesheet" />
     <link href="~/Styles/Shared/layout.css" rel="stylesheet" />
     <link href="~/Styles/Shared/theme.css?v=20261102-3" rel="stylesheet" />
-    <link href="~/assets/botui/botui.min.css" rel="stylesheet" />
-    <link href="~/assets/botui/botui-theme-default.css" rel="stylesheet" />
-    <link href="~/CSSModels/ChatBot/chatbot.css" rel="stylesheet" />
+    @if (HasPermission("Chatbot_Use"))
+    {
+        <link href="~/assets/botui/botui.min.css" rel="stylesheet" />
+        <link href="~/assets/botui/botui-theme-default.css" rel="stylesheet" />
+        <link href="~/CSSModels/ChatBot/chatbot.css" rel="stylesheet" />
+    }
 
     <!-- POS look: yeh block sab existing CSS ke baad load hota hai taa ke override kare -->
     <style>
@@ -650,7 +671,7 @@
             </a>
             <ul class="navbar-nav ml-auto align-items-center cm-header-actions">
 
-                @if (HasPermission("Sales_View"))
+                @if (HasPermission("Sales_Add"))
                 {
                     <li class="nav-item">
                         <a class="cm-newsale" href="@Url.Action("ManageInvoice", "Sales")" title="Start a new sale">
@@ -771,7 +792,7 @@
                     </li>
                 }
 
-                @if (HasPermission("Sales_View"))
+                @if (HasPermission("Sales_View") || HasPermission("Sales_Add"))
                 {
                     <li class="cm-menu-item cm-has-sub">
                         <a href="#" class="cm-menu-link">
@@ -780,13 +801,13 @@
                             <i class="cm-arrow fas fa-angle-down"></i>
                         </a>
                         <ul class="cm-submenu">
-                            <li>
+                            <li data-perm="Sales_View">
                                 <a href="@Url.Action("SaleInvoices", "Sales")" class="cm-submenu-link">
                                     <i class="fas fa-file-invoice-dollar"></i>
                                     <span data-i18n="nav_invoices">Invoices</span>
                                 </a>
                             </li>
-                            <li>
+                            <li data-perm="Sales_Add">
                                 <a href="@Url.Action("ManageInvoice", "Sales")" class="cm-submenu-link">
                                     <i class="fas fa-file-invoice"></i>
                                     <span data-i18n="nav_new_invoice">New Invoice</span>
@@ -831,7 +852,7 @@
                     </li>
                 }
 
-                @if (HasPermission("InventorySettings_View") || HasPermission("InventorySettings_Manage"))
+                @if (HasPermission("InventorySettings_View") || HasPermission("InventorySettings_Manage") || HasPermission("Taxes_View") || HasPermission("Discounts_View") || HasPermission("Branding_View") || HasPermission("Branding_Manage") || HasPermission("BackupSettings_View") || HasPermission("BackupSettings_Manage"))
                 {
                     <li class="cm-menu-item">
                         <a href="@Url.Action("Index", "InventorySettings")" class="cm-menu-link">
@@ -841,7 +862,7 @@
                     </li>
                 }
 
-                @if (Session["Role"] != null && Session["Role"].ToString() == "Admin")
+                @if (HasPermission("Users_View") || HasPermission("Users_Manage"))
                 {
                     <li class="cm-menu-item">
                         <a href="@Url.Action("Users", "Account")" class="cm-menu-link">
@@ -871,6 +892,8 @@
                     </div>
                 </section>
             </div>
+            @if (HasPermission("Chatbot_Use"))
+            {
             <div id="chatbot-container" class="card" style="display: none;">
                 <div class="card-header">
                     <div class="d-flex align-items-center">
@@ -902,6 +925,7 @@
             <button id="chatbot-toggle" class="btn" title="POS Assistant">
                 <i class="fas fa-comments"></i>
             </button>
+            }
         </div>
         <footer class="main-footer justify-content-center text-center">
             <small>&copy; @DateTime.Now.Year HART POS. All rights reserved.</small>
@@ -940,13 +964,8 @@
     <!-- Bootstrap -->
     <script src="~/assets/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <!-- AdminLTE Plugins -->
-    <script src="~/assets/AdminLTE/plugins/chart.js/Chart.min.js"></script>
-    <script src="~/assets/AdminLTE/plugins/sparklines/sparkline.js"></script>
-    <script src="~/assets/AdminLTE/plugins/jqvmap/jquery.vmap.min.js"></script>
-    <script src="~/assets/AdminLTE/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
-    <script src="~/assets/AdminLTE/plugins/jquery-knob/jquery.knob.min.js"></script>
-    <script src="~/assets/AdminLTE/plugins/summernote/summernote-bs4.min.js"></script>
+    <!-- AdminLTE Plugins (Chart.js now loads only on the Dashboard; unused map/knob/
+         sparkline/summernote plugins removed to speed up every page) -->
     <script src="~/assets/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
     <script src="~/assets/AdminLTE/dist/js/adminlte.js"></script>
 
@@ -997,7 +1016,10 @@
     <script src="~/JSModels/SharedJS/theme.js"></script>
     <script src="~/JSModels/SharedJS/i18n.js"></script>
     <script src="~/JSModels/SharedJS/shared.js"></script>
-    <script src="~/JSModels/ChatBot/chatbot.js"></script>
+    @if (HasPermission("Chatbot_Use"))
+    {
+        <script src="~/JSModels/ChatBot/chatbot.js"></script>
+    }
     @*<script src="~/Areas/Pharmacy/JSModels/Shared/helperFunctions.js"></script>
         <script src="~/Areas/Pharmacy/JSModels/Shared/shortcutKeys.js"></script>
         <script src="~/Areas/Pharmacy/JSModels/Shared/pharmacyLayout.js"></script>*@

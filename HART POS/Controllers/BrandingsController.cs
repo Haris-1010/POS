@@ -4,6 +4,7 @@ using HARTPOS.Models.Brandings;
 using HARTPOS.Models.Brandings.DTOs;
 using HARTPOS.Models.Discounts.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Filters;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,12 +29,14 @@ namespace HARTPOS.Controllers
             _brandingRepo = brandingRepository;
         }
 
+        [AuthorizePermission("Branding_View", "Branding_Manage")]
         public ActionResult PrintBranding()
         {
             return View();
         }
 
         [HttpPost]
+        [AuthorizePermission("Branding_View", "Branding_Manage")]
         public async Task<JsonResult> GetPrintBranding()
         {
             try
@@ -56,6 +59,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Branding_Manage")]
         public async Task<JsonResult> SavePrintBranding(SavePrintBrandingInputDto input)
         {
             try
@@ -141,6 +145,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Branding_View", "Branding_Manage")]
         public async Task<JsonResult> GetPrintBrandingCustomField()
         {
             try
@@ -165,6 +170,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Branding_Manage")]
         public async Task<JsonResult> SavePrintBrandingCustomField(PrintBrandingCustomField input)
         {
             try
@@ -199,6 +205,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Branding_Manage")]
         public async Task<JsonResult> DeleteCustomField(DeleteDiscountInputDto input)
         {
             try

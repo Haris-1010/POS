@@ -300,7 +300,9 @@ namespace InstaCareEMR.Core.DBHelpers
             }
             else
             {
-                return $"'{value.ToString().Replace("\'", "'\'\'")}'";
+                // SQL escapes a quote by doubling it ('' ). The old code produced ''' which
+                // broke saving any text with an apostrophe, e.g. "Women's Cream".
+                return $"'{value.ToString().Replace("'", "''")}'";
             }
         }
 

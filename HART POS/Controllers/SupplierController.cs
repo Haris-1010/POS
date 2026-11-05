@@ -6,6 +6,7 @@ using HARTPOS.Models.Patient.DTOs;
 using HARTPOS.Models.Supplier;
 using HARTPOS.Repositories;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace HARTPOS.Controllers
             _patientRepository = patientRepository;
         }
 
+        [AuthorizePermission("Suppliers_View")]
         public async Task<ActionResult> Suppliers()
         {
             return View(new SuppliersViewModel
@@ -43,6 +45,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Suppliers_Add", "Suppliers_Edit")]
         public async Task<JsonResult> SaveSupplier(Supplier formInput)
         {
+            // A new record needs "Suppliers_Add"; changing an existing one needs "Suppliers_Edit".
+            bool isNewRecord = formInput.ID <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Suppliers_Add", "Suppliers_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
                 string currentUsername = Session["Username"]?.ToString() ?? "System";

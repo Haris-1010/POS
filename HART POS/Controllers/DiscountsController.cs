@@ -4,6 +4,7 @@ using HARTPOS.Models;
 using HARTPOS.Models.Discounts;
 using HARTPOS.Models.Discounts.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,7 @@ namespace HARTPOS.Controllers
             _discountsRepository = discountsRepository;
         }
 
+        [AuthorizePermission("Discounts_View")]
         public ActionResult Discounts()
         {
             return View();
@@ -36,6 +38,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Discounts_Add", "Discounts_Edit")]
         public async Task<JsonResult> SaveDiscount(SaveDiscountInputDto formInput)
         {
+            // A new record needs "Discounts_Add"; changing an existing one needs "Discounts_Edit".
+            bool isNewRecord = formInput.ID <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Discounts_Add", "Discounts_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
                 if (!ModelState.IsValid)
@@ -61,11 +68,12 @@ namespace HARTPOS.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return Json(new AjaxRequestDTO { Status = false, Message = "Failed to Save Patient due to technical error" });
+                return Json(new AjaxRequestDTO { Status = false, Message = "Failed to save discount due to technical error" });
             }
         }
 
         [HttpPost] 
+        [AuthorizePermission("Discounts_View")]
         public async Task<JsonResult> GetPagedDiscounts()
         {
             try

@@ -12,9 +12,10 @@
     const permissionsForm = $('#permissionsForm').serializeObject();
 
     let permissions = {
-        canCreate: "1",
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canCreate: window.cmCan('Branding_Manage'),
+        canUpdate: window.cmCan('Branding_Manage'),
+        canDelete: window.cmCan('Branding_Manage')
     };
 
     $(function () {

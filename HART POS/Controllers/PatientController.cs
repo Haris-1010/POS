@@ -7,6 +7,7 @@ using HARTPOS.Repositories;
 using InstaCareEMR.Core.DBHelpers;
 using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +46,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Patient_Add", "Patient_Edit")]
         public async Task<JsonResult> SavePatients(Patients formInput)
         {
+            // A new record needs "Patient_Add"; changing an existing one needs "Patient_Edit".
+            bool isNewRecord = formInput.ID <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Patient_Add", "Patient_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
                 if (string.IsNullOrWhiteSpace(formInput?.Name))
@@ -52,7 +58,7 @@ namespace HARTPOS.Controllers
                     return Json(new
                     {
                         Status = false,
-                        Message = "Patient name is required"
+                        Message = "Customer name is required"
                     }, JsonRequestBehavior.AllowGet);
                 }
 
@@ -68,7 +74,7 @@ namespace HARTPOS.Controllers
                     return Json(new
                     {
                         Status = true,
-                        Message = "Patients saved successfully",
+                        Message = "Customer saved successfully",
                         Data = customerId
                     }, JsonRequestBehavior.AllowGet);
                 }
@@ -76,7 +82,7 @@ namespace HARTPOS.Controllers
                 return Json(new
                 {
                     Status = false,
-                    Message = "Failed to save Patients due to technical error"
+                    Message = "Failed to save customer due to technical error"
                 }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -92,6 +98,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Patient_View", "Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<JsonResult> GetAllCustomersPagedList(GetPagedPatientInputDto input)
         {
             try

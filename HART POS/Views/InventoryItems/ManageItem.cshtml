@@ -55,8 +55,8 @@
 
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label for="">Manufacturer <span class="required">*</span></label>
-                        <input type="text" name="ManufacturerName" autocomplete="off" class="form-control js-search-manufacturer" required placeholder="Eg: Haris Yahya" value="@manufactureName" />
+                        <label for="">Manufacturer <small class="text-muted">(optional)</small></label>
+                        <input type="text" name="ManufacturerName" autocomplete="off" class="form-control js-search-manufacturer" placeholder="Eg: Haris Yahya" value="@manufactureName" />
                         <input type="hidden" name="ManufacturerID" value="@manufactureID" />
                     </div>
                 </div>
@@ -123,9 +123,9 @@
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label for="productType">Type<span class="required">*</span></label>
-                        <select class="form-control js-select2" id="productType" name="ProductType" required>
-                            <option value="">Select Product</option>
+                        <label for="productType">Type <small class="text-muted">(optional)</small></label>
+                        <select class="form-control js-select2" id="productType" name="ProductType">
+                            <option value="">Select Type</option>
                             <option value="Medicine" @(Model != null && Model.Item != null && Model.Item.ProductType == "Medicine" ? "selected" : "")>
                                 Standard
                             </option>
@@ -151,7 +151,7 @@
             </div>
             <div class="row">
                 <div class="col-12 text-center">
-                    <button type="button" class="btn btn-primary-custom js-save-btn">Save Item</button>
+                    <button data-perm="Inventory_Add,Inventory_Edit" type="button" class="btn btn-primary-custom js-save-btn">Save Item</button>
                 </div>
             </div>
         </form>
@@ -164,7 +164,7 @@
         <div class="card-header d-flex justify-content-between align-items-baseline">
             <h3 class="card-title primary-text font-weight-bold">Variations</h3>
             <div class="card-tools ml-auto">
-                <button type="button" class="btn btn-primary-custom" data-toggle="modal" data-target="#addVariationModal"><i class="fa fa-plus-circle"></i> Add Variation</button>
+                <button data-perm="Inventory_Add,Inventory_Edit" type="button" class="btn btn-primary-custom" data-toggle="modal" data-target="#addVariationModal"><i class="fa fa-plus-circle"></i> Add Variation</button>
             </div>
         </div>
     }

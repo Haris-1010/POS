@@ -8,6 +8,7 @@ using HARTPOS.Models.Purchases.DTOs;
 using HARTPOS.Models.Sales;
 using HARTPOS.Models.Sales.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,7 @@ namespace HARTPOS.Controllers
             return View();
         }
 
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<ActionResult> PrintSaleInvoiceThermal(int ID)
         {
             try
@@ -80,6 +82,7 @@ namespace HARTPOS.Controllers
             }
         }
 
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<ActionResult> PrintSaleInvoiceThermalV2(int ID)
         {
             try
@@ -112,6 +115,7 @@ namespace HARTPOS.Controllers
             }
         }
 
+        [AuthorizePermission("Purchases_View", "Purchases_Add", "Purchases_Edit")]
         public async Task<ActionResult> PrintPurchaseOrder(int ID)
         {
             if (ID <= 0) return View("PurchaseOrders", "Purchases");
@@ -133,6 +137,7 @@ namespace HARTPOS.Controllers
             return View(viewModel);
         }
 
+        [AuthorizePermission("Purchases_View", "Purchases_Add", "Purchases_Edit")]
         public async Task<ActionResult> PrintPurchase(int ID)
         {
             if (ID <= 0) return View("PurchaseOrders", "Purchases");

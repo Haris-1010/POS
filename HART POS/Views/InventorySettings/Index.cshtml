@@ -59,103 +59,118 @@
     <div class="card-body" style="min-height:70vh !important;">
         <div class="row">
 
-            <div class="col-md-4 col-sm-12">
-                <a href="@Url.Action("ItemAttributes","InventorySettings")" class="nav-link setting-card-nav-link">
-                    <div class="card mb-3 setting-card">
-                        <div class="card-body text-primary">
-                            <div class="row">
-                                <div class="col-4 text-center d-flex align-items-center">
-                                    <h4>
-                                        <i class="fas fa-list-alt setting-card-icon"></i>
-                                    </h4>
-                                </div>
-                                <div class="col-8 px-0 d-flex align-items-center">
-                                    <h5 class="setting-card-title">Item Attributes</h5>
+            @if (HasPermission("InventorySettings_View") || HasPermission("InventorySettings_Manage"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href="@Url.Action("ItemAttributes","InventorySettings")" class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="fas fa-list-alt setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h5 class="setting-card-title">Item Attributes</h5>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
 
-            <div class="col-md-4 col-sm-12">
-                <a href="@Url.Action("InvoicePrefix","InventorySettings")" class="nav-link setting-card-nav-link">
-                    <div class="card mb-3 setting-card">
-                        <div class="card-body text-primary">
-                            <div class="row">
-                                <div class="col-4 text-center d-flex align-items-center">
-                                    <h4>
-                                        <i class="fas fa-dollar-sign setting-card-icon"></i>
-                                    </h4>
-                                </div>
-                                <div class="col-8 px-0 d-flex align-items-center">
-                                    <h5 class="setting-card-title">Invoice Prefix & Currency Setting</h5>
+            @if (HasPermission("InventorySettings_View"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href="@Url.Action("InvoicePrefix","InventorySettings")" class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="fas fa-dollar-sign setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h5 class="setting-card-title">Invoice Prefix & Currency Setting</h5>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
 
-            <div class="col-md-4 col-sm-12">
-                <a href="@Url.Action("Taxes","Taxes")" class="nav-link setting-card-nav-link">
-                    <div class="card mb-3 setting-card">
-                        <div class="card-body text-primary">
-                            <div class="row">
-                                <div class="col-4 text-center d-flex align-items-center">
-                                    <h4>
-                                        <i class="fas fa-percent setting-card-icon"></i>
-                                    </h4>
-                                </div>
-                                <div class="col-8 px-0 d-flex align-items-center">
-                                    <h4 class="setting-card-title">Tax Settings</h4>
+            @if (HasPermission("Taxes_View"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href="@Url.Action("Taxes","Taxes")" class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="fas fa-percent setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h4 class="setting-card-title">Tax Settings</h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
         </div>
 
         <div class="row">
 
-            <div class="col-md-4 col-sm-12">
-                <a href='@Url.Action("Discounts", "Discounts")' class="nav-link setting-card-nav-link">
-                    <div class="card mb-3 setting-card">
-                        <div class="card-body text-primary">
-                            <div class="row">
-                                <div class="col-4 text-center d-flex align-items-center">
-                                    <h4>
-                                        <i class="fas fa-tags setting-card-icon"></i>
-                                    </h4>
-                                </div>
-                                <div class="col-8 px-0 d-flex align-items-center">
-                                    <h4 class="setting-card-title">Discount Management</h4>
+            @if (HasPermission("Discounts_View"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href='@Url.Action("Discounts", "Discounts")' class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="fas fa-tags setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h4 class="setting-card-title">Discount Management</h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
 
-            <div class="col-md-4 col-sm-12">
-                <a href='@Url.Action("PrintBranding", "Brandings")' class="nav-link setting-card-nav-link">
-                    <div class="card mb-3 setting-card">
-                        <div class="card-body text-primary">
-                            <div class="row">
-                                <div class="col-4 text-center d-flex align-items-center">
-                                    <h4>
-                                        <i class="far fa-address-card setting-card-icon"></i>
-                                    </h4>
-                                </div>
-                                <div class="col-8 px-0 d-flex align-items-center">
-                                    <h4 class="setting-card-title">Print Branding</h4>
+            @if (HasPermission("Branding_View") || HasPermission("Branding_Manage"))
+            {
+                <div class="col-md-4 col-sm-12">
+                    <a href='@Url.Action("PrintBranding", "Brandings")' class="nav-link setting-card-nav-link">
+                        <div class="card mb-3 setting-card">
+                            <div class="card-body text-primary">
+                                <div class="row">
+                                    <div class="col-4 text-center d-flex align-items-center">
+                                        <h4>
+                                            <i class="far fa-address-card setting-card-icon"></i>
+                                        </h4>
+                                    </div>
+                                    <div class="col-8 px-0 d-flex align-items-center">
+                                        <h4 class="setting-card-title">Print Branding</h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
 
             @if (HasPermission("BackupSettings_View") || HasPermission("BackupSettings_Manage") || HasPermission("InventorySettings_Manage"))
             {

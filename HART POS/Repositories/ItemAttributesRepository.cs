@@ -141,9 +141,10 @@ namespace HARTPOS.Repositories
                     prefix = "INV";
                 }
 
+                // Preview only (the real number is assigned when the sale is saved), so no lock.
+                // It used to read an old-system table and always came back empty.
                 string invoiceNumberQuery = @"SELECT TOP 1 InvoiceNo
-                              FROM Pharmacy.SaleInvoices WITH (UPDLOCK, HOLDLOCK)
-                              WHERE MasterUsername = @MasterUsername
+                              FROM Sale.SaleInvoices
                               ORDER BY ID DESC ";
 
                 var invoiceNumber = await DBHelper.GetSingleColumnAsync(invoiceNumberQuery, dbValues);

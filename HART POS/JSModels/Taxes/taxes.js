@@ -6,8 +6,9 @@
     const TaxesPermissionsForm = $('#TaxesPermissionsForm').serializeObject();
 
     let TaxesPermissions = {
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canUpdate: window.cmCan('Taxes_Edit'),
+        canDelete: window.cmCan('Taxes_Delete')
     };
 
     $(function () {

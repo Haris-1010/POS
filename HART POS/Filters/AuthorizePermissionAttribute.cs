@@ -34,8 +34,14 @@ namespace HARTPOS.Filters
             if (httpContext.User.IsInRole("Admin"))
                 return true;
 
-            // Get permissions from session
-            var permissions = httpContext.Session["Permissions"] as List<string>;
+            // Permissions come from the database (cached), not only Session, so they survive
+            // a lost session and reflect an admin's changes immediately.
+            var access = HARTPOS.Service.UserAccessService.Current(httpContext);
+            if (access != null)
+                return access.HasAny(_permissionKeys);
+
+            // DB unreachable: fall back to what was stored at login.
+            var permissions = httpContext.Session?["Permissions"] as List<string>;
             if (permissions == null)
                 return false;
 

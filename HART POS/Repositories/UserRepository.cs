@@ -301,32 +301,21 @@ namespace HARTPOS.Repositories
         {
             try
             {
-                // First, remove existing permissions
-                Dictionary<string, string> deleteValues = new Dictionary<string, string>
+                var values = new Dictionary<string, string> { { "@UserID", userID.ToString() } };
+
+                // Delete + insert run in one transaction and one round trip, so a user is never
+                // left with half their permissions. IDs are ints (safe to inline) and are matched
+                // against Auth.Permissions, so unknown IDs are ignored.
+                var ids = (permissionIDs ?? new List<int>()).Where(id => id > 0).Distinct().ToList();
+
+                string query = "DELETE FROM Auth.UserPermissions WHERE UserID = @UserID;";
+                if (ids.Count > 0)
                 {
-                    { "@UserID", userID.ToString() }
-                };
-
-                string deleteQuery = @"DELETE FROM Auth.UserPermissions WHERE UserID = @UserID";
-                await DBHelper.ExecuteQueryAsync(deleteQuery, deleteValues);
-
-                // Then, insert new permissions
-                if (permissionIDs != null && permissionIDs.Count > 0)
-                {
-                    foreach (int permissionID in permissionIDs)
-                    {
-                        Dictionary<string, string> insertValues = new Dictionary<string, string>
-                        {
-                            { "@UserID", userID.ToString() },
-                            { "@PermissionID", permissionID.ToString() }
-                        };
-
-                        string insertQuery = @"INSERT INTO Auth.UserPermissions (UserID, PermissionID)
-                                               VALUES (@UserID, @PermissionID)";
-                        await DBHelper.ExecuteQueryAsync(insertQuery, insertValues);
-                    }
+                    query += $@" INSERT INTO Auth.UserPermissions (UserID, PermissionID)
+                                 SELECT @UserID, ID FROM Auth.Permissions WHERE ID IN ({string.Join(",", ids)});";
                 }
 
+                await DBHelper.ExecuteQueryWithTransactionAsync(query, values);
                 return true;
             }
             catch (Exception ex)
@@ -334,6 +323,29 @@ namespace HARTPOS.Repositories
                 Console.WriteLine(ex.Message);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// True if the username is taken (including soft-deleted users, because the
+        /// database keeps usernames unique across all rows).
+        /// </summary>
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            var dbValues = new Dictionary<string, string> { { "@Username", username ?? "" } };
+            int count = await DBHelper.GetScalerAsync(
+                "SELECT COUNT(1) FROM Auth.Users WHERE Username = @Username", dbValues);
+            return count > 0;
+        }
+
+        /// <summary>
+        /// Number of active admins other than the given user.
+        /// </summary>
+        public async Task<int> CountOtherActiveAdminsAsync(int excludeUserID)
+        {
+            var dbValues = new Dictionary<string, string> { { "@ID", excludeUserID.ToString() } };
+            return await DBHelper.GetScalerAsync(
+                @"SELECT COUNT(1) FROM Auth.Users
+                  WHERE Role = 'Admin' AND IsActive = 1 AND IsDeleted = 0 AND ID <> @ID", dbValues);
         }
 
         /// <summary>
@@ -370,11 +382,18 @@ namespace HARTPOS.Repositories
         {
             try
             {
+                HARTPOS.Service.PermissionCatalog.EnsureSeeded();
+
                 var allPermissions = await GetAllPermissionsAsync();
                 selectedPermissionIDs = selectedPermissionIDs ?? new List<int>();
+                var catalog = HARTPOS.Service.PermissionCatalog.All.ToDictionary(e => e.Key, StringComparer.OrdinalIgnoreCase);
 
+                // Only show permissions the app actually checks (old leftover rows such as
+                // Settings_Manage did nothing when ticked), in a fixed, logical order.
                 var grouped = allPermissions
-                    .GroupBy(p => p.Module)
+                    .Where(p => catalog.ContainsKey(p.PermissionKey))
+                    .OrderBy(p => HARTPOS.Service.PermissionCatalog.OrderOf(p.PermissionKey))
+                    .GroupBy(p => catalog[p.PermissionKey].Module)
                     .Select(g => new PermissionGroupVM
                     {
                         Module = g.Key,
@@ -382,7 +401,7 @@ namespace HARTPOS.Repositories
                         {
                             ID = p.ID,
                             PermissionKey = p.PermissionKey,
-                            PermissionName = p.PermissionName,
+                            PermissionName = catalog[p.PermissionKey].Name,
                             IsSelected = selectedPermissionIDs.Contains(p.ID)
                         }).ToList()
                     })

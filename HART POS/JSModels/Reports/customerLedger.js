@@ -39,7 +39,7 @@
                     success: function (data) {
                         let results = $.map(data.Data, function (item) {
                             return {
-                                label: `${item.CustomerName} | ${item.Phone} (${item.CustomerType})`,
+                                label: `${item.CustomerName} | ${item.Phone}`,
                                 value: item.CustomerName,
                                 data: item
                             };

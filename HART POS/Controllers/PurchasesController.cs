@@ -10,6 +10,7 @@ using HARTPOS.Models.Supplier.DTOs;
 using HARTPOS.Models.Taxes.DTOs;
 using HARTPOS.Repositories;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,6 +68,10 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Purchases_View", "Purchases_Add")]
         public async Task<ActionResult> ManagePurchaseOrder(ManagePurchaseOrderDto input)
         {
+            if (!UserAccessService.Can(HttpContext, input.ID > 0 ? "Purchases_Edit" : "Purchases_Add")
+                && !(input.ID > 0 && UserAccessService.Can(HttpContext, "Purchases_View")))
+                return Redirect("/DashBoard/AccessDenied");
+
             var viewModel = new ManagePurchaseOrderVM
             {
                 Suppliers = await _supplierRepository.GetSupplierShortList(),
@@ -89,6 +94,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Purchases_Add", "Purchases_Edit")]
         public async Task<JsonResult> SavePurchaseOrder(SavePurchaseOrderDto formInput)
         {
+            // A new record needs "Purchases_Add"; changing an existing one needs "Purchases_Edit".
+            bool isNewRecord = (formInput.Order?.ID ?? 0) <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Purchases_Add", "Purchases_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
                 string operationType = formInput.Order.ID > 0 ? "UPDATE" : "INSERT";
@@ -120,6 +130,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Purchases_View")]
         public async Task<JsonResult> GetPagedPurchaseOrders(GetPagedPurchasesInputDto input)
         {
             try
@@ -155,6 +166,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Purchases_View")]
         public async Task<JsonResult> GetPurchaseOrdersInfo()
         {
             try
@@ -242,6 +254,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Purchases_Add", "Purchases_Edit")]
         public async Task<JsonResult> SavePurchase(SavePurchaseInputDto input)
         {
+            // A new record needs "Purchases_Add"; changing an existing one needs "Purchases_Edit".
+            bool isNewRecord = (input.Purchase?.ID ?? 0) <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Purchases_Add", "Purchases_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
                 string operationType = input.Purchase.ID > 0 ? "UPDATE" : "INSERT";
@@ -317,6 +334,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Purchases_View")]
         public async Task<JsonResult> GetPagedPurchases(GetPagedPurchasesInputDto input)
         {
             try
@@ -340,6 +358,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpGet]
+        [AuthorizePermission("Purchases_View", "Purchases_Add", "Purchases_Edit")]
         public async Task<JsonResult> GetPurchasePrintShortURL(int ID)
         {
             try
@@ -357,6 +376,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Purchases_View", "Purchases_Add", "Purchases_Edit")]
         public async Task<JsonResult> SendPurchaseOrderToSupplier(SendInvoiceToCustomerDto input)
         {
             try

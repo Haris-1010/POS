@@ -64,7 +64,7 @@
                     success: function (data) {
                         let results = $.map(data.Data, function (item) {
                             return {
-                                label: `${item.CustomerName} | ${item.Phone} (${item.CustomerType})`,
+                                label: `${item.CustomerName} | ${item.Phone}`,
                                 value: item.CustomerName,
                                 data: item
                             };
@@ -200,7 +200,7 @@
 
             "language": {
                 emptyTable: "No records found",
-                searchPlaceholder: "Search By Patient and Invoice No"
+                searchPlaceholder: "Search By Customer and Invoice No"
             },
             drawCallback: function (settings) {
                 var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
@@ -216,7 +216,7 @@
             }
         });
         $('.dataTables_filter input')
-            .attr('title', 'Search By Patient and Invoice No')
+            .attr('title', 'Search By Customer and Invoice No')
             .addClass('seachbar-tooltip');
     }
 })(jQuery)

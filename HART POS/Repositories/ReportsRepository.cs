@@ -104,7 +104,7 @@ namespace HARTPOS.Repositories
                             I.Qty,
                             I.UnitSalePriceInclusiveTax AS RatePerUnit,
                             I.LineTotal,
-                            M.Name AS ManufacturerName,
+                            ISNULL(M.Name, 'No Manufacturer') AS ManufacturerName,
                             FORMAT(SI.InvoiceDate, 'dd MMM yyyy') AS DateTime,
                             (SELECT C.Name
                                 FROM Patient.Patients C
@@ -113,7 +113,7 @@ namespace HARTPOS.Repositories
                         FROM Sale.SaleInvoiceItems I
                         INNER JOIN Sale.SaleInvoices SI ON I.InvoiceID = SI.ID
                         INNER JOIN Inventory.InventoryItems INI ON INI.ID = I.ItemID
-                        INNER JOIN Manufacturer.Manufacturers M ON M.ID = INI.ManufacturerID
+                        LEFT JOIN Manufacturer.Manufacturers M ON M.ID = INI.ManufacturerID
                         --LEFT JOIN Manufacturer.ManufacturerBrands B ON B.ManufacturerID = M.ID
                         WHERE SI.IsDeleted = 0
 
@@ -297,17 +297,14 @@ namespace HARTPOS.Repositories
     SELECT
         SI.InvoiceNo,
         SI.CreatedOn AS DateTime,
-        COUNT(SSI.ID) AS ItemsCount,
-        SUM(SSI.Qty) AS TotalQty,
-        C.Name AS CustomerName,
+        (SELECT COUNT(*) FROM Sale.SaleInvoiceItems X WHERE X.InvoiceID = SI.ID) AS ItemsCount,
+        (SELECT ISNULL(SUM(X.Qty), 0) FROM Sale.SaleInvoiceItems X WHERE X.InvoiceID = SI.ID) AS TotalQty,
+        ISNULL(C.Name, 'Walk-in Customer') AS CustomerName,
         FD.SubTotal AS GrossAmount,
         FD.DiscountAmount AS Discount,
         FD.SubtotalAfterTax AS NetAmount
     FROM Sale.SaleInvoices AS SI
-    LEFT JOIN Sale.SaleInvoiceItems AS SSI ON SSI.InvoiceID = SI.ID
     LEFT JOIN Sale.SaleInvoiceFinancialDetails AS FD ON FD.InvoiceID = SI.ID
-    LEFT JOIN Sale.SaleInvoicePayments AS SIP ON SIP.InvoiceID = SI.ID
-    LEFT JOIN Inventory.InventoryItems INI ON INI.ID = SSI.ItemID
     LEFT JOIN Patient.Patients C ON C.ID = SI.CustomerID
     WHERE SI.IsDeleted = 0 ";
 
@@ -338,19 +335,19 @@ namespace HARTPOS.Repositories
                 if (input.SupplierID > 0)
                 {
                     dbValues.Add("@SupplierID", input.SupplierID.ToString());
-                    query += " AND INI.SupplierID = @SupplierID ";
+                    query += " AND EXISTS (SELECT 1 FROM Sale.SaleInvoiceItems X INNER JOIN Inventory.InventoryItems INI ON INI.ID = X.ItemID WHERE X.InvoiceID = SI.ID AND INI.SupplierID = @SupplierID) ";
                 }
 
                 if (input.ManufacturerID > 0)
                 {
                     dbValues.Add("@ManufacturerID", input.ManufacturerID.ToString());
-                    query += " AND INI.ManufacturerID = @ManufacturerID ";
+                    query += " AND EXISTS (SELECT 1 FROM Sale.SaleInvoiceItems X INNER JOIN Inventory.InventoryItems INI ON INI.ID = X.ItemID WHERE X.InvoiceID = SI.ID AND INI.ManufacturerID = @ManufacturerID) ";
                 }
 
                 if (input.BrandID > 0)
                 {
                     dbValues.Add("@BrandID", input.BrandID.ToString());
-                    query += " AND INI.BrandID = @BrandID ";
+                    query += " AND EXISTS (SELECT 1 FROM Sale.SaleInvoiceItems X INNER JOIN Inventory.InventoryItems INI ON INI.ID = X.ItemID WHERE X.InvoiceID = SI.ID AND INI.BrandID = @BrandID) ";
                 }
 
                 if (!string.IsNullOrEmpty(input.SalePersonUsername))
@@ -362,7 +359,7 @@ namespace HARTPOS.Repositories
                 if (!string.IsNullOrEmpty(input.PaymentMode))
                 {
                     dbValues.Add("@PaymentMode", input.PaymentMode);
-                    query += " AND SIP.PaymentMode = @PaymentMode ";
+                    query += " AND EXISTS (SELECT 1 FROM Sale.SaleInvoicePayments SIP WHERE SIP.InvoiceID = SI.ID AND SIP.PaymentMode = @PaymentMode) ";
                 }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
@@ -372,8 +369,7 @@ namespace HARTPOS.Repositories
                 }
                 #endregion
 
-                // Grouping
-                query += @"   GROUP BY SI.InvoiceNo, SI.CreatedOn, C.Name, FD.SubTotal, FD.DiscountAmount, FD.SubtotalAfterTax ";
+
 
                  int pageIndex = dataTableValues.Offset / dataTableValues.PageSize;
                  Dictionary<string, string> sortAndOrder = new Dictionary<string, string>
@@ -414,10 +410,10 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT SI.ID, IIV.VariationName AS Name, IA.Title AS Category, SII.Qty, IIV.CostPrice AS PurchaseRate, SII.UnitCost AS SaleRate, SII.UnitCost * SII.Qty AS GrossAmount, SII.DiscountType,
+                string query = @"SELECT SI.ID, ISNULL(IIV.VariationName, SII.Name) AS Name, IA.Title AS Category, SII.Qty, ISNULL(IIV.CostPrice, 0) AS PurchaseRate, SII.UnitCost AS SaleRate, SII.UnitCost * SII.Qty AS GrossAmount, SII.DiscountType,
                                     CASE
 									WHEN SII.DiscountType = 'percentage' THEN
-										 (SII.Discount * SII.UnitCost) / 100
+										 (SII.Discount * SII.UnitCost * SII.Qty) / 100
 									ELSE
 										 SII.Discount * SII.Qty
 									END	AS Discount,
@@ -428,8 +424,9 @@ namespace HARTPOS.Repositories
 										(SII.UnitCost * SII.Qty) - (SII.Discount * SII.Qty)
 								    END AS NetSale,
                                     CASE
-									WHEN SII.DiscountType = 'percentage' THEN
-										((SII.UnitCost - IIV.CostPrice) * SII.Qty)
+                                    WHEN IIV.ID IS NULL THEN 0
+                                    WHEN SII.DiscountType = 'percentage' THEN
+                                        ((SII.UnitCost - IIV.CostPrice) * SII.Qty)
 										- ((SII.UnitCost * SII.Qty) * (SII.Discount / 100.0))
 									ELSE
 										((SII.UnitCost - IIV.CostPrice) * SII.Qty)
@@ -437,7 +434,7 @@ namespace HARTPOS.Repositories
 								    END AS Profit
                                     FROM Sale.SaleInvoices AS SI
                                     INNER JOIN Sale.SaleInvoiceItems AS SII ON SII.InvoiceID = SI.ID
-                                    INNER JOIN Inventory.InventoryItemVariations AS IIV ON IIV.ID = SII.VariationID
+                                    LEFT JOIN Inventory.InventoryItemVariations AS IIV ON IIV.ID = SII.VariationID
                                     INNER JOIN Inventory.InventoryItems AS II ON II.ID = SII.ItemID
                                     LEFT JOIN Inventory.ItemAttributes AS IA ON IA.ID = IIV.CategoryID
                                     WHERE  SI.IsDeleted = 0 ";
@@ -479,7 +476,7 @@ namespace HARTPOS.Repositories
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
-                    query += " AND (IIV.VariationName LIKE @SearchString) ";
+                    query += " AND (ISNULL(IIV.VariationName, SII.Name) LIKE @SearchString) ";
                 }
 
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
@@ -507,27 +504,28 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT	DISTINCT SI.ID,SI.InvoiceNo, SI.CreatedOn AS [DateTime], I.Name AS Product, IH.Qty AS QtyReturned,
-					                             SFD.ReturnAmount,
-				                                (SELECT C.Name
-						                                  FROM Patient.Patients C
-						                                  WHERE C.ID = SI.CustomerID) AS Customer,
-				                                ISNULL(NULLIF(U.FullName, ''),
-				                                       ISNULL(NULLIF(IH.AddedBy, ''),
-				                                              ISNULL(NULLIF(SI.LastModifiedBy, ''), ''))) AS [User]
-                                 FROM Sale.SaleInvoices AS SI
-                                 INNER JOIN Sale.SaleInvoiceFinancialDetails SFD ON SFD.InvoiceID = SI.ID
-                                 LEFT JOIN Inventory.InventoryHistories AS IH ON IH.SaleInvoiceID = SI.ID
-                                 INNER JOIN Inventory.InventoryItems I ON I.ID =  IH.ItemID
+                string query = @"SELECT IH.ID, SI.InvoiceNo, IH.TimeStamp AS [DateTime],
+                                        ISNULL(SII.Name, I.Name) AS Product, IH.Qty AS QtyReturned,
+                                        CAST(IH.Qty * (CASE WHEN SII.Qty > 0 THEN SII.LineTotal / SII.Qty ELSE 0 END)
+                                             * (CASE WHEN ISNULL(SFD.SubTotal, 0) > 0 THEN SFD.SubtotalAfterTax / SFD.SubTotal ELSE 1 END)
+                                             AS DECIMAL(18, 2)) AS ReturnAmount,
+                                        ISNULL((SELECT C.Name FROM Patient.Patients C WHERE C.ID = SI.CustomerID), 'Walk-in Customer') AS Customer,
+                                        ISNULL(NULLIF(U.FullName, ''), ISNULL(NULLIF(IH.AddedBy, ''), ISNULL(NULLIF(SI.LastModifiedBy, ''), ''))) AS [User]
+                                 FROM Inventory.InventoryHistories AS IH
+                                 INNER JOIN Sale.SaleInvoices AS SI ON SI.ID = IH.SaleInvoiceID
+                                 INNER JOIN Inventory.InventoryItems I ON I.ID = IH.ItemID
+                                 LEFT JOIN Sale.SaleInvoiceFinancialDetails SFD ON SFD.InvoiceID = SI.ID
+                                 OUTER APPLY (SELECT TOP 1 X.Name, X.Qty, X.LineTotal FROM Sale.SaleInvoiceItems X
+                                              WHERE X.InvoiceID = SI.ID AND X.VariationID = IH.VariationID) SII
                                  LEFT JOIN Auth.Users U ON U.Username = ISNULL(NULLIF(IH.AddedBy, ''), SI.LastModifiedBy)
-                                   WHERE   IH.Soruce = 'Sale Return' AND IH.SaleInvoiceID IS NOT NULL AND SI.IsDeleted = 0 ";
+                                 WHERE IH.Soruce = 'Sale Return' AND IH.Qty > 0 AND SI.IsDeleted = 0 ";
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
                 {
                     dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
                     dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
 
-                    query += " AND CONVERT(DATE,SI.CreatedOn) BETWEEN @StartDate AND @EndDate ";
+                    query += " AND CONVERT(DATE,IH.TimeStamp) BETWEEN @StartDate AND @EndDate ";
                 }
 
                 if (!string.IsNullOrEmpty(input.SalePersonUsername))
@@ -600,9 +598,9 @@ namespace HARTPOS.Repositories
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
                 string query = @"SELECT E.CustomerID, E.DateTime, E.InvoiceNo, E.Description, E.Debit, E.Credit,
-                                ( SELECT C.Name
+                                ISNULL(( SELECT C.Name
                                           FROM Patient.Patients C
-                                          WHERE C.ID = e.CustomerID) AS CustomerName,
+                                          WHERE C.ID = e.CustomerID), 'Walk-in Customer') AS CustomerName,
                                 SUM(E.Debit - E.Credit) OVER (
                                     PARTITION BY E.CustomerID
                                     ORDER BY E.DateTime, E.InvoiceNo, E.SortOrder
@@ -631,7 +629,7 @@ namespace HARTPOS.Repositories
                                     SI.CustomerType,
                                     SI.CreatedOn AS [DateTime],
                                     SI.InvoiceNo,
-                                    'Payment - ' + SIP.PaymentMode AS Description,
+                                    'Payment - ' + ISNULL(SIP.PaymentMode, '') AS Description,
                                     0.00 AS Debit,
                                     SIP.PaidAmount AS Credit, 
                                     2 AS SortOrder
@@ -648,7 +646,7 @@ namespace HARTPOS.Repositories
                                     SI.CustomerType,
                                     SI.CreatedOn AS [DateTime],
                                     SI.InvoiceNo,
-                                    'Return - ' + SIP.PaymentMode AS Description,
+                                    'Refund - ' + ISNULL(SIP.PaymentMode, '') AS Description,
                                     SIP.PaidAmount AS Debit,
                                     0.00 AS Credit, 
                                     3 AS SortOrder
@@ -656,6 +654,23 @@ namespace HARTPOS.Repositories
                                 INNER JOIN Sale.SaleInvoices SI ON SI.ID = SIP.InvoiceID
                                 WHERE SI.IsDeleted = 0
                                 AND SIP.TransactionType = 'Return'
+
+                                UNION ALL
+
+                                -- 4. Goods returned (Credit: reduces what the customer owes)
+                                SELECT
+                                    SI.CustomerID,
+                                    SI.CustomerType,
+                                    ISNULL(SI.LastModifiedOn, SI.CreatedOn) AS [DateTime],
+                                    SI.InvoiceNo,
+                                    'Sale Return' AS Description,
+                                    0.00 AS Debit,
+                                    SFD.ReturnAmount AS Credit,
+                                    4 AS SortOrder
+                                FROM Sale.SaleInvoices SI
+                                INNER JOIN Sale.SaleInvoiceFinancialDetails SFD ON SI.ID = SFD.InvoiceID
+                                WHERE SI.IsDeleted = 0
+                                AND ISNULL(SFD.ReturnAmount, 0) > 0
                                 ) AS E
                                 WHERE 1=1 ";
 
@@ -703,16 +718,16 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT II.Name AS [ProductName], IAA.Title AS Varient, IA.Title AS [Category], M.Name as Manufacturer,
-                                SUM(SII.Qty) AS [QtySold], SUM(SII.LineTotal) AS [TotalSale], COUNT(DISTINCT SI.ID) AS [SaleCount]
+                string query = @"SELECT II.Name AS [ProductName], IAA.Title AS Varient, IA.Title AS [Category], ISNULL(M.Name, 'No Manufacturer') AS Manufacturer,
+                                SUM((SII.Qty - ISNULL(SII.RetQty, 0))) AS [QtySold], SUM((CASE WHEN SII.Qty > 0 THEN SII.LineTotal * (SII.Qty - ISNULL(SII.RetQty, 0)) / SII.Qty ELSE 0 END)) AS [TotalSale], COUNT(DISTINCT SI.ID) AS [SaleCount]
                                 FROM Sale.SaleInvoiceItems SII
                                 INNER JOIN Sale.SaleInvoices SI ON SI.ID = SII.InvoiceID AND SI.IsDeleted = 0
-                                INNER JOIN Inventory.InventoryItems II ON II.ID = SII.ItemID AND II.IsDeleted = 0
-                                INNER JOIN Inventory.InventoryItemVariations IV ON IV.ID = SII.VariationID
+                                INNER JOIN Inventory.InventoryItems II ON II.ID = SII.ItemID
+                                LEFT JOIN Inventory.InventoryItemVariations IV ON IV.ID = SII.VariationID
                                 LEFT JOIN Inventory.ItemAttributes IA ON IV.CategoryID = IA.ID
                                 LEFT JOIN Inventory.ItemAttributes IAA ON IV.FormationID = IAA.ID
-                                INNER JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
-                                WHERE SII.Qty > 0 AND SI.IsDeleted = 0 ";
+                                LEFT JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
+                                WHERE (SII.Qty - ISNULL(SII.RetQty, 0)) > 0 AND SI.IsDeleted = 0 ";
 
                 if (input.SupplierID > 0)
                 {
@@ -795,7 +810,7 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT IV.ID, IV.VariationName AS ProductName, IAV.Title AS Varient, IAC.Title AS Category, M.Name AS Manufacturer,
+                string query = @"SELECT IV.ID, IV.VariationName AS ProductName, IAV.Title AS Varient, IAC.Title AS Category, ISNULL(M.Name, 'No Manufacturer') AS Manufacturer,
                                 IV.OpeningStock AS LatestQty, IV.ReorderPoint, IAU.Title AS Unit, II.ID AS ItemID,
                                 (
                                  SELECT STRING_AGG(S.Name, ', ')
@@ -809,12 +824,18 @@ namespace HARTPOS.Repositories
                                 LEFT JOIN Inventory.ItemAttributes AS IAV ON IV.FormationID = IAV.ID AND IAV.AttributeType = 'Formation'  
                                 LEFT JOIN Inventory.ItemAttributes AS IAU ON IV.WeightUnitID = IAU.ID AND IAU.AttributeType = 'WeightUnit'  
                                 LEFT JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
-                                WHERE   IV.OpeningStock <= IV.ReorderPoint AND II.IsDeleted = 0 ";
+                                WHERE II.IsDeleted = 0 ";
 
+                // Low stock = at or below the item's reorder point, or at or below the
+                // "Minimum Qty" typed in the filter (it used to match that number exactly).
                 if (input.MinimumQty > 0)
                 {
                     dbValues.Add("@MinimumQty", input.MinimumQty.ToString());
-                    query += " AND IV.OpeningStock = @MinimumQty ";
+                    query += " AND IV.OpeningStock <= @MinimumQty ";
+                }
+                else
+                {
+                    query += " AND IV.OpeningStock <= IV.ReorderPoint ";
                 }
                 if (input.ManufacturerID > 0)
                 {
@@ -850,13 +871,7 @@ namespace HARTPOS.Repositories
                     query += " AND IAV.ID = @VarientID ";
                 }
 
-                if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
-                {
-                    dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
-                    dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
-
-                    query += " AND CONVERT(DATE,SI.CreatedOn) BETWEEN @StartDate AND @EndDate ";
-                }
+                // Low stock is about current stock, so there is no date filter.
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
@@ -895,7 +910,7 @@ namespace HARTPOS.Repositories
                                     IV.Batch,  
                                     IV.ExpiryDate, 
                                     IV.OpeningStock AS Qty, 
-                                    M.Name AS Manufacturer, 
+                                    ISNULL(M.Name, 'No Manufacturer') AS Manufacturer, 
                                     II.ID AS ItemID,
                                     (
                                         SELECT STRING_AGG(S.Name, ', ')
@@ -907,8 +922,8 @@ namespace HARTPOS.Repositories
                                 LEFT JOIN Inventory.ItemAttributes AS IAC ON IV.CategoryID = IAC.ID AND IAC.AttributeType = 'Category' 
                                 LEFT JOIN Inventory.ItemAttributes AS IAV ON IV.FormationID = IAV.ID AND IAV.AttributeType = 'Formation'  
                                 LEFT JOIN Inventory.ItemAttributes AS IAU ON IV.WeightUnitID = IAU.ID AND IAU.AttributeType = 'WeightUnit'  
-                                INNER JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
-                                WHERE II.IsDeleted = 0  ";
+                                LEFT JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
+                                WHERE II.IsDeleted = 0 AND IV.OpeningStock > 0 ";
 
                 if (input.ManufacturerID > 0)
                 {
@@ -1060,13 +1075,13 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT II.ID, IIV.VariationName, IAV.Title AS Variant, IAC.Title AS Category, M.Name AS Manufacturer,
+                string query = @"SELECT II.ID, IIV.VariationName, IAV.Title AS Variant, IAC.Title AS Category, ISNULL(M.Name, 'No Manufacturer') AS Manufacturer,
                                  IIV.OpeningStock, IIV.CostPrice, (IIV.OpeningStock * IIV.CostPrice) AS TotalValue
                                  FROM Inventory.InventoryItems AS II
                                  INNER JOIN Inventory.InventoryItemVariations AS IIV ON II.ID = IIV.ItemID
                                  LEFT JOIN Inventory.ItemAttributes AS IAC ON IIV.CategoryID = IAC.ID AND IAC.AttributeType = 'Category'  
                                  LEFT JOIN Inventory.ItemAttributes AS IAV ON IIV.FormationID = IAV.ID AND IAV.AttributeType = 'Formation'  
-                                 INNER JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
+                                 LEFT JOIN Manufacturer.Manufacturers AS M ON II.ManufacturerID = M.ID
                                  WHERE   II.IsDeleted = 0 ";
 
                 if (input.ManufacturerID > 0)
@@ -1138,7 +1153,7 @@ namespace HARTPOS.Repositories
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
                 string query = @"SELECT H.ID, V.VariationName AS ProductName, FORMAT(H.TimeStamp, 'dd MMM yyyy | hh:mm tt') TimeStamp,
-							            H.Qty,  (H.Qty * V.SellingPrice) AS Balance,
+							            H.Qty,  H.LatestQty AS Balance,
 							    CASE
 								WHEN SI.InvoiceNo IS NOT NULL THEN SI.InvoiceNo
 								WHEN PO.ReferenceNo IS NOT NULL THEN PO.ReferenceNo
@@ -1236,28 +1251,18 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT *
+                string query = @"SELECT T.*,
+                                       SUM(T.Debit - T.Credit) OVER (PARTITION BY T.SupplierID ORDER BY T.DateTime, T.ID
+                                                                     ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningBalance
                                 FROM (
-	                                   SELECT PO.ID, PO.ReferenceNo, PO.OrderDate AS DateTime, PO.Status, SUM(P.SubtotalAfterTax) AS Debit, SUM(P.PaidAmount) AS Credit,
-                                       SUM(P.RemainingAmount) AS RunningBalance, S.Name AS SupplierName, P.AdditionalNotes AS [Description],
-                                        PO.SupplierID 
-                                FROM Purchase.PurchaseOrders PO
-                                INNER JOIN Purchase.Purchases P ON P.PurchaseOrderID = PO.ID
-                                INNER JOIN Supplier.Suppliers S ON S.ID = PO.SupplierID
-                                WHERE PO.IsDeleted = 0
-                                GROUP BY PO.ID, PO.ReferenceNo, PO.OrderDate, PO.Status, S.Name, p.AdditionalNotes,  PO.SupplierID 
-
-                                UNION ALL
-
-                                SELECT PO.ID, PO.ReferenceNo, PO.OrderDate, PO.Status, SUM(POI.LineTotal) AS Debit, SUM(0.00) AS Credit,
-                                        SUM(POI.LineTotal) AS RunningBalance, S.Name AS SupplierName, '' AS [Description],
-                                        PO.SupplierID 
-                                FROM Purchase.PurchaseOrders PO
-                                INNER JOIN Purchase.PurchaseOrderItems POI ON POI.PurchaseOrderID = PO.ID
-                                INNER JOIN Supplier.Suppliers S ON S.ID = PO.SupplierID
-                                WHERE PO.IsPurchaseReceived = 0
-                                AND PO.IsDeleted = 0
-                                GROUP BY PO.ID, PO.ReferenceNo, PO.OrderDate, PO.Status, S.Name,  PO.SupplierID 
+                                       SELECT PO.ID, PO.ReferenceNo, PO.OrderDate AS DateTime, PO.Status,
+                                              SUM(P.SubtotalAfterTax) AS Debit, SUM(P.PaidAmount) AS Credit,
+                                              S.Name AS SupplierName, MAX(P.AdditionalNotes) AS [Description], PO.SupplierID
+                                       FROM Purchase.PurchaseOrders PO
+                                       INNER JOIN Purchase.Purchases P ON P.PurchaseOrderID = PO.ID
+                                       INNER JOIN Supplier.Suppliers S ON S.ID = PO.SupplierID
+                                       WHERE PO.IsDeleted = 0
+                                       GROUP BY PO.ID, PO.ReferenceNo, PO.OrderDate, PO.Status, S.Name, PO.SupplierID
                                 ) AS T
                                WHERE 1=1";
 
@@ -1318,15 +1323,18 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT V.VariationName AS ProductName, IAF.Title AS Variant, IA.Title AS Category, V.CostPrice AS PurchaseRate,  V.SellingPrice AS SaleRate,
-                                 SUM(SII.Qty) AS QtySold, (V.SellingPrice - V.CostPrice) AS ProfitPerUnit, SUM((SII.Qty * (V.SellingPrice - V.CostPrice) )) AS TotalProfit
+                string query = @"SELECT V.VariationName AS ProductName, IAF.Title AS Variant, IA.Title AS Category, V.CostPrice AS PurchaseRate,
+                                 CAST(SUM((CASE WHEN SII.Qty > 0 THEN SII.LineTotal * (SII.Qty - ISNULL(SII.RetQty, 0)) / SII.Qty ELSE 0 END)) / NULLIF(SUM((SII.Qty - ISNULL(SII.RetQty, 0))), 0) AS DECIMAL(18, 2)) AS SaleRate,
+                                 SUM((SII.Qty - ISNULL(SII.RetQty, 0))) AS QtySold,
+                                 CAST(SUM((CASE WHEN SII.Qty > 0 THEN SII.LineTotal * (SII.Qty - ISNULL(SII.RetQty, 0)) / SII.Qty ELSE 0 END)) / NULLIF(SUM((SII.Qty - ISNULL(SII.RetQty, 0))), 0) - V.CostPrice AS DECIMAL(18, 2)) AS ProfitPerUnit,
+                                 CAST(SUM((CASE WHEN SII.Qty > 0 THEN SII.LineTotal * (SII.Qty - ISNULL(SII.RetQty, 0)) / SII.Qty ELSE 0 END)) - SUM((SII.Qty - ISNULL(SII.RetQty, 0)) * V.CostPrice) AS DECIMAL(18, 2)) AS TotalProfit
                                  FROM Sale.SaleInvoices SI
                                  INNER JOIN Sale.SaleInvoiceItems SII ON SII.InvoiceID = SI.ID
                                  INNER JOIN Inventory.InventoryItemVariations V ON V.ID = SII.VariationID
                                  INNER JOIN Inventory.InventoryItems II ON II.ID = V.ItemID
                                  LEFT JOIN Inventory.ItemAttributes IA ON IA.ID = V.CategoryID AND IA.AttributeType = 'Category'
                                  LEFT JOIN Inventory.ItemAttributes IAF ON IAF.ID = V.FormationID AND IAF.AttributeType = 'Formation'
-                                 WHERE SI.IsDeleted = 0 ";
+                                 WHERE SI.IsDeleted = 0 AND (SII.Qty - ISNULL(SII.RetQty, 0)) > 0 ";
 
                 if (input.SupplierID > 0)
                 {
@@ -1382,7 +1390,7 @@ namespace HARTPOS.Repositories
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
                     query += " AND (V.VariationName LIKE @SearchString) ";
                 }
-                query += @" GROUP BY V.VariationName, V.CostPrice, V.SellingPrice, IA.Title, IAF.Title ";
+                query += @" GROUP BY V.ID, V.VariationName, V.CostPrice, IA.Title, IAF.Title ";
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
                 sortAndOrder.Add($"MyList.{(string.IsNullOrEmpty(input.SortBy) ? "ProductName" : input.SortBy)}",
@@ -1490,17 +1498,14 @@ namespace HARTPOS.Repositories
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
                 string query = @"SELECT S.ID, S.InvoiceNo, S.InvoiceDate,
-                    (SUM((SI.ItemTax * SI.Qty)) + ISNULL(SFD.SubtotalAfterTax - SFD.SubtotalAfterDiscount, 0.00)) / 100 AS Tax,
-                     SUM((SI.ItemTax * SI.Qty)) + ISNULL(SFD.SubtotalAfterTax - SFD.SubtotalAfterDiscount, 0.00) 
-                        AS TaxAmount, SUM(SI.LineTotal) NetAmount ,
-                                     (SELECT C.Name
-                                                  FROM Patient.Patients C
-                                                  WHERE C.ID = S.CustomerID)  AS CustomerName
+                    ISNULL(T.Percentage, 0) AS Tax,
+                    SUM((SI.ItemTax * SI.Qty)) + ISNULL(SFD.SubtotalAfterTax - SFD.SubtotalAfterDiscount, 0.00) AS TaxAmount,
+                    SFD.SubtotalAfterTax AS NetAmount,
+                    ISNULL((SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID), 'Walk-in Customer') AS CustomerName
                                     FROM Sale.SaleInvoices S
                                     INNER JOIN Sale.SaleInvoiceItems SI ON SI.InvoiceID = S.ID
                                     INNER JOIN Sale.SaleInvoiceFinancialDetails SFD ON SFD.InvoiceID = S.ID
                                     LEFT JOIN Tax.Taxes T ON T.ID = SFD.TaxID AND SFD.TaxID != 0
-                                    INNER JOIN Inventory.InventoryItems I ON I.ID = SI.ItemID
                                     WHERE   S.IsDeleted = 0 ";
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
@@ -1530,11 +1535,7 @@ namespace HARTPOS.Repositories
 
                     query += " AND (";
                     query += " S.InvoiceNo LIKE @SearchString OR ";
-                    query += " (CASE WHEN S.CustomerType = 'Patient' THEN ";
-                    query += "     (SELECT U.Name FROM InstaUser.[User] U WHERE U.Username = S.CustomerID) ";
-                    query += "  ELSE ";
-                    query += "     (SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID) ";
-                    query += " END) LIKE @SearchString)";
+                    query += " (SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID) LIKE @SearchString)";
                 }
 
                 query += " GROUP BY S.ID, S.InvoiceNo, S.InvoiceDate, T.Percentage, SFD.SubtotalAfterTax, SFD.SubtotalAfterDiscount, S.CustomerID, S.CustomerType";
@@ -1569,12 +1570,12 @@ namespace HARTPOS.Repositories
                         S.InvoiceNo, 
                         S.DeletedOn,  
                         SFD.SubtotalAfterTax AS Amount,
-                        C.Name AS Customer,
+                        ISNULL(C.Name, 'Walk-in Customer') AS Customer,
                         ISNULL(NULLIF(U.FullName, ''), ISNULL(NULLIF(S.DeletedBy, ''), '')) AS DeletedBy
                     FROM Sale.SaleInvoices S
-                    INNER JOIN Sale.SaleInvoiceFinancialDetails SFD 
+                    LEFT JOIN Sale.SaleInvoiceFinancialDetails SFD 
                         ON SFD.InvoiceID = S.ID 
-                    INNER JOIN Patient.Patients C 
+                    LEFT JOIN Patient.Patients C 
                         ON C.ID = S.CustomerID
                     LEFT JOIN Auth.Users U 
                         ON U.Username = S.DeletedBy
@@ -1627,12 +1628,14 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT PO.ID, S.Name AS SupplierName, PO.OrderDate AS DateTime, ISNULL(P.SubtotalAfterTax, PO.SubTotal) AS TotalPurchase,
-	                                    ISNULL(P.PaidAmount, 0) AS PaidAmount, ISNULL(P.RemainingAmount, PO.SubTotal) AS Balance
+                string query = @"SELECT S.ID, S.Name AS SupplierName, MAX(PO.OrderDate) AS DateTime,
+                                       SUM(P.SubtotalAfterTax) AS TotalPurchase,
+                                       SUM(ISNULL(P.PaidAmount, 0)) AS PaidAmount,
+                                       SUM(ISNULL(P.RemainingAmount, 0)) AS Balance
                                 FROM Purchase.PurchaseOrders PO
-                                LEFT JOIN Purchase.Purchases P ON P.PurchaseOrderID = PO.ID
-                                INNER JOIN Supplier.Suppliers S ON S.ID = PO.SupplierID  
-                                WHERE  PO.IsDeleted = 0 ";
+                                INNER JOIN Purchase.Purchases P ON P.PurchaseOrderID = PO.ID
+                                INNER JOIN Supplier.Suppliers S ON S.ID = PO.SupplierID
+                                WHERE PO.IsDeleted = 0 ";
 
                 if (input.SupplierID > 0)
                 {
@@ -1640,16 +1643,18 @@ namespace HARTPOS.Repositories
                     query += " AND PO.SupplierID =  @SupplierID ";
                 }
 
-                if (input.MinOutstandingAmount > 0)
-                {
-                    dbValues.Add("@MinOutstanding", input.MinOutstandingAmount.ToString());
-                    query += " AND P.RemainingAmount <  @MinOutstanding ";
-                }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
                     query += " AND (S.Name LIKE @SearchString ) ";
+                }
+
+                query += " GROUP BY S.ID, S.Name ";
+                if (input.MinOutstandingAmount > 0)
+                {
+                    dbValues.Add("@MinOutstanding", input.MinOutstandingAmount.ToString());
+                    query += " HAVING SUM(ISNULL(P.RemainingAmount, 0)) >= @MinOutstanding ";
                 }
 
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
@@ -1678,33 +1683,29 @@ namespace HARTPOS.Repositories
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
                 string query = @"SELECT S.ID, S.InvoiceNo, S.InvoiceDate AS DateTime, SUM(SI.UnitCost * SI.Qty) NetAmount,
-	                             SUM(
-			                        CASE
-				                        WHEN SI.DiscountType = 'percentage' THEN (SI.UnitCost * SI.Qty) * (SI.Discount / 100.0)
-				                        WHEN SI.DiscountType = 'value' THEN (SI.Discount)
-				                        ELSE 0
-			                        END
-		                            ) + (SFD.SubTotal - SFD.SubtotalAfterDiscount) AS DiscountAmount,
-		                         SUM(
+                             SUM(
+                                CASE
+                                    WHEN SI.DiscountType = 'percentage' THEN (SI.UnitCost * SI.Qty) * (SI.Discount / 100.0)
+                                    WHEN SI.DiscountType = 'value' THEN (SI.Discount * SI.Qty)
+                                    ELSE 0
+                                END
+                                ) + (SFD.SubTotal - SFD.SubtotalAfterDiscount) AS DiscountAmount,
+                             SUM(
                                     CASE
                                     WHEN SI.DiscountType = 'percentage' THEN
                                         (((SI.UnitCost * SI.Qty) - ((SI.UnitCost * SI.Qty) * (SI.Discount / 100.0))) * (SI.ItemTax / 100.0))
                                     WHEN SI.DiscountType = 'value' THEN
-                                        (((SI.UnitCost * SI.Qty) - SI.Discount) * (SI.ItemTax / 100.0))
+                                        (((SI.UnitCost * SI.Qty) - (SI.Discount * SI.Qty)) * (SI.ItemTax / 100.0))
                                     ELSE 0.00
                                     END
-			                        ) + ISNULL(SFD.SubtotalAfterTax - SFD.SubtotalAfterDiscount, 0.00) AS TaxAmount,
-
-	                           SFD.SubtotalAfterTax AS TotalIncome, P.PaymentMode,
-                                ( SELECT C.Name
-                                      FROM Patient.Patients C
-                                      WHERE C.ID = S.CustomerID)  AS Customer
+                                ) + ISNULL(SFD.SubtotalAfterTax - SFD.SubtotalAfterDiscount, 0.00) AS TaxAmount,
+                           SFD.SubtotalAfterTax AS TotalIncome,
+                           (SELECT STRING_AGG(PM.PaymentMode, ', ') FROM (SELECT DISTINCT X.PaymentMode FROM Sale.SaleInvoicePayments X
+                                    WHERE X.InvoiceID = S.ID AND ISNULL(X.TransactionType, 'Payment') <> 'Return') PM) AS PaymentMode,
+                           ISNULL(( SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID), 'Walk-in Customer') AS Customer
                         FROM Sale.SaleInvoices S
                         INNER JOIN Sale.SaleInvoiceItems SI ON SI.InvoiceID = S.ID
                         INNER JOIN Sale.SaleInvoiceFinancialDetails SFD ON SFD.InvoiceID = S.ID
-                        LEFT JOIN Sale.SaleInvoicePayments P ON P.InvoiceID = S.ID
-                        LEFT JOIN Tax.Taxes T ON T.ID = SFD.TaxID AND SFD.TaxID != 0
-                        INNER JOIN Inventory.InventoryItems I ON I.ID = SI.ItemID
                         WHERE  S.IsDeleted = 0 ";
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
@@ -1736,7 +1737,7 @@ namespace HARTPOS.Repositories
                     query += " (SELECT P.Name FROM Patient.Patients P WHERE P.ID = S.CustomerID) LIKE @SearchString";
                     query += " )";
                 }
-                query += " GROUP BY S.ID, S.InvoiceNo, S.InvoiceDate, T.Percentage, SFD.SubtotalAfterTax, SFD.SubtotalAfterDiscount, S.CustomerID, S.CustomerType, P.PaymentMode, SFD.SubTotal ";
+                query += " GROUP BY S.ID, S.InvoiceNo, S.InvoiceDate, SFD.SubtotalAfterTax, SFD.SubtotalAfterDiscount, S.CustomerID, S.CustomerType, SFD.SubTotal ";
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
                 sortAndOrder.Add($"MyList.{(string.IsNullOrEmpty(input.SortBy) ? "ID" : input.SortBy)}",
@@ -1762,11 +1763,11 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT M.Name AS Manufacturer, SI.Name AS ProductName, SI.Qty, SI.LineTotal AS NetSale
+                string query = @"SELECT ISNULL(M.Name, 'No Manufacturer') AS Manufacturer, SI.Name AS ProductName, (SI.Qty - ISNULL(SI.RetQty, 0)) AS Qty, (CASE WHEN SI.Qty > 0 THEN SI.LineTotal * (SI.Qty - ISNULL(SI.RetQty, 0)) / SI.Qty ELSE 0 END) AS NetSale
                                  FROM Sale.SaleInvoices S
                                  INNER JOIN Sale.SaleInvoiceItems SI ON SI.InvoiceID = S.ID
                                  INNER JOIN Inventory.InventoryItems I ON I.ID = SI.ItemID
-                                 INNER JOIN Manufacturer.Manufacturers M ON M.ID = I.ManufacturerID  
+                                 LEFT JOIN Manufacturer.Manufacturers M ON M.ID = I.ManufacturerID  
                                  WHERE   S.IsDeleted = 0 ";
 
                 if (input.ManufacturerID > 0)
@@ -1821,15 +1822,19 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT V.VariationName AS ProductName,IAF.Title AS Variant, IA.Title AS Category, V.CostPrice AS PurchaseRate, V.SellingPrice AS SaleRate,
-                                 SUM(SI.Qty) AS QtySold, SUM(SI.Qty * V.CostPrice) AS TotalCost, SUM(SI.LineTotal) AS TotalSale, SUM((SI.Qty * (V.SellingPrice - V.CostPrice) )) AS TotalProfit
+                string query = @"SELECT V.VariationName AS ProductName,IAF.Title AS Variant, IA.Title AS Category, V.CostPrice AS PurchaseRate,
+                                 CAST(SUM((CASE WHEN SI.Qty > 0 THEN SI.LineTotal * (SI.Qty - ISNULL(SI.RetQty, 0)) / SI.Qty ELSE 0 END)) / NULLIF(SUM((SI.Qty - ISNULL(SI.RetQty, 0))), 0) AS DECIMAL(18, 2)) AS SaleRate,
+                                 SUM((SI.Qty - ISNULL(SI.RetQty, 0))) AS QtySold,
+                                 CAST(SUM((SI.Qty - ISNULL(SI.RetQty, 0)) * V.CostPrice) AS DECIMAL(18, 2)) AS TotalCost,
+                                 CAST(SUM((CASE WHEN SI.Qty > 0 THEN SI.LineTotal * (SI.Qty - ISNULL(SI.RetQty, 0)) / SI.Qty ELSE 0 END)) AS DECIMAL(18, 2)) AS TotalSale,
+                                 CAST(SUM((CASE WHEN SI.Qty > 0 THEN SI.LineTotal * (SI.Qty - ISNULL(SI.RetQty, 0)) / SI.Qty ELSE 0 END)) - SUM((SI.Qty - ISNULL(SI.RetQty, 0)) * V.CostPrice) AS DECIMAL(18, 2)) AS TotalProfit
                                  FROM Sale.SaleInvoices S
                                  INNER JOIN Sale.SaleInvoiceItems SI ON SI.InvoiceID = S.ID
                                  INNER JOIN Inventory.InventoryItemVariations V ON V.ID = SI.VariationID
                                  INNER JOIN Inventory.InventoryItems II ON II.ID = V.ItemID
                                  LEFT JOIN Inventory.ItemAttributes IA ON IA.ID = V.CategoryID AND IA.AttributeType = 'Category'
                                  LEFT JOIN Inventory.ItemAttributes IAF ON IAF.ID = V.FormationID AND IAF.AttributeType = 'Formation'
-                                 WHERE  S.IsDeleted = 0 ";
+                                 WHERE  S.IsDeleted = 0 AND (SI.Qty - ISNULL(SI.RetQty, 0)) > 0 ";
 
                 if (input.ManufacturerID > 0)
                 {
@@ -1884,7 +1889,7 @@ namespace HARTPOS.Repositories
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
                     query += " AND (V.VariationName LIKE @SearchString) ";
                 }
-                query += @" GROUP BY V.VariationName, V.CostPrice, V.SellingPrice, IAF.Title, IA.Title ";
+                query += @" GROUP BY V.ID, V.VariationName, V.CostPrice, IAF.Title, IA.Title ";
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
                 sortAndOrder.Add($"MyList.{(string.IsNullOrEmpty(input.SortBy) ? "ProductName" : input.SortBy)}",
@@ -1910,9 +1915,11 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT S.ID, S.InvoiceDate AS DateTime, S.InvoiceNo, P.PaidAmount AS Amount, P.PaymentMode 
+                string query = @"SELECT P.ID, P.Date AS DateTime, S.InvoiceNo,
+                                        CASE WHEN P.TransactionType = 'Return' THEN -P.PaidAmount ELSE P.PaidAmount END AS Amount,
+                                        CASE WHEN P.TransactionType = 'Return' THEN ISNULL(P.PaymentMode, '') + ' (Refund)' ELSE P.PaymentMode END AS PaymentMode
                                  FROM Sale.SaleInvoices S
-                                 INNER JOIN Sale.SaleInvoicePayments P ON P.InvoiceID = S.ID 
+                                 INNER JOIN Sale.SaleInvoicePayments P ON P.InvoiceID = S.ID
                                  WHERE   S.IsDeleted = 0 ";
 
                 if (!string.IsNullOrEmpty(input.SalePersonUsername))
@@ -1931,7 +1938,7 @@ namespace HARTPOS.Repositories
                     dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
                     dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
 
-                    query += " AND CONVERT(DATE,S.InvoiceDate) BETWEEN @StartDate AND @EndDate ";
+                    query += " AND CONVERT(DATE, ISNULL(P.Date, S.InvoiceDate)) BETWEEN @StartDate AND @EndDate ";
                 }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
@@ -1965,16 +1972,23 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT V.VariationName AS ProductName,IAF.Title AS Variant, IA.Title AS Category, V.CostPrice AS PurchaseRate, V.SellingPrice AS SaleRate,
-                                 SUM(SI.Qty) AS QtySold, SUM(SI.Qty * V.CostPrice) AS TotalCost, SUM(SI.LineTotal) AS TotalSale,
-                                 SUM((SI.Qty * (V.SellingPrice - V.CostPrice) )) AS TotalProfit, V.OpeningStock, MAX(S.InvoiceDate) AS DateTime
-                                 FROM Sale.SaleInvoices S
-                                 INNER JOIN Sale.SaleInvoiceItems SI ON SI.InvoiceID = S.ID
-                                 INNER JOIN Inventory.InventoryItemVariations V ON V.ID = SI.VariationID
-                                 INNER JOIN Inventory.InventoryItems II ON II.ID = V.ItemID
+                bool hasDates = !string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate);
+                dbValues.Add("@StartDate", hasDates ? Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd") : null);
+                dbValues.Add("@EndDate", hasDates ? Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd") : null);
+
+                string query = @"SELECT V.VariationName AS ProductName, IAF.Title AS Variant, IA.Title AS Category,
+                                 ISNULL(SUM(SL.NetQty), 0) AS QtySold, MAX(SL.InvoiceDate) AS DateTime, V.OpeningStock
+                                 FROM Inventory.InventoryItemVariations V
+                                 INNER JOIN Inventory.InventoryItems II ON II.ID = V.ItemID AND II.IsDeleted = 0
                                  LEFT JOIN Inventory.ItemAttributes IA ON IA.ID = V.CategoryID AND IA.AttributeType = 'Category'
                                  LEFT JOIN Inventory.ItemAttributes IAF ON IAF.ID = V.FormationID AND IAF.AttributeType = 'Formation'
-                                 WHERE S.IsDeleted = 0 ";
+                                 LEFT JOIN (
+                                     SELECT SI.VariationID, S.InvoiceDate, (SI.Qty - ISNULL(SI.RetQty, 0)) AS NetQty
+                                     FROM Sale.SaleInvoiceItems SI
+                                     INNER JOIN Sale.SaleInvoices S ON S.ID = SI.InvoiceID AND S.IsDeleted = 0
+                                     WHERE (@StartDate IS NULL OR CONVERT(DATE, S.InvoiceDate) BETWEEN @StartDate AND @EndDate)
+                                 ) SL ON SL.VariationID = V.ID
+                                 WHERE 1 = 1 ";
 
                 if (input.SupplierID > 0)
                 {
@@ -2017,20 +2031,13 @@ namespace HARTPOS.Repositories
                     query += " AND IAF.ID = @VarientID ";
                 }
 
-                if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
-                {
-                    dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
-                    dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
-
-                    query += " AND CONVERT(DATE,S.InvoiceDate) BETWEEN @StartDate AND @EndDate ";
-                }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
                     query += " AND (V.VariationName LIKE @SearchString) ";
                 }
-                query += @" GROUP BY V.VariationName, V.CostPrice, V.SellingPrice, IAF.Title, IA.Title, V.OpeningStock ";
+                query += @" GROUP BY V.ID, V.VariationName, IAF.Title, IA.Title, V.OpeningStock ";
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
                 sortAndOrder.Add($"MyList.{(string.IsNullOrEmpty(input.SortBy) ? "QtySold" : input.SortBy)}",
@@ -2057,9 +2064,9 @@ namespace HARTPOS.Repositories
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
                 string query = @"SELECT
-                                  (SELECT C.Name
+                                  ISNULL((SELECT C.Name
                                       FROM Patient.Patients C
-                                      WHERE C.ID = S.CustomerID) AS Customer,
+                                      WHERE C.ID = S.CustomerID), 'Walk-in Customer') AS Customer,
                                  MAX(S.InvoiceDate) AS DateTime, SUM(SFD.SubtotalAfterTax) AS TotalSale, SUM(SFD.PaidAmount) AS PaidAmount , SUM(SFD.RemainingAmount) AS Balance
                                  FROM Sale.SaleInvoices S
                                  INNER JOIN Sale.SaleInvoiceFinancialDetails SFD ON SFD.InvoiceID = S.ID
@@ -2072,11 +2079,6 @@ namespace HARTPOS.Repositories
                     query += " AND S.CustomerID =  @CustomerID AND S.CustomerType = @CustomerType ";
                 }
 
-                if (input.MinOutstandingAmount > 0)
-                {
-                    dbValues.Add("@MinOutstanding", input.MinOutstandingAmount.ToString());
-                    query += " AND SFD.RemainingAmount <  @MinOutstanding ";
-                }
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
                 {
@@ -2090,12 +2092,14 @@ namespace HARTPOS.Repositories
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
 
-                    query += " AND ";
-                    query += " S.InvoiceNo LIKE @SearchString OR ";  
-                    query += "     (SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID) ";
-                    query += "   LIKE @SearchString";
+                    query += " AND (S.InvoiceNo LIKE @SearchString OR (SELECT C.Name FROM Patient.Patients C WHERE C.ID = S.CustomerID) LIKE @SearchString) ";
                 }
                 query += @" GROUP BY S.CustomerType, S.CustomerID ";
+                if (input.MinOutstandingAmount > 0)
+                {
+                    dbValues.Add("@MinOutstanding", input.MinOutstandingAmount.ToString());
+                    query += " HAVING SUM(SFD.RemainingAmount) >= @MinOutstanding ";
+                }
 
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
@@ -2128,7 +2132,7 @@ namespace HARTPOS.Repositories
                                INNER JOIN Inventory.InventoryItemVariations V ON V.ID = H.VariationID
                                INNER JOIN Inventory.InventoryItems I ON I.ID = V.ItemID
                                WHERE  I.IsDeleted = 0
-                               AND H.Status IN ('Stock-In', 'Stock-Out') ";
+                               AND H.Status IN ('Stock-In', 'Stock-Out') AND H.Soruce = 'System' ";
 
                 if (input.ItemID > 0)
                 {
@@ -2186,35 +2190,48 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT A.ID, A.TimeStamp DateTime, U.Name [User], A.EventType ActionType, A.AffectedID ReferenceNo,
-                                 PARSENAME(A.[Table], 1) + ' - ' + Description Remarks
-                                 FROM Pharmacy.AuditTrails A
-                                 INNER JOIN InstaUser.[User] U ON U.Username = A.UserID
-                                 WHERE A.MasterUsername = @MasterUsername ";
+                string query = @"SELECT A.ID, CONVERT(VARCHAR(19), A.CreatedOn, 120) AS DateTime,
+                                        ISNULL(NULLIF(U.FullName, ''), A.Username) AS [User],
+                                        A.Action AS ActionType, A.EntityID AS ReferenceNo,
+                                        ISNULL(A.EntityType, '') + ' - ' + ISNULL(A.Details, '') AS Remarks
+                                 FROM dbo.ActivityLogs A
+                                 LEFT JOIN Auth.Users U ON U.Username = A.Username
+                                 WHERE 1 = 1 ";
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
                 {
                     dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
                     dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
 
-                    query += " AND CONVERT(DATE,A.TimeStamp) BETWEEN @StartDate AND @EndDate ";
+                    query += " AND CONVERT(DATE,A.CreatedOn) BETWEEN @StartDate AND @EndDate ";
                 }
 
                 if (!string.IsNullOrEmpty(input.SalePersonUsername))
                 {
                     dbValues.Add("@SalePersonUsername", input.SalePersonUsername);
-                    query += " AND A.UserID = @SalePersonUsername";
+                    query += " AND A.Username = @SalePersonUsername";
                 }
                 if (!string.IsNullOrEmpty(input.ActionType))
                 {
-                    dbValues.Add("@ActionType", input.ActionType);
-                    query += " AND A.EventType = @ActionType";
+                    // Filter values are INSERT / UPDATE / DELETE / LOGIN ...; log actions look like SALE_CREATE.
+                    string pattern;
+                    switch (input.ActionType.ToUpperInvariant())
+                    {
+                        case "INSERT": pattern = "%CREATE%"; break;
+                        case "UPDATE": pattern = "%UPDATE%"; break;
+                        case "DELETE": pattern = "%DELETE%"; break;
+                        case "RETURN": pattern = "%RETURN%"; break;
+                        case "LOGIN": pattern = "LOGIN%"; break;
+                        default: pattern = "%" + input.ActionType + "%"; break;
+                    }
+                    dbValues.Add("@ActionType", pattern);
+                    query += " AND A.Action LIKE @ActionType";
                 }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
-                    query += " AND U.Name LIKE @SearchString  ";
+                    query += " AND (U.FullName LIKE @SearchString OR A.Username LIKE @SearchString OR A.Action LIKE @SearchString OR A.Details LIKE @SearchString) ";
                 }
 
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
@@ -2242,39 +2259,36 @@ namespace HARTPOS.Repositories
 
                 DataTableValuesDTO dataTableValues = input.DataTableValues;
 
-                string query = @"SELECT U.Name [User],
-                                    COUNT(CASE WHEN A.[Table] = 'Sale.SaleInvoices' AND A.EventType = 'INSERT' THEN 1 END) AS TotalSales,
-                                    COUNT(CASE WHEN A.[Table] = 'Sale.SaleInvoices' AND A.EventType = 'RETURN' THEN 1 END) AS TotalReturns,
-                                    COUNT(CASE WHEN A.[Table] = 'Purchase.Purchases' AND A.EventType = 'INSERT' THEN 1 END) AS TotalPurchases,
+                string query = @"SELECT ISNULL(NULLIF(U.FullName, ''), A.Username) AS [User],
+                                    COUNT(CASE WHEN A.Action = 'SALE_CREATE' THEN 1 END) AS TotalSales,
+                                    COUNT(CASE WHEN A.Action LIKE 'SALE_RETURN%' THEN 1 END) AS TotalReturns,
+                                    COUNT(CASE WHEN A.Action IN ('PURCHASE_RECEIVE', 'PURCHASE_ORDER_SAVE') THEN 1 END) AS TotalPurchases,
                                     COUNT(*) AS UserActivityCount
-                                FROM Pharmacy.AuditTrails A
-                                INNER JOIN InstaUser.[User] U ON U.Username = A.UserID
-                                WHERE  A.[Table] IN (
-                                    'Sale.SaleInvoices',
-                                    'Purchase.Purchases'
-                                ) ";
+                                FROM dbo.ActivityLogs A
+                                LEFT JOIN Auth.Users U ON U.Username = A.Username
+                                WHERE A.Action NOT IN ('LOGIN', 'LOGOUT', 'LOGIN_FAILED') ";
 
                 if (!string.IsNullOrEmpty(input.StartDate) && !string.IsNullOrEmpty(input.EndDate))
                 {
                     dbValues.Add("@StartDate", Convert.ToDateTime(input.StartDate).ToString("yyyy-MM-dd"));
                     dbValues.Add("@EndDate", Convert.ToDateTime(input.EndDate).ToString("yyyy-MM-dd"));
 
-                    query += " AND CONVERT(DATE,A.TimeStamp) BETWEEN @StartDate AND @EndDate ";
+                    query += " AND CONVERT(DATE,A.CreatedOn) BETWEEN @StartDate AND @EndDate ";
                 }
 
                 if (!string.IsNullOrEmpty(input.SalePersonUsername))
                 {
                     dbValues.Add("@SalePersonUsername", input.SalePersonUsername);
-                    query += " AND A.UserID = @SalePersonUsername ";
+                    query += " AND A.Username = @SalePersonUsername ";
                 }
 
                 if (!string.IsNullOrEmpty(dataTableValues.SearchString))
                 {
                     dbValues.Add("@SearchString", $"%{dataTableValues.SearchString}%");
-                    query += " AND U.Name LIKE @SearchString  ";
+                    query += " AND (U.FullName LIKE @SearchString OR A.Username LIKE @SearchString) ";
                 }
 
-                query += @"GROUP BY U.Name ";
+                query += @" GROUP BY ISNULL(NULLIF(U.FullName, ''), A.Username) ";
                 int p = dataTableValues.Offset / dataTableValues.PageSize;
                 Dictionary<string, string> sortAndOrder = new Dictionary<string, string>();
                 sortAndOrder.Add($"MyList.{(string.IsNullOrEmpty(input.SortBy) ? "[User]" : input.SortBy)}",

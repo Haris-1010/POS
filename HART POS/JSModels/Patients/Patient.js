@@ -4,9 +4,10 @@
         _$customersTable = $('#customersTable');
 
     let customerPermissions = {
-        canCreate: "1",
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canCreate: window.cmCan('Patient_Add'),
+        canUpdate: window.cmCan('Patient_Edit'),
+        canDelete: window.cmCan('Patient_Delete')
     };
 
     $(function () {
@@ -48,7 +49,7 @@
                 }
             },
             messages: {
-                Name: "Patient name is required",
+                Name: "Customer name is required",
                 CNIC: "CNIC must be in the format 12345-1234567-1"
             },
             errorPlacement: function (error, element) {
@@ -208,8 +209,8 @@
             let customerId = $(this).data('customer-id');
             let deletedby = $(this).data('deletedby');
             bootbox.confirm({
-                title: 'Delete Patient',
-                message: "Do you want to delete this Patient?",
+                title: 'Delete Customer',
+                message: "Do you want to delete this customer?",
                 size: 'small',
                 buttons: {
                     confirm: {

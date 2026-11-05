@@ -17,7 +17,8 @@ namespace HARTPOS.Models.InventoryItems
         public string ProductType { get; set; }
         public string MedicineSalt { get; set; }
         public int? BrandID { get; set; }
-        public int ManufacturerID { get; set; }
+        // NULL = no manufacturer (the column has a foreign key, so 0 is not allowed).
+        public int? ManufacturerID { get; set; }
         public string SupplierID { get; set; }
 
         [DontUpdate]

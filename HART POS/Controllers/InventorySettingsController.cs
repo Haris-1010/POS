@@ -24,8 +24,10 @@ namespace HARTPOS.Controllers
             _itemAttributesRepository = itemAttributesRepository;
         }
 
+        [AuthorizePermission("InventorySettings_View", "InventorySettings_Manage", "Taxes_View", "Discounts_View", "Branding_View", "Branding_Manage", "BackupSettings_View", "BackupSettings_Manage")]
         public ActionResult Index() => View();
 
+        [AuthorizePermission("InventorySettings_View", "InventorySettings_Manage")]
         public ActionResult ItemAttributes() => View();
 
         #region ItemAttributes

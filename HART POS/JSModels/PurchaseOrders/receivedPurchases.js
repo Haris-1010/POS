@@ -3,7 +3,8 @@
         _$filterForm = $("#filterForm"),
         receivedPurchasesPermissionForm = $('#ReceivedPurchasesPermissionsForm').serializeObject();
     let receivedPurchasesPermission = {
-        canPrint: "1",
+        // real permissions of the logged-in user (set in _Layout)
+        canPrint: window.cmCan('Purchases_View', 'Purchases_Add', 'Purchases_Edit')
     };
 
     let startDate, endDate;

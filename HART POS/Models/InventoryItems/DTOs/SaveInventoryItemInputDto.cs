@@ -13,13 +13,13 @@ namespace HARTPOS.Models.InventoryItems.DTOs
         [Required]
         public string Name { get; set; }
 
-        [Required]
+        // Optional: an item doesn't need a type.
         public string ProductType { get; set; }
 
         public string MedicineSalt { get; set; }
         public int? BrandID { get; set; } = 0;
 
-        [Required]
+        // Optional: 0 means "no manufacturer".
         public int ManufacturerID { get; set; }
 
         [Required]

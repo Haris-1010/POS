@@ -16,8 +16,8 @@
         _$itemInfoForm.validate({
             ignore: [],  
             rules: {
-                ManufacturerID: { required: true },
-                SupplierName: { required: true } 
+                // Manufacturer and Type are optional
+                SupplierName: { required: true }
                  
             },
             messages: {
@@ -90,6 +90,13 @@
             } catch (error) {
                 toastr.error("Failed to save manufacturer due to a technical error.", "", { timeOut: 500 });
                 _$saveBtn.text('Save').prop('disabled', false);
+            }
+        });
+
+        // Manufacturer is optional: clearing the box also clears the selected manufacturer.
+        _$manufacturerSearchElement.on('input change', function () {
+            if ($.trim($(this).val()) === '') {
+                _$itemInfoForm.find('input[name="ManufacturerID"]').val(0);
             }
         });
 

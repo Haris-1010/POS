@@ -4,11 +4,12 @@
         _$purchaseOrderCards = $("#purchaseOrderCards"),
         purchaseOrdersPermissionForm = $('#PurchaseOrdersPermissionsForm').serializeObject();
     let purchaseOrdersPermission = {
-        canUpdate: "1",
-        canWhatsapp: "1",
-        canDelete: "1",
-        canCreateReceivePuruchase: "1",
-        canPrint: "1",
+        // real permissions of the logged-in user (set in _Layout)
+        canUpdate: window.cmCan('Purchases_Edit'),
+        canWhatsapp: window.cmCan('Purchases_View'),
+        canDelete: window.cmCan('Purchases_Delete'),
+        canCreateReceivePuruchase: window.cmCan('Purchases_Add', 'Purchases_Edit'),
+        canPrint: window.cmCan('Purchases_View', 'Purchases_Add', 'Purchases_Edit')
     };
     const _$modal = $('#saveClearDueModal');
 

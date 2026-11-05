@@ -3,8 +3,9 @@
         _$saveItemForm = _$saveItemModal.find('form');
 
     let ItemAttributesPermissions = {
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canUpdate: window.cmCan('InventorySettings_Manage'),
+        canDelete: window.cmCan('InventorySettings_Manage')
     };
 
     $(function () {

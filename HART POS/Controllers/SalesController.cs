@@ -10,6 +10,7 @@ using HARTPOS.Models.Sales.DTOs;
 using HARTPOS.Models.Supplier.DTOs;
 using HARTPOS.Models.Taxes.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -71,9 +72,13 @@ namespace HARTPOS.Controllers
             });
         }
 
-        [AuthorizePermission("Sales_View", "Sales_Add")]
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<ActionResult> ManageInvoice(GetSaleInvoiceInputDto input)
         {
+            // Opening an existing invoice here edits it; a new one needs "Create Sale".
+            if (!UserAccessService.Can(HttpContext, input.InvoiceID > 0 ? "Sales_Edit" : "Sales_Add"))
+                return Redirect("/DashBoard/AccessDenied");
+
             try
             {
                 ManageInvoiceVM viewModel = new ManageInvoiceVM
@@ -116,7 +121,7 @@ namespace HARTPOS.Controllers
             }
         }
 
-        [AuthorizePermission("Sales_View", "Sales_Edit")]
+        [AuthorizePermission("Sales_Edit")]
         public async Task<ActionResult> ManageInvoiceReturn(int ID)
         {
             try
@@ -145,9 +150,14 @@ namespace HARTPOS.Controllers
             }
         }
 
-        [AuthorizePermission("Sales_View")]
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<ActionResult> PrintInvoice(GetSaleInvoiceInputDto input)
         {
+            // This old print page crashed (its view expects another model). The receipt the app
+            // actually uses is the thermal print, so send people there.
+            if (input.InvoiceID > 0)
+                return RedirectToAction("PrintSaleInvoiceThermalV2", "Print", new { ID = input.InvoiceID });
+
             if (input.InvoiceID <= 0)
             {
                 return View("SaleInvoices");
@@ -179,6 +189,11 @@ namespace HARTPOS.Controllers
             {
                 string operationType = input.SaleInvoiceItems.Any(i => i.TransactionStatus?.ToUpper() == "RETURNED") ?
                    "RETURN" : (input.SaleInvoice.ID > 0 ? "UPDATE" : "INSERT");
+
+                // New sale needs "Create Sale"; editing or returning needs "Edit / Return Sale".
+                bool isNewSale = operationType == "INSERT";
+                if (!UserAccessService.CanSave(HttpContext, isNewSale, "Sales_Add", "Sales_Edit"))
+                    return Json(new AjaxRequestDTO { Status = false, Message = isNewSale ? "You don't have permission to create a sale." : "You don't have permission to edit or return a sale." });
 
                 if (input.SaleInvoicePayments != null && input.SaleInvoicePayments.Count > 0)
                 {
@@ -232,7 +247,8 @@ namespace HARTPOS.Controllers
                     string typedName = (saveSaleInputDto.SaleInvoice.SearchCustomer ?? string.Empty).Trim();
 
                     if ((customerId.Length == 0 || customerId == "0") && typedName.Length > 0
-                        && !string.Equals(typedName, "Add New Patient", StringComparison.OrdinalIgnoreCase))
+                        && !string.Equals(typedName, "Add New Patient", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(typedName, "Add New Customer", StringComparison.OrdinalIgnoreCase))
                     {
                         int patientId = await _patientRepository.FindPatientIdByNameAsync(typedName);
 
@@ -338,6 +354,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Sales_View")]
         public async Task<JsonResult> GetSalesInfo()
         {
             try
@@ -358,6 +375,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpGet]
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<JsonResult> GetInvoicePrintShortURL(int ID)
         {
             try
@@ -374,6 +392,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Sales_View", "Sales_Add", "Sales_Edit")]
         public async Task<JsonResult> SendInvoiceToCustomer(SendInvoiceToCustomerDto input)
         {
             try

@@ -1,4 +1,6 @@
 ﻿using HARTPOS.DbModels;
+using HARTPOS.Filters;
+using HARTPOS.Service;
 using HARTPOS.Models.DashBoard;
 using HARTPOS.Models.DashBoard.DTOs;
 using HARTPOS.Models.Discounts.DTOs;
@@ -31,13 +33,28 @@ namespace HARTPOS.Controllers
 
         public async Task<ActionResult> Dashboard()
         {
+            // Everyone lands here after login. Users without "View Dashboard Figures" get a
+            // welcome page with shortcuts instead of the sales/stock figures.
+            var access = UserAccessService.Current(HttpContext);
+            bool canSeeFigures = access != null ? access.Has("Dashboard_View") : User.IsInRole("Admin");
+            if (!canSeeFigures)
+            {
+                return View("Welcome");
+            }
+
             try
             {
                 var range = await ResolveDateRangeAsync("today", null, null);
 
-                var dbCard = await _dashBoardRepo.GetDashBoardCardsAsync(new RequestByMasterUsernameDTO(), range.From, range.To);
-                var userSettings = await _dashBoardRepo.GetUserDashboardSettingsAsync(new RequestByMasterUsernameDTO());
-                var charts = await _dashBoardRepo.GetDashboardChartsAsync(range.From, range.To);
+                // The three loads are independent, so run them at the same time.
+                var cardsTask = _dashBoardRepo.GetDashBoardCardsAsync(new RequestByMasterUsernameDTO(), range.From, range.To);
+                var settingsTask = _dashBoardRepo.GetUserDashboardSettingsAsync(new RequestByMasterUsernameDTO());
+                var chartsTask = _dashBoardRepo.GetDashboardChartsAsync(range.From, range.To);
+                await Task.WhenAll(cardsTask, settingsTask, chartsTask);
+
+                var dbCard = cardsTask.Result;
+                var userSettings = settingsTask.Result;
+                var charts = chartsTask.Result;
                 AttachInventoryHealthChart(charts, dbCard);
 
                 var model = new DashBoardVM
@@ -70,15 +87,22 @@ namespace HARTPOS.Controllers
         /// without a full page reload.
         /// </summary>
         [HttpPost]
+        [AuthorizePermission("Dashboard_View")]
         public async Task<JsonResult> GetDashboardData(GetDashboardDataInputDto input)
         {
             try
             {
                 var range = await ResolveDateRangeAsync(input?.Range, input?.FromDate, input?.ToDate);
 
-                var dbCard = await _dashBoardRepo.GetDashBoardCardsAsync(new RequestByMasterUsernameDTO(), range.From, range.To);
-                var userSettings = await _dashBoardRepo.GetUserDashboardSettingsAsync(new RequestByMasterUsernameDTO());
-                var charts = await _dashBoardRepo.GetDashboardChartsAsync(range.From, range.To);
+                // The three loads are independent, so run them at the same time.
+                var cardsTask = _dashBoardRepo.GetDashBoardCardsAsync(new RequestByMasterUsernameDTO(), range.From, range.To);
+                var settingsTask = _dashBoardRepo.GetUserDashboardSettingsAsync(new RequestByMasterUsernameDTO());
+                var chartsTask = _dashBoardRepo.GetDashboardChartsAsync(range.From, range.To);
+                await Task.WhenAll(cardsTask, settingsTask, chartsTask);
+
+                var dbCard = cardsTask.Result;
+                var userSettings = settingsTask.Result;
+                var charts = chartsTask.Result;
                 AttachInventoryHealthChart(charts, dbCard);
 
                 return Json(new AjaxRequestDTO
@@ -226,6 +250,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Dashboard_View")]
         public async Task<JsonResult> SaveDashBoardSetting(SaveDashboardSettingInputDto input)
         {
             try

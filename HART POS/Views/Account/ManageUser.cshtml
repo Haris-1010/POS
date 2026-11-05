@@ -1,212 +1,1328 @@
 @model HARTPOS.Models.Auth.ViewModels.ManageUserVM
 @{
     ViewBag.Title = Model.IsNewUser ? "Create User" : "Edit User";
+
+    bool isAdminRole = Model.Role == "Admin";
+    string initials = "";
+    if (!Model.IsNewUser && !string.IsNullOrWhiteSpace(Model.FullName))
+    {
+        var parts = Model.FullName.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        initials = parts.Length > 1
+            ? (parts[0].Substring(0, 1) + parts[parts.Length - 1].Substring(0, 1)).ToUpper()
+            : parts[0].Substring(0, 1).ToUpper();
+    }
+
+    int totalPermissions = Model.PermissionGroups?.Sum(g => g.Permissions.Count) ?? 0;
+    int selectedPermissions = Model.PermissionGroups?.Sum(g => g.Permissions.Count(p => p.IsSelected)) ?? 0;
+
+    Func<string, string> moduleIcon = (module) =>
+    {
+        switch (module)
+        {
+            case "Dashboard": return "fa-tachometer-alt";
+            case "POS Assistant": return "fa-comments";
+            case "Sales": return "fa-cash-register";
+            case "Patient": return "fa-user-friends";
+            case "Inventory": return "fa-boxes";
+            case "Purchases": return "fa-truck-loading";
+            case "Suppliers": return "fa-user-tie";
+            case "Manufacturers": return "fa-industry";
+            case "Brands": return "fa-tags";
+            case "Reports": return "fa-chart-bar";
+            case "Discounts": return "fa-percent";
+            case "Taxes": return "fa-file-invoice-dollar";
+            case "Inventory Settings": return "fa-sliders-h";
+            case "Branding": return "fa-palette";
+            case "Database Backup": return "fa-database";
+            case "User Management": return "fa-user-shield";
+            default: return "fa-folder";
+        }
+    };
+    Func<string, string> moduleLabel = (module) => module == "Patient" ? "Customers" : module;
+    Func<string, string> actionOf = (key) =>
+    {
+        int i = key == null ? -1 : key.LastIndexOf('_');
+        string a = i >= 0 ? key.Substring(i + 1).ToLowerInvariant() : "";
+        return (a == "view" || a == "add" || a == "edit" || a == "delete") ? a : "manage";
+    };
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0" style="color: var(--cm-accent-ink);">@(Model.IsNewUser ? "Create New User" : "Edit User")</h1>
+@section Styles {
+    <style>
+        .mu-page {
+            --mu-radius: 14px;
+            --mu-view: #2563eb;
+            --mu-add: #059669;
+            --mu-edit: #d97706;
+            --mu-delete: #dc2626;
+            --mu-manage: #7c3aed;
+            padding: 18px 0 96px;
+            color: var(--cm-text);
+        }
+
+        html[data-theme="dark"] .mu-page {
+            --mu-view: #7aa2ff;
+            --mu-add: #34d399;
+            --mu-edit: #fbbf24;
+            --mu-delete: #f87171;
+            --mu-manage: #c4b5fd;
+        }
+
+        /* ---------- Header ---------- */
+        .mu-hero {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: var(--mu-radius);
+            box-shadow: var(--cm-shadow);
+            padding: 18px 22px;
+            margin-bottom: 18px;
+        }
+
+        .mu-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            flex: 0 0 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            background: var(--cm-accent);
+            color: var(--cm-on-accent);
+            box-shadow: 0 0 0 4px var(--cm-soft);
+            transition: background .2s;
+        }
+
+            .mu-avatar.is-admin {
+                background: linear-gradient(135deg, var(--cm-accent), #7c3aed);
+            }
+
+        .mu-hero-text {
+            flex: 1 1 220px;
+            min-width: 0;
+        }
+
+        .mu-hero h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--cm-text);
+        }
+
+        .mu-hero-sub {
+            margin-top: 4px;
+            color: var(--cm-text-muted);
+            font-size: .88rem;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .mu-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 600;
+            background: var(--cm-surface-alt);
+            border: 1px solid var(--cm-border);
+            color: var(--cm-text-muted);
+        }
+
+            .mu-pill .dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+
+            .mu-pill.is-on {
+                color: var(--mu-add);
+                border-color: currentColor;
+            }
+
+            .mu-pill.is-off {
+                color: var(--mu-delete);
+                border-color: currentColor;
+            }
+
+            .mu-pill.is-admin {
+                color: var(--mu-manage);
+                border-color: currentColor;
+            }
+
+        .mu-crumbs {
+            font-size: .82rem;
+            color: var(--cm-text-muted);
+        }
+
+            .mu-crumbs a {
+                color: var(--cm-text-muted) !important;
+            }
+
+                .mu-crumbs a:hover {
+                    color: var(--cm-accent-ink) !important;
+                }
+
+        /* ---------- Cards ---------- */
+        .mu-card {
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: var(--mu-radius);
+            box-shadow: var(--cm-shadow);
+            margin-bottom: 18px;
+        }
+
+        .mu-card-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--cm-border);
+            flex-wrap: wrap;
+        }
+
+            .mu-card-head h2 {
+                font-size: 1rem;
+                font-weight: 700;
+                margin: 0;
+                color: var(--cm-text);
+            }
+
+            .mu-card-head .mu-head-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--cm-soft);
+                color: var(--cm-accent-ink);
+            }
+
+        .mu-card-body {
+            padding: 18px;
+        }
+
+        /* ---------- Fields ---------- */
+        .mu-field {
+            margin-bottom: 14px;
+        }
+
+            .mu-field label {
+                display: block;
+                font-size: .8rem;
+                font-weight: 600;
+                color: var(--cm-text);
+                margin-bottom: 5px;
+            }
+
+            .mu-field .req {
+                color: var(--mu-delete);
+            }
+
+            .mu-field .hint {
+                font-size: .75rem;
+                color: var(--cm-text-muted);
+                margin-top: 4px;
+            }
+
+        .mu-input {
+            position: relative;
+        }
+
+            .mu-input > i.mu-lead {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--cm-text-muted);
+                font-size: .85rem;
+                pointer-events: none;
+            }
+
+            .mu-input .form-control {
+                padding-left: 36px !important;
+                height: 40px !important;
+                border-radius: 9px !important;
+            }
+
+            .mu-input.has-actions .form-control {
+                padding-right: 76px !important;
+            }
+
+        .mu-input-actions {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 2px;
+        }
+
+            .mu-input-actions button {
+                border: 0;
+                background: transparent;
+                color: var(--cm-text-muted);
+                width: 32px;
+                height: 30px;
+                border-radius: 7px;
+            }
+
+                .mu-input-actions button:hover {
+                    background: var(--cm-soft);
+                    color: var(--cm-accent-ink);
+                }
+
+        .mu-field.has-error .form-control {
+            border-color: var(--mu-delete) !important;
+        }
+
+        .mu-field .err {
+            display: none;
+            font-size: .75rem;
+            color: var(--mu-delete);
+            margin-top: 4px;
+        }
+
+        .mu-field.has-error .err {
+            display: block;
+        }
+
+        .mu-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 7px;
+        }
+
+            .mu-strength span {
+                flex: 1;
+                height: 4px;
+                border-radius: 4px;
+                background: var(--cm-border);
+                transition: background .2s;
+            }
+
+        .mu-strength-label {
+            font-size: .72rem;
+            color: var(--cm-text-muted);
+            margin-top: 3px;
+            min-height: 1em;
+        }
+
+        /* ---------- Role tiles ---------- */
+        .mu-roles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mu-role input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mu-role-tile {
+            display: block;
+            cursor: pointer;
+            border: 1.5px solid var(--cm-border);
+            border-radius: 12px;
+            padding: 12px;
+            height: 100%;
+            transition: border-color .15s, background .15s, box-shadow .15s;
+            margin: 0;
+        }
+
+            .mu-role-tile:hover {
+                border-color: var(--cm-accent-ink);
+            }
+
+            .mu-role-tile .t {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 700;
+                font-size: .9rem;
+                color: var(--cm-text);
+            }
+
+            .mu-role-tile .d {
+                font-size: .75rem;
+                color: var(--cm-text-muted);
+                margin-top: 4px;
+                font-weight: 400;
+                line-height: 1.35;
+            }
+
+            .mu-role-tile .check {
+                margin-left: auto;
+                color: var(--cm-accent-ink);
+                opacity: 0;
+                transition: opacity .15s;
+            }
+
+        .mu-role input:checked + .mu-role-tile {
+            border-color: var(--cm-accent-ink);
+            background: var(--cm-soft);
+            box-shadow: 0 0 0 3px var(--cm-soft);
+        }
+
+            .mu-role input:checked + .mu-role-tile .check {
+                opacity: 1;
+            }
+
+        .mu-role input:focus-visible + .mu-role-tile {
+            outline: 2px solid var(--cm-accent-ink);
+            outline-offset: 2px;
+        }
+
+        /* ---------- Switch ---------- */
+        .mu-switch-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--cm-border);
+            border-radius: 12px;
+            margin-top: 14px;
+            background: var(--cm-surface-alt);
+        }
+
+            .mu-switch-row .txt {
+                flex: 1;
+            }
+
+                .mu-switch-row .txt b {
+                    display: block;
+                    font-size: .88rem;
+                    color: var(--cm-text);
+                }
+
+                .mu-switch-row .txt small {
+                    color: var(--cm-text-muted);
+                    font-size: .75rem;
+                }
+
+        .mu-switch {
+            position: relative;
+            width: 46px;
+            height: 26px;
+            flex: 0 0 46px;
+            margin: 0;
+        }
+
+            .mu-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .mu-switch .track {
+                position: absolute;
+                inset: 0;
+                border-radius: 26px;
+                background: var(--cm-border);
+                cursor: pointer;
+                transition: background .2s;
+            }
+
+                .mu-switch .track::after {
+                    content: "";
+                    position: absolute;
+                    width: 20px;
+                    height: 20px;
+                    left: 3px;
+                    top: 3px;
+                    border-radius: 50%;
+                    background: #fff;
+                    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+                    transition: transform .2s;
+                }
+
+            .mu-switch input:checked + .track {
+                background: var(--mu-add);
+            }
+
+                .mu-switch input:checked + .track::after {
+                    transform: translateX(20px);
+                }
+
+            .mu-switch input:focus-visible + .track {
+                outline: 2px solid var(--cm-accent-ink);
+                outline-offset: 2px;
+            }
+
+        /* ---------- Permissions ---------- */
+        .mu-count {
+            margin-left: auto;
+            font-size: .8rem;
+            color: var(--cm-text-muted);
+        }
+
+            .mu-count b {
+                color: var(--cm-accent-ink);
+                font-size: .95rem;
+            }
+
+        .mu-progress {
+            height: 4px;
+            background: var(--cm-border);
+            border-radius: 4px;
+            overflow: hidden;
+            flex-basis: 100%;
+        }
+
+            .mu-progress span {
+                display: block;
+                height: 100%;
+                background: var(--cm-accent-ink);
+                transition: width .25s;
+            }
+
+        .mu-toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .mu-search {
+            flex: 1 1 220px;
+        }
+
+        .mu-chip-btn {
+            border: 1px solid var(--cm-border);
+            background: var(--cm-surface);
+            color: var(--cm-text);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: .78rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: border-color .15s, background .15s;
+        }
+
+            .mu-chip-btn:hover {
+                border-color: var(--cm-accent-ink);
+                background: var(--cm-soft);
+            }
+
+            .mu-chip-btn i {
+                color: var(--cm-accent-ink);
+            }
+
+        .mu-legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: .72rem;
+            color: var(--cm-text-muted);
+            margin-bottom: 12px;
+        }
+
+            .mu-legend span::before {
+                content: "";
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 5px;
+                background: var(--c);
+            }
+
+        .mu-modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            position: relative;
+        }
+
+        .mu-module {
+            border: 1px solid var(--cm-border);
+            border-radius: 12px;
+            background: var(--cm-surface);
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+            .mu-module.is-full {
+                border-color: var(--cm-accent-ink);
+            }
+
+        .mu-module-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--cm-border);
+            background: var(--cm-surface-alt);
+            border-radius: 12px 12px 0 0;
+        }
+
+            .mu-module-head .ic {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--cm-soft);
+                color: var(--cm-accent-ink);
+                font-size: .85rem;
+            }
+
+            .mu-module-head .nm {
+                font-weight: 700;
+                font-size: .88rem;
+                color: var(--cm-text);
+                line-height: 1.1;
+            }
+
+                .mu-module-head .nm small {
+                    display: block;
+                    font-weight: 500;
+                    font-size: .72rem;
+                    color: var(--cm-text-muted);
+                    margin-top: 2px;
+                }
+
+            .mu-module-head .mu-all {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: .72rem;
+                color: var(--cm-text-muted);
+                cursor: pointer;
+                margin-bottom: 0;
+                user-select: none;
+            }
+
+        .mu-check {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--cm-accent-ink);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .mu-perms {
+            padding: 8px;
+        }
+
+        .mu-perm {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0;
+            font-weight: 500;
+            font-size: .85rem;
+            color: var(--cm-text);
+            transition: background .12s;
+        }
+
+            .mu-perm:hover {
+                background: var(--cm-soft);
+            }
+
+            .mu-perm .tag {
+                margin-left: auto;
+                font-size: .65rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .4px;
+                padding: 1px 7px;
+                border-radius: 999px;
+                color: var(--c);
+                border: 1px solid var(--c);
+                opacity: .85;
+            }
+
+            .mu-perm.a-view {
+                --c: var(--mu-view);
+            }
+
+            .mu-perm.a-add {
+                --c: var(--mu-add);
+            }
+
+            .mu-perm.a-edit {
+                --c: var(--mu-edit);
+            }
+
+            .mu-perm.a-delete {
+                --c: var(--mu-delete);
+            }
+
+            .mu-perm.a-manage {
+                --c: var(--mu-manage);
+            }
+
+            .mu-perm mark {
+                padding: 0;
+                background: rgba(250, 204, 21, .45);
+                color: inherit;
+                border-radius: 2px;
+            }
+
+        .mu-empty {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--cm-text-muted);
+        }
+
+        /* Admin role: permissions are not needed */
+        .mu-admin-note {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            border: 1px solid var(--mu-manage);
+            color: var(--cm-text);
+            background: rgba(124, 58, 237, .08);
+        }
+
+            .mu-admin-note i {
+                color: var(--mu-manage);
+                font-size: 1.2rem;
+            }
+
+        .mu-perm-card.is-admin .mu-admin-note {
+            display: flex;
+        }
+
+        .mu-perm-card.is-admin .mu-modules,
+        .mu-perm-card.is-admin .mu-toolbar,
+        .mu-perm-card.is-admin .mu-legend {
+            opacity: .4;
+            pointer-events: none;
+            filter: grayscale(.4);
+        }
+
+        /* ---------- Sticky save bar ---------- */
+        .mu-savebar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1030;
+            background: var(--cm-surface);
+            border-top: 1px solid var(--cm-border);
+            box-shadow: 0 -6px 20px rgba(0,0,0,.08);
+            padding: 10px 16px;
+        }
+
+        .mu-savebar-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mu-dirty {
+            font-size: .82rem;
+            color: var(--cm-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+            .mu-dirty .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--cm-border);
+            }
+
+            .mu-dirty.is-dirty {
+                color: var(--mu-edit);
+            }
+
+                .mu-dirty.is-dirty .dot {
+                    background: var(--mu-edit);
+                }
+
+        /* keep the assistant button above the save bar on this page */
+        #chatbot-toggle {
+            bottom: 84px !important;
+        }
+
+        .mu-savebar .spacer {
+            flex: 1;
+        }
+
+        .mu-btn {
+            border-radius: 9px !important;
+            padding: 8px 18px !important;
+            font-weight: 600 !important;
+            font-size: .88rem !important;
+        }
+
+        .mu-btn-ghost {
+            background: transparent !important;
+            border: 1px solid var(--cm-border) !important;
+            color: var(--cm-text) !important;
+        }
+
+            .mu-btn-ghost:hover {
+                background: var(--cm-soft) !important;
+            }
+
+        .mu-kbd {
+            font-size: .7rem;
+            opacity: .75;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        @@media (max-width: 575.98px) {
+            .mu-roles {
+                grid-template-columns: 1fr;
+            }
+
+            .mu-kbd, .mu-dirty .txt {
+                display: none;
+            }
+
+            .mu-hero {
+                padding: 14px;
+            }
+        }
+    </style>
+}
+
+<div class="mu-page">
+    <form id="manageUserForm" autocomplete="off" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="ID" name="ID" value="@(Model.IsNewUser ? 0 : Model.ID)" />
+
+        <!-- Header -->
+        <div class="mu-hero">
+            <div class="mu-avatar @(isAdminRole ? "is-admin" : "")" id="muAvatar">
+                @if (string.IsNullOrEmpty(initials))
+                {
+                    <i class="fas fa-user-plus"></i>
+                }
+                else
+                {
+                    @initials
+                }
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "DashBoard")">Home</a></li>
-                    <li class="breadcrumb-item"><a href="@Url.Action("Users", "Account")">Users</a></li>
-                    <li class="breadcrumb-item active">@(Model.IsNewUser ? "Create" : "Edit")</li>
-                </ol>
+            <div class="mu-hero-text">
+                <h1 id="muTitle">@(Model.IsNewUser ? "Create new user" : Model.FullName)</h1>
+                <div class="mu-hero-sub">
+                    @if (!Model.IsNewUser)
+                    {
+                        <span><i class="fas fa-at"></i> @Model.Username</span>
+                    }
+                    else
+                    {
+                        <span>Fill in the details and choose what this user can do.</span>
+                    }
+                    <span class="mu-pill @(isAdminRole ? "is-admin" : "")" id="muRolePill"><i class="fas @(isAdminRole ? "fa-crown" : "fa-user")"></i> <span>@(isAdminRole ? "Admin" : "User")</span></span>
+                    <span class="mu-pill @(Model.IsActive ? "is-on" : "is-off")" id="muStatusPill"><span class="dot"></span> <span>@(Model.IsActive ? "Active" : "Inactive")</span></span>
+                </div>
+            </div>
+            <div class="mu-crumbs">
+                <a href="@Url.Action("Dashboard", "DashBoard")">Home</a>
+                <i class="fas fa-angle-right mx-1"></i>
+                <a href="@Url.Action("Users", "Account")">Users</a>
+                <i class="fas fa-angle-right mx-1"></i>
+                <span>@(Model.IsNewUser ? "Create" : "Edit")</span>
             </div>
         </div>
-    </div>
-</div>
 
-<section class="content">
-    <div class="container-fluid">
-        <form id="manageUserForm" autocomplete="off">
-            @Html.AntiForgeryToken()
-            <input type="hidden" id="ID" name="ID" value="@(Model.IsNewUser ? 0 : Model.ID)" />
-
-            <div class="row">
-                <!-- User Details Card -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title" style="color: var(--cm-accent-ink);">User Details</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label>Username <span class="text-danger">*</span></label>
+        <div class="row">
+            <!-- Left: account details -->
+            <div class="col-lg-4">
+                <div class="mu-card">
+                    <div class="mu-card-head">
+                        <span class="mu-head-icon"><i class="fas fa-id-card"></i></span>
+                        <h2>Account details</h2>
+                    </div>
+                    <div class="mu-card-body">
+                        <div class="mu-field" data-field="Username">
+                            <label for="Username">Username <span class="req">*</span></label>
+                            <div class="mu-input">
+                                <i class="fas fa-at mu-lead"></i>
                                 <input type="text" id="Username" name="Username" class="form-control"
                                        value="@(Model.IsNewUser ? "" : Model.Username)" @(Model.IsNewUser ? "" : "readonly")
-                                       placeholder="Enter username" autocomplete="new-username" required />
+                                       placeholder="e.g. ali.cashier" autocomplete="off" maxlength="50" spellcheck="false" />
                             </div>
-                            <div class="form-group">
-                                <label>Password @(Model.IsNewUser ? "*" : "(leave blank to keep current)")</label>
+                            <div class="err">Please enter a username (letters, numbers, . _ -).</div>
+                            @if (!Model.IsNewUser)
+                            {
+                                <div class="hint"><i class="fas fa-lock"></i> Username can't be changed.</div>
+                            }
+                        </div>
+
+                        <div class="mu-field" data-field="Password">
+                            <label for="Password">Password @if (Model.IsNewUser) {<span class="req">*</span>}</label>
+                            <div class="mu-input has-actions">
+                                <i class="fas fa-key mu-lead"></i>
                                 <input type="password" id="Password" name="Password" class="form-control"
-                                       placeholder="@(Model.IsNewUser ? "Enter password" : "Leave blank to keep current")"
-                                       autocomplete="new-password" @(Model.IsNewUser ? "required" : "") />
-                            </div>
-                            <div class="form-group">
-                                <label>Full Name <span class="text-danger">*</span></label>
-                                <input type="text" id="FullName" name="FullName" class="form-control"
-                                       value="@(Model.IsNewUser ? "" : Model.FullName)" placeholder="Enter full name" autocomplete="name" required />
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="Email" name="Email" class="form-control"
-                                       value="@(Model.IsNewUser ? "" : Model.Email)" placeholder="Enter email" autocomplete="email" />
-                            </div>
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <input type="text" id="Phone" name="Phone" class="form-control"
-                                       value="@(Model.IsNewUser ? "" : Model.Phone)" placeholder="Enter phone number" autocomplete="tel" />
-                            </div>
-                            <div class="form-group">
-                                <label>Role <span class="text-danger">*</span></label>
-                                <select id="Role" name="Role" class="form-control" required>
-                                    <option value="User" @(Model.Role == "User" ? "selected" : "")>User</option>
-                                    <option value="Admin" @(Model.Role == "Admin" ? "selected" : "")>Admin</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive"
-                                           value="true" @(Model.IsActive ? "checked" : "") />
-                                    <label class="custom-control-label" for="IsActive">Active</label>
+                                       placeholder="@(Model.IsNewUser ? "At least 4 characters" : "Leave blank to keep current")"
+                                       autocomplete="new-password" maxlength="100" />
+                                <div class="mu-input-actions">
+                                    <button type="button" id="btnGenPass" title="Generate a password" tabindex="-1"><i class="fas fa-magic"></i></button>
+                                    <button type="button" id="btnShowPass" title="Show / hide password" tabindex="-1"><i class="fas fa-eye"></i></button>
                                 </div>
+                            </div>
+                            <div class="mu-strength" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                            <div class="mu-strength-label" id="muStrengthLabel"></div>
+                            <div class="err">Password must be at least 4 characters.</div>
+                        </div>
+
+                        <div class="mu-field" data-field="FullName">
+                            <label for="FullName">Full name <span class="req">*</span></label>
+                            <div class="mu-input">
+                                <i class="fas fa-user mu-lead"></i>
+                                <input type="text" id="FullName" name="FullName" class="form-control"
+                                       value="@(Model.IsNewUser ? "" : Model.FullName)" placeholder="e.g. Ali Raza" autocomplete="off" maxlength="100" />
+                            </div>
+                            <div class="err">Please enter the full name.</div>
+                        </div>
+
+                        <div class="mu-field" data-field="Email">
+                            <label for="Email">Email</label>
+                            <div class="mu-input">
+                                <i class="fas fa-envelope mu-lead"></i>
+                                <input type="email" id="Email" name="Email" class="form-control"
+                                       value="@(Model.IsNewUser ? "" : Model.Email)" placeholder="optional" autocomplete="off" maxlength="100" />
+                            </div>
+                            <div class="err">This email doesn't look right.</div>
+                        </div>
+
+                        <div class="mu-field mb-0" data-field="Phone">
+                            <label for="Phone">Phone</label>
+                            <div class="mu-input">
+                                <i class="fas fa-phone mu-lead"></i>
+                                <input type="tel" id="Phone" name="Phone" class="form-control"
+                                       value="@(Model.IsNewUser ? "" : Model.Phone)" placeholder="optional" autocomplete="off" maxlength="20" />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Permissions Card -->
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title" style="color: var(--cm-accent-ink);">Permissions</h3>
+                <div class="mu-card">
+                    <div class="mu-card-head">
+                        <span class="mu-head-icon"><i class="fas fa-user-tag"></i></span>
+                        <h2>Role &amp; status</h2>
+                    </div>
+                    <div class="mu-card-body">
+                        <div class="mu-roles" role="radiogroup" aria-label="Role">
+                            <div class="mu-role">
+                                <input type="radio" name="Role" id="roleUser" value="User" @(isAdminRole ? "" : "checked") />
+                                <label class="mu-role-tile" for="roleUser">
+                                    <span class="t"><i class="fas fa-user"></i> User <i class="fas fa-check-circle check"></i></span>
+                                    <span class="d">Can only use the permissions you tick.</span>
+                                </label>
+                            </div>
+                            <div class="mu-role">
+                                <input type="radio" name="Role" id="roleAdmin" value="Admin" @(isAdminRole ? "checked" : "") />
+                                <label class="mu-role-tile" for="roleAdmin">
+                                    <span class="t"><i class="fas fa-crown"></i> Admin <i class="fas fa-check-circle check"></i></span>
+                                    <span class="d">Full access to everything, including users.</span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            @if (Model.PermissionGroups != null && Model.PermissionGroups.Count > 0)
-                            {
-                                foreach (var group in Model.PermissionGroups)
+
+                        <div class="mu-switch-row">
+                            <div class="txt">
+                                <b>Account active</b>
+                                <small id="muActiveHint">@(Model.IsActive ? "User can log in." : "User can't log in.")</small>
+                            </div>
+                            <label class="mu-switch" title="Active">
+                                <input type="checkbox" id="IsActive" name="IsActive" value="true" @(Model.IsActive ? "checked" : "") />
+                                <span class="track"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: permissions -->
+            <div class="col-lg-8">
+                <div class="mu-card mu-perm-card @(isAdminRole ? "is-admin" : "")" id="muPermCard">
+                    <div class="mu-card-head">
+                        <span class="mu-head-icon"><i class="fas fa-shield-alt"></i></span>
+                        <h2>Permissions</h2>
+                        <span class="mu-count"><b id="muSelCount">@selectedPermissions</b> of @totalPermissions selected</span>
+                        <div class="mu-progress"><span id="muProgress" style="width:@(totalPermissions == 0 ? 0 : selectedPermissions * 100 / totalPermissions)%"></span></div>
+                    </div>
+                    <div class="mu-card-body">
+                        <div class="mu-admin-note">
+                            <i class="fas fa-crown"></i>
+                            <div><b>Admins have full access.</b> Permissions below are ignored while the role is Admin.</div>
+                        </div>
+
+                        @if (totalPermissions > 0)
+                        {
+                            <div class="mu-toolbar">
+                                <div class="mu-search mu-input">
+                                    <i class="fas fa-search mu-lead"></i>
+                                    <input type="search" id="muSearch" class="form-control" placeholder="Search permissions, e.g. delete, sales..." autocomplete="off" />
+                                </div>
+                                <button type="button" class="mu-chip-btn" data-preset="all"><i class="fas fa-check-double"></i> All</button>
+                                <button type="button" class="mu-chip-btn" data-preset="view"><i class="fas fa-eye"></i> View only</button>
+                                <button type="button" class="mu-chip-btn" data-preset="cashier" title="View & create sales, add customers, view items"><i class="fas fa-cash-register"></i> Cashier</button>
+                                <button type="button" class="mu-chip-btn" data-preset="none"><i class="fas fa-times"></i> Clear</button>
+                            </div>
+
+                            <div class="mu-legend">
+                                <span style="--c:var(--mu-view)">View</span>
+                                <span style="--c:var(--mu-add)">Add</span>
+                                <span style="--c:var(--mu-edit)">Edit</span>
+                                <span style="--c:var(--mu-delete)">Delete</span>
+                                <span style="--c:var(--mu-manage)">Manage</span>
+                            </div>
+
+                            <div class="mu-modules" id="muModules">
+                                @foreach (var group in Model.PermissionGroups)
                                 {
-                                    <div class="mb-3">
-                                        <h6 style="color: var(--cm-accent-ink); font-weight: bold; border-bottom: 2px solid var(--cm-accent-ink); padding-bottom: 5px;">
-                                            <i class="fas fa-folder"></i> @group.Module
-                                        </h6>
-                                        <div class="row ml-2">
+                                    int sel = group.Permissions.Count(p => p.IsSelected);
+                                    <div class="mu-module @(sel == group.Permissions.Count ? "is-full" : "")" data-module="@group.Module">
+                                        <div class="mu-module-head">
+                                            <span class="ic"><i class="fas @moduleIcon(group.Module)"></i></span>
+                                            <span class="nm">
+                                                @moduleLabel(group.Module)
+                                                <small><span class="js-mod-count">@sel</span>/@group.Permissions.Count</small>
+                                            </span>
+                                            @if (group.Permissions.Count > 1)
+                                            {
+                                                <label class="mu-all">
+                                                    All
+                                                    <input type="checkbox" class="mu-check js-mod-all" aria-label="Select all @moduleLabel(group.Module) permissions" @(sel == group.Permissions.Count ? "checked" : "") />
+                                                </label>
+                                            }
+                                        </div>
+                                        <div class="mu-perms">
                                             @foreach (var permission in group.Permissions)
                                             {
-                                                <div class="col-md-6">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox"
-                                                               class="custom-control-input permission-cb"
-                                                               id="perm_@permission.ID"
-                                                               name="PermissionIDs"
-                                                               value="@permission.ID"
-                                                               @(permission.IsSelected ? "checked" : "") />
-                                                        <label class="custom-control-label" for="perm_@permission.ID">
-                                                            @permission.PermissionName
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                                string action = actionOf(permission.PermissionKey);
+                                                <label class="mu-perm a-@action" data-search="@((moduleLabel(group.Module) + " " + permission.PermissionName + " " + action).ToLowerInvariant())">
+                                                    <input type="checkbox"
+                                                           class="mu-check permission-cb"
+                                                           name="PermissionIDs"
+                                                           value="@permission.ID"
+                                                           data-key="@permission.PermissionKey"
+                                                           data-action="@action"
+                                                           @(permission.IsSelected ? "checked" : "") />
+                                                    <span class="js-perm-name">@permission.PermissionName</span>
+                                                    <span class="tag">@action</span>
+                                                </label>
                                             }
                                         </div>
                                     </div>
                                 }
-                            }
-                            else
-                            {
-                                <p class="text-muted">No permissions available.</p>
-                            }
-                        </div>
+                            </div>
+                            <div class="mu-empty" id="muEmpty"><i class="fas fa-search fa-2x mb-2 d-block"></i>No permission matches your search.</div>
+                        }
+                        else
+                        {
+                            <div class="mu-empty" style="display:block"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>No permissions found in the database.</div>
+                        }
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="row">
-                <div class="col-12">
-                    <button type="submit" id="btnSave" class="btn btn-primary-custom">
-                        <i class="fas fa-save"></i> @(Model.IsNewUser ? "Create User" : "Update User")
-                    </button>
-                    <a href="@Url.Action("Users", "Account")" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
-                </div>
+        <!-- Sticky save bar -->
+        <div class="mu-savebar">
+            <div class="mu-savebar-inner">
+                <div class="mu-dirty" id="muDirty"><span class="dot"></span> <span class="txt">No changes yet</span></div>
+                <div class="spacer"></div>
+                <a href="@Url.Action("Users", "Account")" class="btn mu-btn mu-btn-ghost" id="btnCancel">Cancel</a>
+                <button type="submit" id="btnSave" class="btn btn-primary-custom mu-btn">
+                    <i class="fas fa-save"></i> <span>@(Model.IsNewUser ? "Create user" : "Save changes")</span><span class="mu-kbd">Ctrl+S</span>
+                </button>
             </div>
-        </form>
-    </div>
-</section>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            // Select All / Deselect All per module
-            $(document).on('change', '.select-all-module', function () {
-                var module = $(this).data('module');
-                var isChecked = $(this).prop('checked');
-                $('.permission-cb[data-module="' + module + '"]').prop('checked', isChecked);
+        $(function () {
+            var isNew = @(Model.IsNewUser ? "true" : "false");
+            var usersUrl = '@Url.Action("Users", "Account")';
+            var saveUrl = '@Url.Action("SaveUser", "Account")';
+            var saveLabel = '@(Model.IsNewUser ? "Create user" : "Save changes")';
+            var cashierKeys = ['Sales_View', 'Sales_Add', 'Patient_View', 'Patient_Add', 'Inventory_View'];
+
+            var $form = $('#manageUserForm');
+            var $cbs = $('.permission-cb');
+            var total = $cbs.length;
+            var saving = false;
+
+            // ---------- Permission counts ----------
+            function refreshModule($mod) {
+                var $all = $mod.find('.permission-cb');
+                var n = $all.filter(':checked').length;
+                $mod.find('.js-mod-count').text(n);
+                $mod.toggleClass('is-full', n === $all.length && n > 0);
+                var toggle = $mod.find('.js-mod-all')[0];
+                if (toggle) {
+                    toggle.checked = n === $all.length;
+                    toggle.indeterminate = n > 0 && n < $all.length;
+                }
+            }
+
+            function refreshCounts() {
+                var n = $cbs.filter(':checked').length;
+                $('#muSelCount').text(n);
+                $('#muProgress').css('width', (total ? Math.round(n * 100 / total) : 0) + '%');
+                $('.mu-module').each(function () { refreshModule($(this)); });
+            }
+
+            $cbs.on('change', function () {
+                refreshModule($(this).closest('.mu-module'));
+                var n = $cbs.filter(':checked').length;
+                $('#muSelCount').text(n);
+                $('#muProgress').css('width', (total ? Math.round(n * 100 / total) : 0) + '%');
+                checkDirty();
             });
 
-            $('#manageUserForm').on('submit', function (e) {
-                e.preventDefault();
+            $('.js-mod-all').on('change', function () {
+                var $mod = $(this).closest('.mu-module');
+                // Only affect permissions visible under the current search.
+                $mod.find('.mu-perm:visible .permission-cb').prop('checked', this.checked);
+                refreshCounts();
+                checkDirty();
+            });
 
-                var id = $('#ID').val();
-                var username = $('#Username').val().trim();
-                var password = $('#Password').val().trim();
-                var fullName = $('#FullName').val().trim();
-                var email = $('#Email').val().trim();
-                var phone = $('#Phone').val().trim();
-                var role = $('#Role').val();
-                var isActive = $('#IsActive').is(':checked');
-
-                // Validation
-                if (!username) { toastr.warning('Username is required.'); return; }
-                if (!fullName) { toastr.warning('Full Name is required.'); return; }
-                if (id == '0' && !password) { toastr.warning('Password is required for new user.'); return; }
-
-                // Collect selected permission IDs
-                var permissionIDs = [];
-                $('input[name="PermissionIDs"]:checked').each(function () {
-                    permissionIDs.push(parseInt($(this).val()));
+            $('[data-preset]').on('click', function () {
+                var preset = $(this).data('preset');
+                $cbs.each(function () {
+                    var key = $(this).data('key'), action = $(this).data('action');
+                    var on = preset === 'all' ||
+                        (preset === 'view' && action === 'view') ||
+                        (preset === 'cashier' && cashierKeys.indexOf(key) >= 0);
+                    this.checked = on;
                 });
+                refreshCounts();
+                checkDirty();
+            });
 
-                var btn = $('#btnSave');
-                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+            // ---------- Search ----------
+            function escapeHtml(s) {
+                return s.replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+            }
+
+            $('#muSearch').on('input', function () {
+                var q = $.trim($(this).val()).toLowerCase();
+                var anyVisible = false;
+                $('.mu-module').each(function () {
+                    var $mod = $(this), modVisible = false;
+                    $mod.find('.mu-perm').each(function () {
+                        var $p = $(this);
+                        var match = !q || $p.data('search').indexOf(q) >= 0;
+                        $p.toggle(match);
+                        var $name = $p.find('.js-perm-name');
+                        var text = $name.text();
+                        var i = q ? text.toLowerCase().indexOf(q) : -1;
+                        $name.html(i >= 0
+                            ? escapeHtml(text.slice(0, i)) + '<mark>' + escapeHtml(text.slice(i, i + q.length)) + '</mark>' + escapeHtml(text.slice(i + q.length))
+                            : escapeHtml(text));
+                        if (match) modVisible = true;
+                    });
+                    $mod.toggle(modVisible);
+                    if (modVisible) anyVisible = true;
+                });
+                $('#muEmpty').toggle(!anyVisible);
+            });
+
+            // ---------- Header live preview ----------
+            function initialsOf(name) {
+                var parts = $.trim(name).split(/\s+/).filter(Boolean);
+                if (!parts.length) return '';
+                return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0]).toUpperCase();
+            }
+
+            $('#FullName').on('input', function () {
+                var name = $(this).val();
+                var ini = initialsOf(name);
+                $('#muAvatar').html(ini ? escapeHtml(ini) : '<i class="fas fa-user-plus"></i>');
+                $('#muTitle').text($.trim(name) || (isNew ? 'Create new user' : ''));
+            });
+
+            function applyRole() {
+                var admin = $('input[name="Role"]:checked').val() === 'Admin';
+                $('#muPermCard').toggleClass('is-admin', admin);
+                $('#muAvatar').toggleClass('is-admin', admin);
+                $('#muRolePill').toggleClass('is-admin', admin)
+                    .html('<i class="fas ' + (admin ? 'fa-crown' : 'fa-user') + '"></i> <span>' + (admin ? 'Admin' : 'User') + '</span>');
+            }
+            $('input[name="Role"]').on('change', function () { applyRole(); checkDirty(); });
+
+            $('#IsActive').on('change', function () {
+                var on = this.checked;
+                $('#muStatusPill').toggleClass('is-on', on).toggleClass('is-off', !on)
+                    .html('<span class="dot"></span> <span>' + (on ? 'Active' : 'Inactive') + '</span>');
+                $('#muActiveHint').text(on ? 'User can log in.' : "User can't log in.");
+                checkDirty();
+            });
+
+            // ---------- Password ----------
+            var strengthColors = ['var(--mu-delete)', 'var(--mu-edit)', 'var(--mu-view)', 'var(--mu-add)'];
+            var strengthText = ['Weak', 'Fair', 'Good', 'Strong'];
+
+            function scorePassword(p) {
+                if (!p) return -1;
+                var s = 0;
+                if (p.length >= 6) s++;
+                if (p.length >= 10) s++;
+                if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+                if (/\d/.test(p) && /[^A-Za-z0-9]/.test(p)) s++;
+                return Math.min(3, Math.max(0, s - (p.length < 4 ? 1 : 0)));
+            }
+
+            function showStrength() {
+                var sc = scorePassword($('#Password').val());
+                $('.mu-strength span').each(function (i) {
+                    $(this).css('background', sc >= 0 && i <= sc ? strengthColors[sc] : '');
+                });
+                $('#muStrengthLabel').text(sc >= 0 ? strengthText[sc] : '');
+            }
+
+            $('#Password').on('input', function () { showStrength(); clearError('Password'); checkDirty(); });
+
+            $('#btnShowPass').on('click', function () {
+                var $p = $('#Password');
+                var show = $p.attr('type') === 'password';
+                $p.attr('type', show ? 'text' : 'password');
+                $(this).find('i').toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
+            });
+
+            $('#btnGenPass').on('click', function () {
+                var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#$%*';
+                var out = '', arr = new Uint32Array(10);
+                (window.crypto || window.msCrypto).getRandomValues(arr);
+                for (var i = 0; i < arr.length; i++) out += chars[arr[i] % chars.length];
+                $('#Password').val(out).attr('type', 'text').trigger('input');
+                $('#btnShowPass i').removeClass('fa-eye').addClass('fa-eye-slash');
+                toastr.info('Password generated. Note it down before saving.');
+            });
+
+            // ---------- Validation ----------
+            function setError(field) { $('.mu-field[data-field="' + field + '"]').addClass('has-error'); }
+            function clearError(field) { $('.mu-field[data-field="' + field + '"]').removeClass('has-error'); }
+            $('#Username, #FullName, #Email').on('input', function () { clearError(this.id); checkDirty(); });
+            $('#Phone').on('input', checkDirty);
+
+            function validate() {
+                var ok = true, first = null;
+                var username = $.trim($('#Username').val());
+                var password = $('#Password').val();
+                var email = $.trim($('#Email').val());
+
+                if (!username || !/^[A-Za-z0-9._-]+$/.test(username)) { setError('Username'); ok = false; first = first || '#Username'; }
+                if ((isNew && password.length < 4) || (!isNew && password.length > 0 && password.length < 4)) { setError('Password'); ok = false; first = first || '#Password'; }
+                if (!$.trim($('#FullName').val())) { setError('FullName'); ok = false; first = first || '#FullName'; }
+                if (email && !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) { setError('Email'); ok = false; first = first || '#Email'; }
+
+                if (first) $(first).trigger('focus');
+                return ok;
+            }
+
+            // ---------- Unsaved changes ----------
+            function snapshot() {
+                return JSON.stringify({
+                    u: $('#Username').val(), p: $('#Password').val(), f: $('#FullName').val(),
+                    e: $('#Email').val(), ph: $('#Phone').val(), r: $('input[name="Role"]:checked').val(),
+                    a: $('#IsActive').is(':checked'),
+                    perms: $cbs.filter(':checked').map(function () { return this.value; }).get()
+                });
+            }
+            var initial = snapshot();
+            var dirty = false;
+
+            function checkDirty() {
+                dirty = snapshot() !== initial;
+                $('#muDirty').toggleClass('is-dirty', dirty)
+                    .find('.txt').text(dirty ? 'Unsaved changes' : 'No changes yet');
+            }
+
+            $(window).on('beforeunload', function () {
+                if (dirty && !saving) return 'You have unsaved changes.';
+            });
+
+            // ---------- Save ----------
+            $(document).on('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                    e.preventDefault();
+                    $form.trigger('submit');
+                }
+            });
+
+            $form.on('submit', function (e) {
+                e.preventDefault();
+                if (saving) return;
+                if (!validate()) { toastr.warning('Please fix the highlighted fields.'); return; }
+
+                var permissionIDs = $cbs.filter(':checked').map(function () { return parseInt(this.value, 10); }).get();
+
+                var $btn = $('#btnSave');
+                saving = true;
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
                 $.ajax({
-                    url: '@Url.Action("SaveUser", "Account")',
+                    url: saveUrl,
                     type: 'POST',
+                    traditional: true, // sends PermissionIDs=1&PermissionIDs=2 so MVC binds the list
                     data: {
-                        ID: id,
-                        Username: username,
-                        Password: password,
-                        FullName: fullName,
-                        Email: email,
-                        Phone: phone,
-                        Role: role,
-                        IsActive: isActive,
+                        ID: $('#ID').val(),
+                        Username: $.trim($('#Username').val()),
+                        Password: $('#Password').val(),
+                        FullName: $.trim($('#FullName').val()),
+                        Email: $.trim($('#Email').val()),
+                        Phone: $.trim($('#Phone').val()),
+                        Role: $('input[name="Role"]:checked').val(),
+                        IsActive: $('#IsActive').is(':checked'),
                         PermissionIDs: permissionIDs,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        __RequestVerificationToken: $form.find('input[name="__RequestVerificationToken"]').val()
                     },
                     success: function (response) {
-                        if (response.Status) {
+                        if (response && response.Status) {
                             toastr.success(response.Message);
-                            setTimeout(function () {
-                                window.location.href = '@Url.Action("Users", "Account")';
-                            }, 1000);
+                            dirty = false;
+                            setTimeout(function () { window.location.href = usersUrl; }, 700);
                         } else {
-                            toastr.error(response.Message);
-                            btn.prop('disabled', false).html('<i class="fas fa-save"></i> @(Model.IsNewUser ? "Create User" : "Update User")');
+                            saving = false;
+                            toastr.error((response && response.Message) || 'Could not save the user.');
+                            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> <span>' + saveLabel + '</span><span class="mu-kbd">Ctrl+S</span>');
                         }
                     },
                     error: function () {
+                        saving = false;
                         toastr.error('Technical error. Please try again.');
-                        btn.prop('disabled', false).html('<i class="fas fa-save"></i> @(Model.IsNewUser ? "Create User" : "Update User")');
+                        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> <span>' + saveLabel + '</span><span class="mu-kbd">Ctrl+S</span>');
                     }
                 });
             });
+
+            refreshCounts();
+            applyRole();
+            if (isNew) { $('#Username').trigger('focus'); } else { $('#FullName').trigger('focus'); }
         });
     </script>
 }

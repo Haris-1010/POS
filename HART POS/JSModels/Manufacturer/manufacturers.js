@@ -4,9 +4,10 @@
         _$manufacturersTable = $('#manufacturersTable');
 
     let manufacturerPermissions = {
-        canCreate: "1",
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canCreate: window.cmCan('Manufacturers_Add'),
+        canUpdate: window.cmCan('Manufacturers_Edit'),
+        canDelete: window.cmCan('Manufacturers_Delete')
     };
 
     $(function () {

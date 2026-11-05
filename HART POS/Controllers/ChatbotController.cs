@@ -1,4 +1,5 @@
-﻿using HARTPOS.Repositories;
+﻿using HARTPOS.Filters;
+using HARTPOS.Repositories;
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -21,6 +22,7 @@ namespace HARTPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuthorizePermission("Chatbot_Use")]
         public async Task<JsonResult> QueryAI(string prompt)
         {
             if (string.IsNullOrEmpty(prompt))

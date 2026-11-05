@@ -415,18 +415,18 @@
                             Margin: d[i].Margin,
                             Tax: d[i].Tax,
                             Actions: `<div class="btn-group-sm action-btns">
-                                         <button class="btn btn-default btn-sm js-edit" title="Edit" data-id="${d[i].ID}" data-toggle="tooltip">
+                                         ${window.cmCan('Inventory_Edit') ? `<button class="btn btn-default btn-sm js-edit" title="Edit" data-id="${d[i].ID}" data-toggle="tooltip">
                                              <i class="fa fa-edit"></i>
-                                         </button>
+                                         </button>` : ''}
                                          <button class="btn btn-sm btn-info js-print-barcode" title="Print Barcode Label" data-id="${d[i].ID}" data-upc="${d[i].UPC || ''}" data-name="${d[i].VariationName || ''}" data-price="${d[i].SellingPrice || ''}" data-toggle="tooltip" ${d[i].UPC ? '' : 'disabled'}>
                                              <i class="fas fa-barcode"></i>
                                          </button>
-                                         <button class="btn btn-sm btn-danger js-delete" data-toggle="tooltip" data-id="${d[i].ID}" title="Delete Variation">
+                                         ${window.cmCan('Inventory_Delete') ? `<button class="btn btn-sm btn-danger js-delete" data-toggle="tooltip" data-id="${d[i].ID}" title="Delete Variation">
                                              <i class="fa fa-trash"></i>
-                                         </button>
-                                         <button class="btn btn-sm btn-success js-image" data-toggle="tooltip" data-id="${d[i].ID}" title="Add Images">
+                                         </button>` : ''}
+                                         ${window.cmCan('Inventory_Add', 'Inventory_Edit') ? `<button class="btn btn-sm btn-success js-image" data-toggle="tooltip" data-id="${d[i].ID}" title="Add Images">
                                             <i class="fas fa-image"></i>
-                                         </button>
+                                         </button>` : ''}
                                      </div>`
                         });
                     }

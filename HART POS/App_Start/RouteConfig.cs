@@ -19,6 +19,14 @@ namespace HARTPOS
                 defaults: new { controller = "License", action = "Index" }
             );
 
+            // Customers page shows as /Customers (the controller is still named Patient
+            // internally; the old /Patient/Patients address keeps working too).
+            routes.MapRoute(
+                name: "Customers",
+                url: "Customers",
+                defaults: new { controller = "Patient", action = "Patients" }
+            );
+
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

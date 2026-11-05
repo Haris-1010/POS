@@ -514,6 +514,9 @@
     <Compile Include="Service\BackupService.cs" />
     <Compile Include="Service\BackupSchedulerService.cs" />
     <Compile Include="Service\LicenseService.cs" />
+    <Compile Include="Service\PermissionCatalog.cs" />
+    <Compile Include="Service\SchemaUpdates.cs" />
+    <Compile Include="Service\UserAccessService.cs" />
     <Compile Include="Controllers\BackupSettingsController.cs" />
     <Compile Include="Models\BackupSettings\BackupSetting.cs" />
     <Compile Include="Models\BackupSettings\BackupHistoryEntry.cs" />
@@ -6940,6 +6943,7 @@
     <Content Include="Views\Print\PrintPurchase.cshtml" />
     <Content Include="Views\ReferralOrders\OrderList.cshtml" />
     <Content Include="Views\DashBoard\Dashboard.cshtml" />
+    <Content Include="Views\DashBoard\Welcome.cshtml" />
     <Content Include="Views\DashBoard\AccessDenied.cshtml" />
     <Content Include="Views\Reports\ReportsGroup.cshtml" />
     <Content Include="Views\Reports\SaleReport.cshtml" />

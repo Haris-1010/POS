@@ -1,0 +1,84 @@
+@{
+    ViewBag.Title = "Home";
+
+    // Shown instead of the dashboard figures to users without "View Dashboard Figures".
+    var access = HARTPOS.Service.UserAccessService.Current();
+    Func<string, bool> can = key => access != null && access.Has(key);
+    string name = access?.FullName ?? Session["FullName"]?.ToString() ?? "";
+
+    var tiles = new List<Tuple<string, string, string, string>>();   // label, hint, icon, url
+    if (can("Sales_Add")) { tiles.Add(Tuple.Create("New Sale", "Start a new invoice", "fa-cash-register", Url.Action("ManageInvoice", "Sales"))); }
+    if (can("Sales_View")) { tiles.Add(Tuple.Create("Invoices", "View sale invoices", "fa-file-invoice-dollar", Url.Action("SaleInvoices", "Sales"))); }
+    if (can("Patient_View")) { tiles.Add(Tuple.Create("Customers", "Find or add customers", "fa-user-friends", Url.Action("Patients", "Patient"))); }
+    if (can("Inventory_View")) { tiles.Add(Tuple.Create("Items", "Products and stock", "fa-boxes", Url.Action("Items", "InventoryItems"))); }
+    if (can("Purchases_View")) { tiles.Add(Tuple.Create("Purchases", "Purchase orders", "fa-truck-loading", Url.Action("PurchaseOrders", "Purchases"))); }
+    if (can("Suppliers_View")) { tiles.Add(Tuple.Create("Suppliers", "Supplier list", "fa-user-tie", Url.Action("Suppliers", "Supplier"))); }
+    if (can("Reports_View")) { tiles.Add(Tuple.Create("Reports", "All reports", "fa-chart-bar", Url.Action("ReportsGroup", "Reports"))); }
+    if (can("Users_View") || can("Users_Manage")) { tiles.Add(Tuple.Create("Users", "Manage users", "fa-user-shield", Url.Action("Users", "Account"))); }
+}
+
+<style>
+    .wl-page { padding: 24px 0 40px; }
+    .wl-hero {
+        background: var(--cm-surface);
+        border: 1px solid var(--cm-border);
+        border-radius: 14px;
+        box-shadow: var(--cm-shadow);
+        padding: 22px 24px;
+        margin-bottom: 18px;
+    }
+    .wl-hero h1 { font-size: 1.4rem; font-weight: 700; margin: 0; color: var(--cm-text); }
+    .wl-hero p { margin: 6px 0 0; color: var(--cm-text-muted); }
+    .wl-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 12px;
+    }
+    .wl-tile {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--cm-surface);
+        border: 1px solid var(--cm-border);
+        box-shadow: var(--cm-shadow);
+        color: var(--cm-text) !important;
+        text-decoration: none !important;
+        transition: border-color .15s, transform .15s;
+    }
+    .wl-tile:hover { border-color: var(--cm-accent-ink); transform: translateY(-2px); }
+    .wl-tile .ic {
+        width: 44px; height: 44px; flex: 0 0 44px;
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--cm-soft); color: var(--cm-accent-ink); font-size: 1.1rem;
+    }
+    .wl-tile b { display: block; font-size: .95rem; }
+    .wl-tile small { color: var(--cm-text-muted); }
+    .wl-empty { color: var(--cm-text-muted); padding: 18px 4px; }
+</style>
+
+<div class="wl-page">
+    <div class="wl-hero">
+        <h1>Welcome@(string.IsNullOrWhiteSpace(name) ? "" : ", " + name)</h1>
+        <p>Choose what you want to do.</p>
+    </div>
+
+    @if (tiles.Count > 0)
+    {
+        <div class="wl-grid">
+            @foreach (var t in tiles)
+            {
+                <a class="wl-tile" href="@t.Item4">
+                    <span class="ic"><i class="fas @t.Item3"></i></span>
+                    <span><b>@t.Item1</b><small>@t.Item2</small></span>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="wl-empty"><i class="fas fa-info-circle"></i> No sections have been assigned to your account yet. Please ask the administrator for access.</div>
+    }
+</div>

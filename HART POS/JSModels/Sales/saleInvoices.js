@@ -5,11 +5,12 @@
         _$customerSearchElement = _$filterForm.find('.js-search-customer'),
         saleInvoicesPermissionForm = $('#SaleInvoicesPermissionsForm').serializeObject();
     let saleInvoicesPermission = {
-        canUpdate: "1",
-        canWhatsapp: "1",
-        canDelete: "1",
-        canPrint: "1",
-        canReturn: "1",
+        // real permissions of the logged-in user (set in _Layout)
+        canUpdate: window.cmCan('Sales_Edit'),
+        canWhatsapp: window.cmCan('Sales_View'),
+        canDelete: window.cmCan('Sales_Delete'),
+        canPrint: window.cmCan('Sales_View', 'Sales_Add', 'Sales_Edit'),
+        canReturn: window.cmCan('Sales_Edit')
     };
 
     let startDate, endDate, customerId;
@@ -108,7 +109,7 @@
                 _$salesInfoContainer.find('.js-pending').text(responseData.TotalPendingAmount);
             }
         } catch (error) {
-            toastr.error("An error occurred while deleting the Patient.", "", { timeOut: 500 });
+            toastr.error("An error occurred while deleting the invoice.", "", { timeOut: 500 });
         }
     }
 
@@ -183,7 +184,7 @@
                                 ${saleInvoicesPermission.canUpdate ? `
                                     <a href="${manageInvoiceUrl}?InvoiceID=${d[i].ID}"
                                        class="btn btn-default btn-sm js-edit"
-                                       title="Edit Patient"
+                                       title="Edit Invoice"
                                        data-toggle="tooltip">
                                         <i class="fa fa-edit"></i>
                                     </a>` : ''}
@@ -192,7 +193,7 @@
                                     <button class="btn btn-sm btn-danger js-delete"
                                             data-toggle="tooltip"
                                             data-id="${d[i].ID}"
-                                            title="Delete Patient">
+                                            title="Delete Invoice">
                                         <i class="fa fa-trash"></i>
                                     </button>` : ''}
 
@@ -414,7 +415,7 @@
                             toastr.error(message, "", { timeOut: 1000 });
                         }
                     } catch (error) {
-                        toastr.error("An error occurred while deleting the Patient.", "", { timeOut: 500 });
+                        toastr.error("An error occurred while deleting the invoice.", "", { timeOut: 500 });
                     }
                 }
             }

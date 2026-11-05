@@ -4,6 +4,7 @@ using HARTPOS.Models;
 using HARTPOS.Models.ManufacturerBrand;
 using HARTPOS.Models.Menufacturer;
 using HARTPOS.Repositories;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +28,14 @@ namespace HARTPOS.Controllers
             _brandsRepository = manufacturerBrandsRepository;
         }
 
+        [AuthorizePermission("Brands_View")]
         public ActionResult Index()
         {
-            return View();
+            // There is no Index view; the brands screen is "Brand".
+            return RedirectToAction("Brand");
         }
 
+        [AuthorizePermission("Brands_View", "Brands_Add", "Brands_Edit")]
         public ActionResult Brand(int? ID)
         {
             BrandViewModel model = new BrandViewModel()
@@ -45,6 +49,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Brands_Add", "Brands_Edit")]
         public async Task<JsonResult> SaveBrand(SaveBrandInputDto formInput)
         {
+            // A new record needs "Brands_Add"; changing an existing one needs "Brands_Edit".
+            bool isNewRecord = (formInput.ID ?? 0) <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Brands_Add", "Brands_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             { 
                 var brand = new ManufacturerBrands

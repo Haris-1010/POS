@@ -19,6 +19,7 @@ using System.Web.Mvc;
 namespace HARTPOS.Controllers
 {
     [Authorize]
+    [AuthorizePermission("Reports_View")]
     public class ReportsController : Controller
     {
         private readonly ReportsRepository _reportsRepository;
@@ -773,6 +774,9 @@ namespace HARTPOS.Controllers
             try
             {
                 input.DataTableValues = Common.GetMappedDataTableValues(HttpContext);
+                // MVC also fills a property named "Action" from the route ("GetAuditLogsReport"),
+                // which filtered out every row. Take the filter only from the posted form.
+                input.Action = Request.Form["Action"];
                 var data = await _activityLogRepo.GetPagedAuditLogsAsync(input);
 
                 return Json(new PagedAjaxRequestOutputDTO

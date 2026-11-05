@@ -991,7 +991,10 @@
 </div>
 
 @section Scripts{
+    <script src="~/assets/AdminLTE/plugins/chart.js/Chart.min.js"></script>
     <script>
+        // Chart.js loads after theme.js now, so apply the light/dark chart colours again.
+        if (window.HARTPOSTheme) { window.HARTPOSTheme.apply(); }
 
         var SaveDashBoardSettingUrl = '@Url.Action("SaveDashBoardSetting", "DashBoard")';
         var GetDashboardDataUrl = '@Url.Action("GetDashboardData", "DashBoard")';

@@ -1,4 +1,6 @@
 using HARTPOS.DbModels;
+using HARTPOS.Filters;
+using HARTPOS.Service;
 using HARTPOS.Models.Auth.DTOs;
 using HARTPOS.Models.Auth.ViewModels;
 using HARTPOS.Repositories;
@@ -160,14 +162,14 @@ namespace HARTPOS.Controllers
         // USER MANAGEMENT (Admin Only)
         // ==========================================
 
-        [Authorize(Roles = "Admin")]
+        [AuthorizePermission("Users_View", "Users_Manage")]
         public async Task<ActionResult> Users()
         {
             var users = await _userRepo.GetAllUsersAsync();
             return View(users);
         }
 
-        [Authorize(Roles = "Admin")]
+        [AuthorizePermission("Users_Manage")]
         [OutputCache(Duration = 0, Location = System.Web.UI.OutputCacheLocation.None, NoStore = true)]
         public async Task<ActionResult> ManageUser(int? id)
         {
@@ -181,6 +183,10 @@ namespace HARTPOS.Controllers
             {
                 // EDIT MODE
                 var user = await _userRepo.GetUserByIDAsync(id.Value);
+                if (user == null || user.UserID <= 0)
+                {
+                    return RedirectToAction("Users");
+                }
                 var permissionIDs = await _userRepo.GetUserPermissionIDsAsync(id.Value);
 
                 vm.ID = user.UserID;
@@ -205,7 +211,7 @@ namespace HARTPOS.Controllers
             return View(vm);
         }
 
-        [Authorize(Roles = "Admin")]
+        [AuthorizePermission("Users_Manage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> SaveUser(ManageUserInputDto input)
@@ -217,14 +223,68 @@ namespace HARTPOS.Controllers
                     return Json(new AjaxRequestDTO { Status = false, Message = "Please fill all required fields." });
                 }
 
+                input.Username = (input.Username ?? "").Trim();
+                input.FullName = (input.FullName ?? "").Trim();
+                input.Role = string.Equals(input.Role, "Admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "User";
+
+                if (string.IsNullOrEmpty(input.Username) || string.IsNullOrEmpty(input.FullName))
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Username and full name are required." });
+                }
+
                 // For new user, password is required
                 if (input.ID == 0 && string.IsNullOrEmpty(input.Password))
                 {
                     return Json(new AjaxRequestDTO { Status = false, Message = "Password is required for new user." });
                 }
 
+                if (!string.IsNullOrEmpty(input.Password) && input.Password.Length < 4)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Password must be at least 4 characters." });
+                }
+
+                var me = UserAccessService.Current(HttpContext);
+                bool iAmAdmin = me != null ? me.IsAdmin : User.IsInRole("Admin");
+
+                UserPermissionDto existing = null;
+                if (input.ID > 0)
+                {
+                    existing = await _userRepo.GetUserByIDAsync(input.ID);
+                    if (existing == null || existing.UserID <= 0)
+                    {
+                        return Json(new AjaxRequestDTO { Status = false, Message = "User not found. It may have been deleted." });
+                    }
+                    // Username can't be changed on edit.
+                    input.Username = existing.Username;
+                }
+                else if (await _userRepo.UsernameExistsAsync(input.Username))
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "This username is already taken. Please choose another." });
+                }
+
+                // Only an Admin can create Admins or change an Admin account.
+                bool touchesAdmin = input.Role == "Admin" || (existing != null && existing.Role == "Admin");
+                if (touchesAdmin && !iAmAdmin)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Only an Admin can create or change Admin accounts." });
+                }
+
+                if (existing != null && me != null && existing.UserID == me.UserID && !input.IsActive)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "You can't deactivate your own account." });
+                }
+
+                // Never leave the system without an active Admin.
+                bool losesAdmin = existing != null && existing.Role == "Admin" && existing.IsActive
+                                  && (input.Role != "Admin" || !input.IsActive);
+                if (losesAdmin && await _userRepo.CountOtherActiveAdminsAsync(existing.UserID) == 0)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "This is the last active Admin. Make another user Admin first." });
+                }
+
                 string loggedinUsername = Session["Username"]?.ToString() ?? "System";
                 var result = await _userRepo.SaveUserAsync(input, loggedinUsername);
+                UserAccessService.InvalidateAll();
 
                 if (result > 0)
                 {
@@ -242,15 +302,40 @@ namespace HARTPOS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [AuthorizePermission("Users_Manage")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> DeleteUser(int id)
         {
             try
             {
+                var me = UserAccessService.Current(HttpContext);
+                bool iAmAdmin = me != null ? me.IsAdmin : User.IsInRole("Admin");
+
+                var target = await _userRepo.GetUserByIDAsync(id);
+                if (target == null || target.UserID <= 0)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "User not found. It may already be deleted." });
+                }
+                if (me != null && target.UserID == me.UserID)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "You can't delete your own account." });
+                }
+                if (target.Role == "Admin")
+                {
+                    if (!iAmAdmin)
+                    {
+                        return Json(new AjaxRequestDTO { Status = false, Message = "Only an Admin can delete an Admin account." });
+                    }
+                    if (target.IsActive && await _userRepo.CountOtherActiveAdminsAsync(target.UserID) == 0)
+                    {
+                        return Json(new AjaxRequestDTO { Status = false, Message = "This is the last active Admin and can't be deleted." });
+                    }
+                }
+
                 string loggedinUsername = Session["Username"]?.ToString() ?? "System";
                 bool isDeleted = await _userRepo.DeleteUserAsync(id, loggedinUsername);
+                UserAccessService.InvalidateAll();
 
                 if (isDeleted)
                 {
@@ -273,8 +358,8 @@ namespace HARTPOS.Controllers
         [HttpPost]
         public JsonResult HasPermission(string permissionKey)
         {
-            var permissions = Session["Permissions"] as List<string>;
-            bool hasPermission = permissions != null && permissions.Contains(permissionKey);
+            var access = UserAccessService.Current(HttpContext);
+            bool hasPermission = access != null && access.IsActive && access.Has(permissionKey);
             return Json(new { HasPermission = hasPermission });
         }
     }

@@ -4,6 +4,7 @@ using HARTPOS.Models;
 using HARTPOS.Models.Taxes;
 using HARTPOS.Models.Taxes.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +28,13 @@ namespace HARTPOS.Controllers
             _taxesRepository = manufacturerBrandsRepository;
         }
 
+        [AuthorizePermission("Taxes_View")]
         public ActionResult Index()
         {
             return View();
         }
 
+        [AuthorizePermission("Taxes_View")]
         public ActionResult Taxes()
         {
             return View();
@@ -41,6 +44,11 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Taxes_Add", "Taxes_Edit")]
         public async Task<JsonResult> SaveTax(SaveTaxInputDto formInput)
         {
+            // A new record needs "Taxes_Add"; changing an existing one needs "Taxes_Edit".
+            bool isNewRecord = formInput.ID <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Taxes_Add", "Taxes_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {  
                 string operationType = formInput.ID > 0 ? "UPDATE" : "INSERT";
@@ -68,6 +76,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Taxes_View")]
         public async Task<JsonResult> GetPagedTaxes(GetPagedTaxesInputDto input)
         {
             try

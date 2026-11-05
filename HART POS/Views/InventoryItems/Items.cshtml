@@ -216,19 +216,19 @@
         <h3 class="card-title primary-text font-weight-bold">Products</h3>
         <div class="card-tools ml-auto">
 
-            <a href='@Url.Action("ManageItem", "InventoryItems")' type="button" class="btn btn-primary-custom">
+            <a data-perm="Inventory_Add" href='@Url.Action("ManageItem", "InventoryItems")' type="button" class="btn btn-primary-custom">
                 <i class="fas fa-plus"></i> Add New Product
             </a>
 
-            <button type="button" class="btn btn-outline-primary ml-1 js-import-items-btn">
+            <button data-perm="Inventory_Add" type="button" class="btn btn-outline-primary ml-1 js-import-items-btn">
                 <i class="fas fa-file-import"></i> Import Items
             </button>
 
-            <button type="button" class="btn btn-outline-danger ml-1 js-bulk-delete-btn">
+            <button data-perm="Inventory_Delete" type="button" class="btn btn-outline-danger ml-1 js-bulk-delete-btn">
                 <i class="fas fa-file-excel"></i> Delete via File
             </button>
 
-            <button type="button" class="btn btn-danger ml-1 js-delete-selected-btn" style="display:none;">
+            <button data-perm="Inventory_Delete" type="button" class="btn btn-danger ml-1 js-delete-selected-btn" style="display:none;">
                 <i class="fas fa-trash"></i> Delete Selected (<span class="js-selected-count">0</span>)
             </button>
         </div>

@@ -6,9 +6,10 @@
     const permissionsForm = $('#permissionsForm').serializeObject();
 
     let permissions = {
-        canCreate: "1",
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canCreate: window.cmCan('Discounts_Add'),
+        canUpdate: window.cmCan('Discounts_Edit'),
+        canDelete: window.cmCan('Discounts_Delete')
     };
     $(document).on("change", 'select[name="DiscountType"]', function () {
         let type = $(this).val();

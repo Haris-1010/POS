@@ -25,7 +25,7 @@
             },
             messages: {
                 Name: {
-                    required: "Patient name is required"
+                    required: "Customer name is required"
                 },
                 Phone: {
                     digits: "Phone must contain only numbers",
@@ -113,8 +113,8 @@
                         });
 
                         results.unshift({
-                            label: "Add New Patient",
-                            value: "Add New Patient",
+                            label: "Add New Customer",
+                            value: "Add New Customer",
                             data: null
                         });
 
@@ -145,7 +145,7 @@
 
                             // Insert alert message
                             $('#invoiceAlertBody').html(
-                                `This patient already has an invoice on <b>${formattedDate}</b><br>(Invoice # ${formattedInvoiceNo}).`
+                                `This customer already has an invoice on <b>${formattedDate}</b><br>(Invoice # ${formattedInvoiceNo}).`
                             );
 
                             $('#invoiceAlertFooter').html(`

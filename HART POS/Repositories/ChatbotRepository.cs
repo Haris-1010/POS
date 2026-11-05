@@ -226,7 +226,7 @@ namespace HARTPOS.Repositories
                         m.Name as ManufacturerName
                     FROM Inventory.InventoryItems i
                     INNER JOIN Inventory.InventoryItemVariations v ON i.ID = v.ItemID
-                    INNER JOIN Manufacturer.Manufacturers m ON i.ManufacturerID = m.ID
+                    LEFT JOIN Manufacturer.Manufacturers m ON i.ManufacturerID = m.ID
                     WHERE i.Name LIKE @MedicineName
                     AND i.IsDeleted = 0";
 
@@ -243,8 +243,8 @@ namespace HARTPOS.Repositories
 
                 if (results != null && results.Any())
                 {
-                    var response = L($"💊 **{medicineName} ka Stock:**\n\n",
-                                     $"💊 **{medicineName} Stock Details:**\n\n");
+                    var response = L($"📦 **{medicineName} ka Stock:**\n\n",
+                                     $"📦 **{medicineName} Stock Details:**\n\n");
 
                     foreach (var row in results)
                     {
@@ -370,7 +370,7 @@ namespace HARTPOS.Repositories
                         v.ExpiryDate
                     FROM Inventory.InventoryItems i
                     INNER JOIN Inventory.InventoryItemVariations v ON i.ID = v.ItemID
-                    INNER JOIN Manufacturer.Manufacturers m ON i.ManufacturerID = m.ID
+                    LEFT JOIN Manufacturer.Manufacturers m ON i.ManufacturerID = m.ID
                     WHERE i.IsDeleted = 0
                     ORDER BY i.Name";
 
@@ -582,25 +582,25 @@ namespace HARTPOS.Repositories
                 if (results != null && results.Any())
                 {
                     var row = results.First();
-                    string response = L("👤 **Mariz ki Maloomat:**\n\n",
-                                        "👤 **Patient Information:**\n\n");
+                    string response = L("👤 **Customer ki Maloomat:**\n\n",
+                                        "👤 **Customer Information:**\n\n");
 
                     response += L($"• **Naam:** {row.Name}\n" +
-                                  $"• **MR No:** {row.MR_No}\n" +
+                                  $"• **Customer No:** {row.MR_No}\n" +
                                   $"• **Phone:** {row.Phone}\n" +
                                   $"• **Shehar:** {row.City}\n" +
                                   $"• **Date of Birth:** {(row.DateOfBirth != null ? Convert.ToDateTime(row.DateOfBirth).ToString("dd-MMM-yyyy") : "N/A")}\n" +
                                   $"• **Gender:** {row.Gender}\n" +
                                   $"• **Aakhri Visit:** {Convert.ToDateTime(row.LastVisitDate):dd-MMM-yyyy}\n\n" +
-                                  $"Detailed medical history ke liye records system check karein.",
+                                  $"Mazeed tafseel ke liye Customers page dekhein.",
                                   $"• **Name:** {row.Name}\n" +
-                                  $"• **MR No:** {row.MR_No}\n" +
+                                  $"• **Customer No:** {row.MR_No}\n" +
                                   $"• **Phone:** {row.Phone}\n" +
                                   $"• **City:** {row.City}\n" +
                                   $"• **Date of Birth:** {(row.DateOfBirth != null ? Convert.ToDateTime(row.DateOfBirth).ToString("dd-MMM-yyyy") : "N/A")}\n" +
                                   $"• **Gender:** {row.Gender}\n" +
                                   $"• **Last Visit:** {Convert.ToDateTime(row.LastVisitDate):dd-MMM-yyyy}\n\n" +
-                                  $"For detailed medical history, check the records system.");
+                                  $"For more details, open the Customers page.");
 
                     return response;
                 }
@@ -763,8 +763,8 @@ namespace HARTPOS.Repositories
             }
             catch (Exception ex)
             {
-                return L($"Recent patients check mein issue: {ex.Message}",
-                         $"Issue while checking recent patients: {ex.Message}");
+                return L($"Recent customers check mein issue: {ex.Message}",
+                         $"Issue while checking recent customers: {ex.Message}");
             }
         }
 

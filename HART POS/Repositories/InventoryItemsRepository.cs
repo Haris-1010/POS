@@ -188,7 +188,10 @@ namespace HARTPOS.Repositories
                 { 
                     if (string.IsNullOrWhiteSpace(input.CreatedBy)) input.CreatedBy = "System";
                     input.CreatedOn = DateTime.Now;
-                    return int.Parse(await DBHelper.InsertAndGetIdAsync(input));
+                    string newId = await DBHelper.InsertAndGetIdAsync(input);
+                    if (int.TryParse(newId, out int id)) return id;
+                    Console.WriteLine(newId);
+                    return 0;
                 }
                 else
                 {
@@ -852,7 +855,6 @@ namespace HARTPOS.Repositories
 
                     if (itemName.Length == 0) { output.Failed++; AddImportError(output, label, "Item Name is required"); continue; }
                     if (variationName.Length == 0) { output.Failed++; AddImportError(output, label, "Variation Name is required"); continue; }
-                    if (manufacturerName.Length == 0) { output.Failed++; AddImportError(output, label, "Manufacturer is required"); continue; }
 
                     DateTime expiryDate;
                     if (!TryParseImportDate(row.ExpiryDate, out expiryDate)) { output.Failed++; AddImportError(output, label, "Expiry Date is invalid (use e.g. 31-Dec-2027)"); continue; }
@@ -881,8 +883,9 @@ namespace HARTPOS.Repositories
                     decimal sku = 0;
                     if (!string.IsNullOrWhiteSpace(row.SKU) && !TryParseImportDecimal(row.SKU, out sku)) { output.Failed++; AddImportError(output, label, "SKU must be a number"); continue; }
 
-                    int manufacturerID;
-                    if (!manufacturers.TryGetValue(manufacturerName, out manufacturerID))
+                    // Manufacturer is optional: blank means "no manufacturer" (0).
+                    int manufacturerID = 0;
+                    if (manufacturerName.Length > 0 && !manufacturers.TryGetValue(manufacturerName, out manufacturerID))
                     {
                         manufacturerID = await CreateManufacturerAsync(manufacturerName, username);
                         if (manufacturerID <= 0) { output.Failed++; AddImportError(output, label, "Unable to create manufacturer '" + manufacturerName + "'"); continue; }
@@ -919,7 +922,7 @@ namespace HARTPOS.Repositories
                             Name = itemName,
                             ProductType = string.IsNullOrWhiteSpace(row.ProductType) ? "General Product" : row.ProductType.Trim(),
                             MedicineSalt = (row.MedicineSalt ?? string.Empty).Trim(),
-                            ManufacturerID = manufacturerID,
+                            ManufacturerID = manufacturerID > 0 ? manufacturerID : (int?)null,
                             SupplierID = supplierID.ToString(),
                             CreatedBy = username
                         };

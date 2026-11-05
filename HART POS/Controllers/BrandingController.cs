@@ -31,10 +31,9 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Branding_View")]
         public ActionResult Settings()
         {
-            string location = ServerConfig.GetLocationIDCallback?.Invoke() ?? "";
-
-            ViewData["branding"] = BrandingRepository.get(location);
-            return View();
+            // The old branding page crashed when no branding row exists; branding is managed on
+            // the Print Branding page now.
+            return RedirectToAction("PrintBranding", "Brandings");
         }
 
         [HttpPost]
@@ -107,6 +106,7 @@ namespace HARTPOS.Controllers
             }
         }
 
+        [AuthorizePermission("Branding_View", "Branding_Manage")]
         public JsonResult LoadMultipleBranding()
         {
             try
@@ -123,6 +123,7 @@ namespace HARTPOS.Controllers
             }
         }
 
+        [AuthorizePermission("Branding_Manage")]
         public JsonResult UpdateBrandingSource(string Source)
         {
             try

@@ -88,31 +88,41 @@ namespace InstaCareEMR.Core.DBHelpers
             return result;
         }
 
+        // NOTE: every connection below is wrapped in "using" so it goes back to the
+        // ADO.NET pool as soon as the query finishes. Leaving connections open made the
+        // pool (max 100) run dry under normal use and requests hung waiting for one.
+
         public static bool ExecuteQuery(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            int rowsAffected = Connection.Execute(query, GetDynamicParams(Params));
-            return rowsAffected > 0;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                int rowsAffected = connection.Execute(query, GetDynamicParams(Params));
+                return rowsAffected > 0;
+            }
         }
 
         public static bool ExecuteLongQuery(string query, Dictionary<string, string> Params = null, int seconds = 1200)
         {
-            SqlConnection Connection = new SqlConnection(ConnectionString);
-            Connection.Open(); // Open connection (Dapper manages pooling)
-            var commandDefinition = new CommandDefinition(query, GetDynamicParams(Params), commandTimeout: seconds);
-            int rowsAffected = Connection.Execute(commandDefinition); // Execute query with timeout
-            return rowsAffected > 0;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                var commandDefinition = new CommandDefinition(query, GetDynamicParams(Params), commandTimeout: seconds);
+                int rowsAffected = connection.Execute(commandDefinition);
+                return rowsAffected > 0;
+            }
         }
 
         public static string ExecuteQuery_and_return_id(string query, Dictionary<string, string> Params = null)
         {
             try
             {
-                SqlConnection Connection = new SqlConnection(ConnectionString);
-                Connection.Open();
-                var id = Connection.ExecuteScalar<int>(query, GetDynamicParams(Params));
-                return id.ToString();
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    var id = connection.ExecuteScalar<int>(query, GetDynamicParams(Params));
+                    return id.ToString();
+                }
             }
             catch (Exception ex)
             {
@@ -144,48 +154,57 @@ namespace InstaCareEMR.Core.DBHelpers
 
         private static PageListObject<T> PagedResults<T>(int numberOfRecords, int pageNumber, Dictionary<string, string> Params, int offset, string mainquery, string countquery)
         {
-            var Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            var multi = Connection.QueryMultiple($"{mainquery}; {countquery}", GetDynamicParams(Params));
-            var results = multi.Read<T>().ToList();
-            int count = multi.Read<int>().FirstOrDefault();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var multi = connection.QueryMultiple($"{mainquery}; {countquery}", GetDynamicParams(Params)))
+                {
+                    var results = multi.Read<T>().ToList();
+                    int count = multi.Read<int>().FirstOrDefault();
 
-            Pager pager = GetPagerSettings(numberOfRecords, pageNumber, count, offset);
-
-            return new PageListObject<T> { pager = pager, Results = results };
+                    Pager pager = GetPagerSettings(numberOfRecords, pageNumber, count, offset);
+                    return new PageListObject<T> { pager = pager, Results = results };
+                }
+            }
         }
 
         public static int GetScaler(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            int count = Connection.ExecuteScalar<int>(query, GetDynamicParams(Params)); // Executes query with parameters
-            return count;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                return connection.ExecuteScalar<int>(query, GetDynamicParams(Params));
+            }
         }
 
         public static string GetSingleColumn(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection Connection = new SqlConnection(ConnectionString);
-            Connection.Open(); // Open connection (Dapper handles pooling)
-            return Connection.ExecuteScalar<string>(query, GetDynamicParams(Params));
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                return connection.ExecuteScalar<string>(query, GetDynamicParams(Params));
+            }
         }
 
         public static List<string> QueryColumn(string query, Dictionary<string, string> Params)
         {
-            var Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            var list = Connection.Query<string>(query, GetDynamicParams(Params)).ToList();
-            return list;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                return connection.Query<string>(query, GetDynamicParams(Params)).ToList();
+            }
         }
 
         public static T Get<T>(string query = null, string whereClause = null, Dictionary<string, string> Params = null)
         {
             query = QueryMaker.SelectQuery<T>(query, whereClause);
 
-            var Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            var result = Connection.QueryFirstOrDefault<T>(query, GetDynamicParams(Params));
-            return result != null ? result : Activator.CreateInstance<T>();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                var result = connection.QueryFirstOrDefault<T>(query, GetDynamicParams(Params));
+                return result != null ? result : Activator.CreateInstance<T>();
+            }
         }
 
         public static bool Get<T>(T _Object, string query = "", string where_clause = "", Dictionary<string, string> Params = null)
@@ -193,30 +212,32 @@ namespace InstaCareEMR.Core.DBHelpers
             List<PropertyInfo> _properties = GetReadableProperties<T>();
             query = QueryMaker.SelectQuery<T>(query, where_clause);
 
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            connection.Open();
-            SqlCommand cmd = GetSqlCommandWithParams(query, connection, Params);
-            SqlDataReader reader = cmd.ExecuteReader();
-            if (reader.HasRows)
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                while (reader.Read())
+                connection.Open();
+                using (SqlCommand cmd = GetSqlCommandWithParams(query, connection, Params))
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    foreach (PropertyInfo pi in _properties)
+                    while (reader.Read())
                     {
-                        DBReader(_Object, pi, reader);
+                        foreach (PropertyInfo pi in _properties)
+                        {
+                            DBReader(_Object, pi, reader);
+                        }
                     }
                 }
             }
-            connection.Close();
             return true;
         }
 
         public static List<T> GetList<T>(string query = null, string whereClause = null, Dictionary<string, string> Params = null)
         {
             query = QueryMaker.SelectQuery<T>(query, whereClause);
-            var Connection = new SqlConnection(ConnectionString);
-            Connection.Open();
-            return Connection.Query<T>(query, GetDynamicParams(Params)).ToList();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                return connection.Query<T>(query, GetDynamicParams(Params)).ToList();
+            }
         }
 
         #endregion ReadFunctions
@@ -253,23 +274,24 @@ namespace InstaCareEMR.Core.DBHelpers
 
         public static async Task<bool> ExecuteQueryAsync(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
-            int rowsAffected = await connection.ExecuteAsync(query, GetDynamicParams(Params));
-
-            return rowsAffected > 0;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                int rowsAffected = await connection.ExecuteAsync(query, GetDynamicParams(Params));
+                return rowsAffected > 0;
+            }
         }
 
         public static async Task<string> ExecuteQueryAndReturnIdAsync(string query, Dictionary<string, string> Params = null)
         {
             try
             {
-                SqlConnection connection = new SqlConnection(ConnectionString);
-                await connection.OpenAsync();
-
-                int result = await connection.ExecuteScalarAsync<int>(query, GetDynamicParams(Params));
-                return result.ToString();
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    await connection.OpenAsync();
+                    int result = await connection.ExecuteScalarAsync<int>(query, GetDynamicParams(Params));
+                    return result.ToString();
+                }
             }
             catch (Exception ex)
             {
@@ -281,46 +303,52 @@ namespace InstaCareEMR.Core.DBHelpers
             string query, Dictionary<string, string> parameters
             )> queries)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
-            SqlTransaction transaction = connection.BeginTransaction();
-
-            try
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                foreach (var (query, parameters) in queries)
+                await connection.OpenAsync();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
                 {
-                    await connection.ExecuteAsync(query, GetDynamicParams(parameters), transaction: transaction);
-                }
+                    try
+                    {
+                        foreach (var (query, parameters) in queries)
+                        {
+                            await connection.ExecuteAsync(query, GetDynamicParams(parameters), transaction: transaction);
+                        }
 
-                // Commit the transaction if all queries succeed
-                transaction.Commit();
-                return true;
-            }
-            catch (Exception)
-            {
-                transaction.Commit();
-                return false;
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        // Undo everything: committing here used to save half of the batch.
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
             }
         }
 
         public static async Task<bool> ExecuteQueryWithTransactionAsync(string query, Dictionary<string, string> parameters)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
-            SqlTransaction transaction = connection.BeginTransaction();
-
-            try
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                await connection.ExecuteAsync(query, GetDynamicParams(parameters), transaction: transaction);
-                transaction.Commit();
-                return true;
-            }
-            catch (Exception)
-            {
-                transaction.Rollback();
-                throw;
+                await connection.OpenAsync();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        await connection.ExecuteAsync(query, GetDynamicParams(parameters), transaction: transaction);
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
             }
         }
 
@@ -330,30 +358,31 @@ namespace InstaCareEMR.Core.DBHelpers
 
         public static async Task<int> GetScalerAsync(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-            return await connection.ExecuteScalarAsync<int>(query, GetDynamicParams(Params));
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.ExecuteScalarAsync<int>(query, GetDynamicParams(Params));
+            }
         }
 
         public static async Task<string> GetSingleColumnAsync(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-            return await connection.ExecuteScalarAsync<string>(query, GetDynamicParams(Params)) ?? string.Empty;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                return await connection.ExecuteScalarAsync<string>(query, GetDynamicParams(Params)) ?? string.Empty;
+            }
         }
 
         public static async Task<List<T>> GetListAsync<T>(string query = null, string whereClause = null, Dictionary<string, string> Params = null)
         {
-            var results = new List<T>();
             query = QueryMaker.SelectQuery<T>(query, whereClause);
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (var connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
-                results = (await connection.QueryAsync<T>(query, GetDynamicParams(Params))).ToList();
+                return (await connection.QueryAsync<T>(query, GetDynamicParams(Params))).ToList();
             }
-
-            return results;
         }
 
         public static async Task<PageListObject<T>> GetPagedListAsync<T>(string query, Dictionary<string, string> sortAndOrder, int numberOfRecords, int pageNumber, Dictionary<string, string> Params, string countQuery = "")
@@ -368,75 +397,78 @@ namespace InstaCareEMR.Core.DBHelpers
 
         private static async Task<PageListObject<T>> PagedResultsAsync<T>(int numberOfRecords, int pageNumber, Dictionary<string, string> Params, int offset, string mainquery, string countquery)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
             int count = 0;
-            List<T> results = new List<T>();
+            List<T> results;
 
-            string combinedQuery = $"{mainquery}; {countquery};";
-            using (var multi = await connection.QueryMultipleAsync(combinedQuery, GetDynamicParams(Params)))
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                results = (await multi.ReadAsync<T>()).ToList();
-                count = await multi.ReadSingleAsync<int>();
+                await connection.OpenAsync();
+
+                string combinedQuery = $"{mainquery}; {countquery};";
+                using (var multi = await connection.QueryMultipleAsync(combinedQuery, GetDynamicParams(Params)))
+                {
+                    results = (await multi.ReadAsync<T>()).ToList();
+                    count = await multi.ReadSingleAsync<int>();
+                }
             }
+
             Pager pager = GetPagerSettings(numberOfRecords, pageNumber, count, offset);
             return new PageListObject<T> { pager = pager, Results = results };
         }
 
         public static async Task<Dictionary<string, string>> QueryRowAsync(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
 
-            var result = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>(query, GetDynamicParams(Params));
+                var result = await connection.QueryFirstOrDefaultAsync<IDictionary<string, object>>(query, GetDynamicParams(Params));
 
-            return result?.ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty)
-                   ?? new Dictionary<string, string>();
+                return result?.ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty)
+                       ?? new Dictionary<string, string>();
+            }
         }
 
         public static async Task<List<string>> QueryColumnAsync(string query, Dictionary<string, string> Params = null)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-            return (await connection.QueryAsync<string>(query, GetDynamicParams(Params))).ToList();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                return (await connection.QueryAsync<string>(query, GetDynamicParams(Params))).ToList();
+            }
         }
 
         public static async Task<List<int>> GetIntListAsync(string query, Dictionary<string, string> Params)
         {
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-            return (await connection.QueryAsync<int>(query, GetDynamicParams(Params))).ToList();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                return (await connection.QueryAsync<int>(query, GetDynamicParams(Params))).ToList();
+            }
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="query"></param>
-        /// <param name="whereClause"></param>
-        /// <param name="Params"></param>
-        /// <returns></returns>
         public static async Task<T> GetAsync<T>(string query = null, string whereClause = null, Dictionary<string, string> Params = null)
         {
             query = QueryMaker.SelectQuery<T>(query, whereClause);
 
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
-            var result = await connection.QueryFirstOrDefaultAsync<T>(query, GetDynamicParams(Params));
-
-            return result != null ? result : Activator.CreateInstance<T>();
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                var result = await connection.QueryFirstOrDefaultAsync<T>(query, GetDynamicParams(Params));
+                return result != null ? result : Activator.CreateInstance<T>();
+            }
         }
 
         public static async Task<bool> GetAsync<T>(T _Object, string query = null, string whereClause = null, Dictionary<string, string> Params = null)
         {
             query = QueryMaker.SelectQuery<T>(query, whereClause);
 
-            SqlConnection connection = new SqlConnection(ConnectionString);
-            await connection.OpenAsync();
-
-            var result = await connection.QueryFirstOrDefaultAsync<T>(query, GetDynamicParams(Params));
+            T result;
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+                result = await connection.QueryFirstOrDefaultAsync<T>(query, GetDynamicParams(Params));
+            }
 
             if (result != null)
             {

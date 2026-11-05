@@ -4,9 +4,10 @@
         _$suppliersTable = $('#suppliersTable');
          
     let supplierPermissions = {
-        canCreate: "1",
-        canUpdate: "1",
-        canDelete: "1"
+        // real permissions of the logged-in user (set in _Layout)
+        canCreate: window.cmCan('Suppliers_Add'),
+        canUpdate: window.cmCan('Suppliers_Edit'),
+        canDelete: window.cmCan('Suppliers_Delete')
     };
 
     $(function () {

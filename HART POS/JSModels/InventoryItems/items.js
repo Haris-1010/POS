@@ -236,18 +236,18 @@
                                 'Actions': `
                                         <div class="btn-group">
                                             <a class="btn btn-sm btn-default" 
-                                               title="Edit Invoice" 
+                                               title="${window.cmCan('Inventory_Edit') ? 'Edit Item' : 'View Item'}"
                                                data-toggle="tooltip"
                                                href="${urlManufacturer}?ItemID=${d[i].ID}&ManufacturerID=${d[i].ManufacturerID}">
                                                <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <button class="btn btn-sm btn-danger js-delete-btn" 
-                                                    title="Delete Item" 
+                                            ${window.cmCan('Inventory_Delete') ? `<button class="btn btn-sm btn-danger js-delete-btn"
+                                                    title="Delete Item"
                                                     data-toggle="tooltip"
                                                     data-item-id="${d[i].ID}">
                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            </button>` : ''}
                                         </div>`
 
 

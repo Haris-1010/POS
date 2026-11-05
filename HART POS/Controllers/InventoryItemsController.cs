@@ -8,6 +8,7 @@ using HARTPOS.Models.Menufacturer.DTOs;
 using HARTPOS.Models.Supplier;
 using HARTPOS.Models.Supplier.DTOs;
 using HARTPOS.Repositories;
+using HARTPOS.Service;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,6 +63,10 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Inventory_View", "Inventory_Add", "Inventory_Edit")]
         public async Task<ActionResult> ManageItem(ManageItemInputDto input)
         {
+            // Creating a new item needs "Add"; an existing item can be opened with View (saving still needs Edit).
+            if (input.ItemID <= 0 && !UserAccessService.Can(HttpContext, "Inventory_Add"))
+                return Redirect("/DashBoard/AccessDenied");
+
             ManageItemViewModel viewModel = new ManageItemViewModel
             {
                 AllAttributes = await _inventoryItemsRepository.GetAllAttributesAsync(input),
@@ -88,6 +93,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_View")]
         public async Task<JsonResult> GetInventoryItemsInfo()
         {
             try
@@ -109,12 +115,24 @@ namespace HARTPOS.Controllers
         [AuthorizePermission("Inventory_Add", "Inventory_Edit")]
         public async Task<JsonResult> SaveInventoryItem(SaveInventoryItemInputDto formInput)
         {
+            // A new record needs "Inventory_Add"; changing an existing one needs "Inventory_Edit".
+            bool isNewRecord = formInput.ID <= 0;
+            if (!UserAccessService.CanSave(HttpContext, isNewRecord, "Inventory_Add", "Inventory_Edit"))
+                return Json(new AjaxRequestDTO { Status = false, Message = UserAccessService.NoPermissionMessage(isNewRecord) });
+
             try
             {
-                if (formInput.SupplierID == "0" || formInput.ManufacturerID == 0)
+                if (string.IsNullOrWhiteSpace(formInput.Name))
                 {
-                    return Json(new AjaxRequestDTO { Status = false, Message = "Failed to Save Item due to technical error" });
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Item name is required." });
                 }
+                if (string.IsNullOrWhiteSpace(formInput.SupplierID) || formInput.SupplierID == "0")
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Please select a supplier." });
+                }
+                // Manufacturer and Type are optional.
+                if (formInput.ManufacturerID < 0) formInput.ManufacturerID = 0;
+                formInput.ProductType = string.IsNullOrWhiteSpace(formInput.ProductType) ? "" : formInput.ProductType.Trim();
                 string operationType = formInput.ID > 0 ? "UPDATE" : "INSERT";
                 string currentUsername = Session["Username"]?.ToString() ?? "System";
 
@@ -125,13 +143,17 @@ namespace HARTPOS.Controllers
                     ProductType = formInput.ProductType,
                     MedicineSalt = formInput.MedicineSalt,
                     SupplierID = formInput.SupplierID,
-                    ManufacturerID = formInput.ManufacturerID,
-                    BrandID = formInput.BrandID,
+                    ManufacturerID = formInput.ManufacturerID > 0 ? formInput.ManufacturerID : (int?)null,
+                    BrandID = formInput.BrandID > 0 ? formInput.BrandID : null,
                     LastModifiedBy = currentUsername,
                     CreatedBy = currentUsername,
                 };
 
                 int ID = await _inventoryItemsRepository.SaveItemAsync(entity);
+                if (ID <= 0)
+                {
+                    return Json(new AjaxRequestDTO { Status = false, Message = "Failed to save item. Please check the details and try again." });
+                }
 
                 if (ID > 0)
                 {
@@ -149,6 +171,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_View")]
         public async Task<JsonResult> GetPagedInventoryItems(GetPagedInventoryItemsInputDto input)
         {
             try
@@ -375,6 +398,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_Add", "Inventory_Edit", "Purchases_Add", "Purchases_Edit")]
         public async Task<JsonResult> SaveItemVariation(InventoryItemVariation formInput)
         {
             try
@@ -403,6 +427,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_Delete")]
         public async Task<JsonResult> DeleteVariation(DeleteInventoryItemInputDto input)
         {
             try
@@ -471,6 +496,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_Add", "Inventory_Edit")]
         public async Task<JsonResult> SaveVariationImages(List<InventoryItemVariationImage> Images)
         {
             try
@@ -603,6 +629,7 @@ namespace HARTPOS.Controllers
         }
 
         [HttpPost]
+        [AuthorizePermission("Inventory_View")]
         public async Task<JsonResult> GetItemActivityLogs(GetItemActivityLogInputDto input)
         {
             try
